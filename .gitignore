@@ -1,1 +1,3 @@
 ros-i2cpwmboard/
+*.pyc
+.vscode/
