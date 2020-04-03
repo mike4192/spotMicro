@@ -1,0 +1,18 @@
+# the drive_mode service is used to assigned servos to various drive modes
+# the drive modes determine how the assigned servos respond to geometry_msgs::Twist messages
+# drive modes are one of: ackerman, differential, or mecanum
+# to accurately convert velocity in m/s the controller needs to know three values:
+#   the RPM    - the maximum output speed available from the drive motors
+#   the radius - the drive wheel radius in meters
+#   the track  - the distance between the left and right wheels in meters
+# use the scale value to adjust incoming Twist values as needed to match the servo/motor capability
+
+
+string mode
+float32 rpm
+float32 radius
+float32 track
+float32 scale
+Position[] servos
+---
+int16 error

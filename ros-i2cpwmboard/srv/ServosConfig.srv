@@ -1,0 +1,8 @@
+# the servos_config service is used to assign useful configuration data to servos
+# the tollerance of electronis varies in RC servos so it is important to calibate
+# each servo, indicating its PWM value for direction of rotation, centering, and
+# range which is used to scale servo motion a standard ±1000 scale
+
+ServoConfig[] servos
+---
+int16 error

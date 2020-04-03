@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<package>
+  <name>i2cpwm_board</name>
+  <version>0.5.1</version>
+  <description>
+	Controller for the Adafruit 16 channel PWM servo I2C board, hat, and similar PCA9685 based boards.
+	Provides absolute proportional PWM control as well as supports geometry_msgs/Twist.
+  </description>
+
+  <author>Bradan Lane Studio</author>
+  <maintainer email="locoro@bradanlane.com">bradanlane</maintainer>
+  <license>GPLv3</license>
+  <url>https://gitlab.com/bradanlane/ros-i2cpwmboard</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>message_generation</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>std_srvs</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
+
+  <run_depend>message_runtime</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>std_srvs</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>rospy</run_depend>
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+  </export>
+</package>
