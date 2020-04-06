@@ -10,7 +10,7 @@ from i2cpwm_board.msg import Servo, ServoArray, ServoConfig, ServoConfigArray
 from i2cpwm_board.srv import ServosConfig
 
 # Global variable for number of servos
-numServos = 12 
+numServos = 1
 
 msg = """
 Servo Control Module for 12 Servos.
@@ -51,10 +51,10 @@ keyDict = {
     't': lambda x: x.set_value(x._min),
     'y': lambda x: x.set_value(x._center),
     'u': lambda x: x.set_value(x._max),
-    'f': lambda x: x.set_value(x.value-10),
-    'g': lambda x: x.set_value(x.value-1),
-    'j': lambda x: x.set_value(x.value+1),
-    'k': lambda x: x.set_value(x.value+10),
+    'f': lambda x: x.set_value(x.value-0.01),
+    'g': lambda x: x.set_value(x.value-.1),
+    'j': lambda x: x.set_value(x.value+.1),
+    'k': lambda x: x.set_value(x.value+0.01),
     'b': lambda x: x.set_min(x.value),
     'n': lambda x: x.set_center(x.value),
     'm': lambda x: x.set_max(x.value),
@@ -71,11 +71,11 @@ class ServoConvert():
     These nominal values would coorespond to integer values of approximately 204, 306, and 409
     for 1 ms, 1.5 ms, and 2 ms, respectively
     '''
-    def __init__(self, id=1, center_value=306, direction=1):
+    def __init__(self, id=1, center_value=0, direction=1):
         self.value      = center_value
         self._center    = center_value
-        self._min       = 83
-        self._max       = 520
+        self._min       = -1
+        self._max       = 1
         self._dir       = direction
         self.id         = id
 
@@ -84,7 +84,7 @@ class ServoConvert():
         Set Servo value
         Input: Value between 0 and 4095
         '''
-        if value_in not in range(4096):
+        if False:
             print('Servo value not in range [0,4095]')
         else:
             self.value = value_in
@@ -95,7 +95,7 @@ class ServoConvert():
         Set Servo center value
         Input: Value between 0 and 4095
         '''
-        if center_val not in range(4096):
+        if False:
             print('Servo value not in range [0,4095]')
         else:
             self._center = center_val
@@ -106,7 +106,7 @@ class ServoConvert():
         Set Servo max value
         Input: Value between 0 and 4095
         '''
-        if max_val not in range(4096):
+        if False:
             print('Servo value not in range [0,4095]')
         else:
             self._max = max_val
@@ -117,7 +117,7 @@ class ServoConvert():
         Set Servo min value
         Input: Value between 0 and 4095
         '''
-        if min_val not in range(4096):
+        if False:
             print('Servo value not in range [0,4095]')
         else:
             self._min = min_val
@@ -130,12 +130,23 @@ class SpotMicroServoControl():
         self._servo1_config = ServoConfig()
 
         self._servo1_config.center = 300
-        self._servo1_config.range = 100
+        self._servo1_config.range = 400
         self._servo1_config.servo = 1
         self._servo1_config.direction = 1
 
         self._servo_config_msg.servos.append(self._servo1_config)
 
+        rospy.loginfo("> Waiting for config_servos service...")
+        print('test1')
+        rospy.wait_for_service('config_servos')
+        rospy.loginfo("> Config_servos service found!")
+        print('test2')
+        try:
+            servoConfigService = rospy.ServiceProxy('config_servos',ServosConfig)
+            resp = servoConfigService(self._servo_config_msg.servos)
+            print("Config servos done!!, returned value: %i"%resp.error)
+        except rospy.ServiceException, e:
+            print "Service call failed: %s"%e
         
 
         rospy.loginfo("Setting Up the Spot Micro Servo Control Node...")
@@ -159,7 +170,7 @@ class SpotMicroServoControl():
             self._servo_msg.servos.append(Servo())
 
         # Create the servo array publisher
-        self.ros_pub_servo_array    = rospy.Publisher("/servos_absolute", ServoArray, queue_size=1)
+        self.ros_pub_servo_array    = rospy.Publisher("/servos_proportional", ServoArray, queue_size=1)
         rospy.loginfo("> Publisher corrrectly initialized")
 
         rospy.loginfo("Initialization complete")
@@ -211,7 +222,7 @@ class SpotMicroServoControl():
                     print('Final Servo Values')
                     print('--------------------')
                     for i in range(numServos):
-                        print('Servo %2i:   Min: %4i,   Center: %4i,   Max: %4i'%(i,self.servos[i]._min,self.servos[i]._center,self.servos[i]._max))                    
+                        print('Servo %2i:   Min: %1.2f,   Center: %1.2f,   Max: %1.2f'%(i,self.servos[i]._min,self.servos[i]._center,self.servos[i]._max))                    
                     break
 
                 elif userInput == 'oneServo':
@@ -224,7 +235,7 @@ class SpotMicroServoControl():
                     while (1):
                         userInput = input('Which servo to control? Enter a number 1 through 12: ')
                         
-                        if userInput not in range(1,numServos):
+                        if userInput not in range(1,numServos+1):
                             print("Invalid servo number entered, try again")
                         else:
                             nSrv = userInput - 1
@@ -242,7 +253,7 @@ class SpotMicroServoControl():
                             print('Key not in valid key commands, try again')
                         else:
                             keyDict[userInput](self.servos[nSrv])
-                            print('Servo %2i cmd: %4i'%(nSrv,self.servos[nSrv].value))
+                            print('Servo %2i cmd: %1.2f'%(nSrv,self.servos[nSrv].value))
                             self.send_servo_msg()
 
                 elif userInput == 'allServos':
