@@ -168,6 +168,11 @@ class SpotMicroServoControl():
         for s in self.servos:
             self.servos[s].value = self.servos[s]._center
     
+    def reset_all_servos_off(self):
+        '''Set all servos to off/freewheel value (pwm of 0)'''
+        for s in self.servos:
+            self.servos[s].value = 0
+    
     def getKey(self):
         tty.setraw(sys.stdin.fileno())
         select.select([sys.stdin], [], [], 0)
@@ -202,7 +207,7 @@ class SpotMicroServoControl():
 
                 elif userInput == 'oneServo':
                     # Reset all servos to center value, and send command
-                    self.reset_all_servos_center()
+                    self.reset_all_servos_off()
                     self.send_servo_msg()
 
                     # First get servo number to command
@@ -210,7 +215,7 @@ class SpotMicroServoControl():
                     while (1):
                         userInput = input('Which servo to control? Enter a number 1 through 12: ')
                         
-                        if userInput not in range(1,numServos):
+                        if userInput not in range(1,numServos+1):
                             print("Invalid servo number entered, try again")
                         else:
                             nSrv = userInput - 1
