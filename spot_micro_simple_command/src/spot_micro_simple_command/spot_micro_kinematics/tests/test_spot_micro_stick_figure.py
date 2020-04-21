@@ -30,7 +30,7 @@ class TestSpotMicroLeg(unittest.TestCase):
         # leg start position should be at origin aligned with global coordinate frame
         ht_rf = smk.t_rightfront(body_ht,0,0)
 
-        leg = SpotMicroLeg(q1,q2,q3,l1,l2,l3,ht_rf)
+        leg = SpotMicroLeg(q1,q2,q3,l1,l2,l3,ht_rf,leg12=True)
 
         (p1,p2,p3,p4) = leg.get_leg_points()
 

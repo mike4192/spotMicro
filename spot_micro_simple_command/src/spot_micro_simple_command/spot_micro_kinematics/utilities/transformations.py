@@ -80,7 +80,8 @@ def rotxyz(x_ang,y_ang,z_ang):
     Returns:
         The 3D rotation matrix for a x, y, z rotation
     """
-    return rotx(x_ang) @ roty(y_ang) @ rotz(z_ang)
+    # return rotx(x_ang) @ roty(y_ang) @ rotz(z_ang)
+    return np.matmul(np.matmul(rotx(x_ang), roty(y_ang)), rotz(z_ang))
 
 
 def homog_rotxyz(x_ang,y_ang,z_ang):
@@ -135,7 +136,8 @@ def homog_transform(x_ang,y_ang,z_ang,x_t,y_t,z_t):
     Returns:
         The homogenous transformation matrix for a x, y, z rotation and translation
     """
-    return homog_rotxyz(x_ang,y_ang,z_ang) @ homog_transxyz(x_t,y_t,z_t)
+    # return homog_rotxyz(x_ang,y_ang,z_ang) @ homog_transxyz(x_t,y_t,z_t)
+    return np.matmul(homog_rotxyz(x_ang,y_ang,z_ang), homog_transxyz(x_t,y_t,z_t))
 
 def ht_inverse(ht):
     '''Calculate the inverse of a homogeneous transformation matrix
@@ -176,4 +178,5 @@ def ht_inverse(ht):
     temp_vec_ht[0:3,3] = temp_vec
 
     # Return the matrix product
-    return temp_rot_ht @ temp_vec_ht
+    # return temp_rot_ht @ temp_vec_ht
+    return np.matmul(temp_rot_ht, temp_vec_ht)

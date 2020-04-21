@@ -119,15 +119,18 @@ class SpotMicroLeg(object):
         # ht = ht_leg_start @ t01 @ t12 @ t23 @ t34 
         p1 = self._ht_leg_start[0:3,3]
 
-        ht_buildup = self._ht_leg_start @ self._t01 @ self._t12
+        # ht_buildup = self._ht_leg_start @ self._t01 @ self._t12
+        ht_buildup = np.matmul(np.matmul(self._ht_leg_start, self._t01), self._t12)
 
         p2 = ht_buildup[0:3,3]
 
-        ht_buildup = ht_buildup @ self._t23
-
+        # ht_buildup = ht_buildup @ self._t23
+        ht_buildup = np.matmul(ht_buildup, self._t23)
+        
         p3 = ht_buildup[0:3,3]
 
-        ht_buildup = ht_buildup @ self._t34
+        # ht_buildup = ht_buildup @ self._t34
+        ht_buildup = np.matmul(ht_buildup, self._t34)
 
         p4 = ht_buildup[0:3,3]
 
@@ -135,8 +138,14 @@ class SpotMicroLeg(object):
 
     def get_foot_position_in_global_coords(self):
         ''' Return coordinates of the foot in the leg's local coordinate frame'''
-        ht_foot = self._ht_leg_start @ self._t01 @ self._t12 @ self._t23 @ self._t34
+        # ht_foot = self._ht_leg_start @ self._t01 @ self._t12 @ self._t23 @ self._t34
+        ht_foot = np.matmul(np.matmul(np.matmul(np.matmul(self._ht_leg_start, self._t01), self._t12), self._t23), self._t34)
         return ht_foot[0:3,3]
+    
+    def get_leg_angles(self):
+        '''Return leg angles as a tuple of 3 angles, (q1, q2, q3)'''
+
+        return (self._q1,self._q2,self._q3)
 
 
 class SpotMicroStickFigure(object):
@@ -189,13 +198,13 @@ class SpotMicroStickFigure(object):
         self.theta = theta
         self.psi = psi   
 
-        # self.ht_body = transformations.homog_transform(self.phi,self.psi,self.theta,
-        #                                                self.x,self.y,self.z)
-
-        #TODO: make initialization of body pose clear, e.g:
-        # linear transformation then rotation to achieve a position, and body orientation
-        self.ht_body = transformations.homog_transxyz(self.x,self.y,self.z) @ transformations.homog_rotxyz(self.phi,self.psi,self.theta)
-
+        # Initialize Body Pose
+        # Convention for this class is to initialize the body pose at a x,y,z position, with a phi,theta,psi orientation
+        # To achieve this pose, need to apply a homogeneous translation first, then a homgeneous rotation
+        # If done the other way around, a coordinate system will be rotate first, then translated along the rotated coordinate system
+        # self.ht_body = transformations.homog_transxyz(self.x,self.y,self.z) @ transformations.homog_rotxyz(self.phi,self.psi,self.theta)
+        self.ht_body = np.matmul(transformations.homog_transxyz(self.x,self.y,self.z), transformations.homog_rotxyz(self.phi,self.psi,self.theta))
+        
         # Intialize all leg angles to 0, 30, 30 degrees
         self.rb_leg_angles   = [0,-30*d2r,60*d2r]
         self.rf_leg_angles   = [0,-30*d2r,60*d2r]
@@ -224,15 +233,6 @@ class SpotMicroStickFigure(object):
 
     def get_leg_coordinates(self):
         '''Return coordinates of each leg as a tuple of 4 sets of 4 leg points'''
-
-        # leg_rightback_coords    = self.leg_rightback.get_leg_points()
-        # leg_rightfront_coords   = self.leg_rightfront.get_leg_points()
-        # leg_leftfront_coords    = self.leg_leftfront.get_leg_points()
-        # leg_leftback_coords     = self.leg_leftback.get_leg_points()
-
-        # leg_coords = []
-        # for leg in self.legs.values():
-        #     leg_coords[0] = leg.get_leg_points()
         
         return (self.legs['leg_rightback'].get_leg_points(),
                 self.legs['leg_rightfront'].get_leg_points(),
@@ -276,12 +276,18 @@ class SpotMicroStickFigure(object):
             Nothing
         '''
 
-        # For each leg, call its method to set foot position in global coordinate frame  
-        for leg, i in zip(self.legs.values(),range(4)):
-            x4 = foot_coords[i,0]
-            y4 = foot_coords[i,1]
-            z4 = foot_coords[i,2]
-            leg.set_foot_position_in_global_coords(x4,y4,z4)
+        # For each leg, call its method to set foot position in global coordinate frame
+        
+        foot_coords_dict = {'leg_rightback':foot_coords[0],
+                            'leg_rightfront':foot_coords[1],
+                            'leg_leftfront':foot_coords[2],
+                            'leg_leftback':foot_coords[3]}
+        
+        for leg_name in self.legs:
+            x4 = foot_coords_dict[leg_name][0]
+            y4 = foot_coords_dict[leg_name][1]
+            z4 = foot_coords_dict[leg_name][2]
+            self.legs[leg_name].set_foot_position_in_global_coords(x4,y4,z4)
 
     def set_absolute_body_pose(self, ht_body):
         '''Set absolute pose of body, while holding foot positions in place'''
@@ -325,12 +331,28 @@ class SpotMicroStickFigure(object):
         # Get current body pose, and replace rotation part with r_xyz
         ht_body = self.ht_body
 
-        print(ht_body)
         ht_body[0:3,0:3] = r_xyz
 
-        print(ht_body)
         # Call method to set absolute body pose
         self.set_absolute_body_pose(ht_body)
+
+    def get_leg_angles(self):
+        ''' Get the leg angles for all four legs
+        Args:
+            None
+        Returns:
+            leg_angs: Tuple of 4 of the leg angles. Legs in the order rightback
+                      rightfront, leftfront, leftback. Angles in the order q1,q2,q3.
+                      An example output:
+                        ((rb_q1,rb_q2,rb_q3),
+                         (rf_q1,rf_q2,rf_q3),
+                         (lf_q1,lf_q2,lf_q3),
+                         (lb_q1,lb_q2,lb_q3))
+        '''
+        return (    self.legs['leg_rightback'].get_leg_angles(),
+                    self.legs['leg_rightfront'].get_leg_angles(),
+                    self.legs['leg_leftfront'].get_leg_angles(),
+                    self.legs['leg_leftback'].get_leg_angles()     )
 
 
     def print_leg_angles(self):

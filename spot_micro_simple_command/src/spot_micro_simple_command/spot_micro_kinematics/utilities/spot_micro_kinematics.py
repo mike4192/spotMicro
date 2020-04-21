@@ -1,8 +1,8 @@
 """Forward and inverse kinematic transformations for a quadriped robot. 
 
 Equations from:
-Şen, Muhammed Arif & Bakırcıoğlu, Veli & Kalyoncu, Mete. (2017). 
-Inverse Kinematic Analysis Of A Quadruped Robot. 
+Sen, Muhammed Arif & Bakircioglu, Veli & Kalyoncu, Mete. (2017). 
+Inverse Kinematic Analysis Of A Quadruped Robot.
 International Journal of Scientific & Technology Research. 6. 
 """
 
@@ -26,7 +26,8 @@ def t_rightback(t_m,l,w):
     '''
     temp_homog_transf = np.block( [ [ transformations.roty(pi/2), np.array([[-l/2],[0],[w/2]])  ],
                                     [np.array([0,0,0,1])] ]    )
-    return t_m @ temp_homog_transf
+    # return t_m @ temp_homog_transf
+    return np.matmul(t_m,temp_homog_transf)
 
 def t_rightfront(t_m,l,w):
     '''Creates a 4x4 numpy homogeneous transformation matrix representing coordinate system and 
@@ -44,7 +45,8 @@ def t_rightfront(t_m,l,w):
     '''
     temp_homog_transf = np.block( [ [ transformations.roty(pi/2), np.array([[l/2],[0],[w/2]])  ],
                                     [np.array([0,0,0,1])] ]    )
-    return t_m @ temp_homog_transf
+    # return t_m @ temp_homog_transf
+    return np.matmul(t_m,temp_homog_transf)
 
 def t_leftfront(t_m,l,w):
     '''Creates a 4x4 numpy homogeneous transformation matrix representing coordinate system and 
@@ -62,7 +64,8 @@ def t_leftfront(t_m,l,w):
     '''
     temp_homog_transf = np.block( [ [ transformations.roty(-pi/2), np.array([[l/2],[0],[-w/2]])  ],
                                     [np.array([0,0,0,1])] ]    )
-    return t_m @ temp_homog_transf
+    # return t_m @ temp_homog_transf
+    return np.matmul(t_m,temp_homog_transf)
 
 def t_leftback(t_m,l,w):
     '''Creates a 4x4 numpy homogeneous transformation matrix representing coordinate system and 
@@ -80,7 +83,8 @@ def t_leftback(t_m,l,w):
     '''
     temp_homog_transf = np.block( [ [ transformations.roty(-pi/2), np.array([[-l/2],[0],[-w/2]])  ],
                                     [np.array([0,0,0,1])] ]    )
-    return t_m @ temp_homog_transf
+    # return t_m @ temp_homog_transf
+    return np.matmul(t_m,temp_homog_transf)
 
 
 def t_0_to_1(theta1,l1):
@@ -188,7 +192,8 @@ def t_0_to_4(theta1, theta2, theta3, l1, l2, l3):
     Returns:
         A 4x4 numpy matrix. Homogeneous transform from joint 0 to 4
     '''
-    return t_0_to_1(theta1,l1) @ t_1_to_2() @ t_2_to_3(theta2,l2) @ t_3_to_4(theta3,l3)
+    # return t_0_to_1(theta1,l1) @ t_1_to_2() @ t_2_to_3(theta2,l2) @ t_3_to_4(theta3,l3)
+    return np.matmul(np.matmul(np.matmul(t_0_to_1(theta1,l1), t_1_to_2()), t_2_to_3(theta2,l2)), t_3_to_4(theta3,l3))
 
 def ikine(x4,y4,z4,l1,l2,l3,legs12=True):
     '''Use inverse kinematics fo calculate the leg angles for a leg to achieve a desired
