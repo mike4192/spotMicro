@@ -1,7 +1,6 @@
 import numpy as np
-from pupper.HardwareConfig import MICROS_PER_RAD, NEUTRAL_ANGLE_DEGREES, PS4_COLOR, PS4_DEACTIVATED_COLOR
+#from pupper.HardwareConfig import MICROS_PER_RAD, NEUTRAL_ANGLE_DEGREES, PS4_COLOR, PS4_DEACTIVATED_COLOR
 from enum import Enum
-from 
 
 # TODO: put these somewhere else
 #class PWMParams:
@@ -77,10 +76,10 @@ class Configuration:
              [1, 1, 1, 0]]
         )
         self.overlap_time = (
-            0.10  # duration of the phase where all four feet are on the ground
+            0.20  # duration of the phase where all four feet are on the ground
         )
         self.swing_time = (
-            0.15  # duration of the phase when only two feet are on the ground
+            0.3  # duration of the phase when only two feet are on the ground
         )
 
         ######################## GEOMETRY ######################

@@ -1,8 +1,9 @@
-from src.Gaits import GaitController
-from src.StanceController import StanceController
-from src.SwingLegController import SwingController
-from src.Utilities import clipped_first_order_filter
-from src.State import BehaviorState, State
+from .Gaits import GaitController
+from .StanceController import StanceController
+from .SwingLegController import SwingController
+from .Utilities import clipped_first_order_filter
+from .State import BehaviorState, State
+from ..spot_micro_kinematics.utilities.transformations import rotz
 
 import numpy as np
 #from transforms3d.euler import euler2mat, quat2euler
@@ -69,10 +70,10 @@ class Controller:
         """
 
         ########## Update operating state based on command ######
-         if command.activate_event:
-             state.behavior_state = self.activate_transition_mapping[state.behavior_state]
-         elif command.trot_event:
-             state.behavior_state = self.trot_transition_mapping[state.behavior_state]
+        if command.activate_event:
+            state.behavior_state = self.activate_transition_mapping[state.behavior_state]
+        elif command.trot_event:
+            state.behavior_state = self.trot_transition_mapping[state.behavior_state]
         # elif command.hop_event:
         #     state.behavior_state = self.hop_transition_mapping[state.behavior_state]
 
@@ -122,34 +123,35 @@ class Controller:
         #         state.foot_locations, self.config
         #     )
 
-        # elif state.behavior_state == BehaviorState.REST:
-        #     yaw_proportion = command.yaw_rate / self.config.max_yaw_rate
-        #     self.smoothed_yaw += (
-        #         self.config.dt
-        #         * clipped_first_order_filter(
-        #             self.smoothed_yaw,
-        #             yaw_proportion * -self.config.max_stance_yaw,
-        #             self.config.max_stance_yaw_rate,
-        #             self.config.yaw_time_constant,
-        #         )
-        #     )
-        #     # Set the foot locations to the default stance plus the standard height
-        #     state.foot_locations = (
-        #         self.config.default_stance
-        #         + np.array([0, 0, command.height])[:, np.newaxis]
-        #     )
-        #     # Apply the desired body rotation
-        #     rotated_foot_locations = (
-        #         euler2mat(
-        #             command.roll,
-        #             command.pitch,
-        #             self.smoothed_yaw,
-        #         )
-        #         @ state.foot_locations
-        #     )
-        #     state.joint_angles = self.inverse_kinematics(
-        #         rotated_foot_locations, self.config
-        #     )
+        elif state.behavior_state == BehaviorState.REST:
+            yaw_proportion = command.yaw_rate / self.config.max_yaw_rate
+            self.smoothed_yaw += (
+                self.config.dt
+                * clipped_first_order_filter(
+                    self.smoothed_yaw,
+                    yaw_proportion * -self.config.max_stance_yaw,
+                    self.config.max_stance_yaw_rate,
+                    self.config.yaw_time_constant,
+                )
+            )
+            # Set the foot locations to the default stance plus the standard height
+            state.foot_locations = (
+                self.config.default_stance
+                + np.array([0, 0, command.height])[:, np.newaxis]
+            )
+            # Apply the desired body rotation
+            #rotated_foot_locations = (
+            #    euler2mat(
+            #        command.roll,
+            #        command.pitch,
+            #        self.smoothed_yaw,
+            #    )
+            #    @ state.foot_locations
+            #)
+            # rotated_foot_locations = np.matmul(rotz(self.smoothed_yaw),state.foot_locations)
+            # state.joint_angles = self.inverse_kinematics(
+                # rotated_foot_locations, self.config
+            # )
 
         state.ticks += 1
         state.pitch = command.pitch

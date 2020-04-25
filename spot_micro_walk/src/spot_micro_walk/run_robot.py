@@ -112,8 +112,8 @@ class SpotMicroSimpleCommand():
         rospy.loginfo("Initialization complete")
 
         # Create a spot micro stick figure object to encapsulate robot state
-        default_height = 0.18
-        self.sm = SpotMicroStickFigure(y=default_height)
+        self.default_height = 0.18
+        self.sm = SpotMicroStickFigure(y=self.default_height)
 
         # Set absolute foot positions for default stance,
         # foot order: RB, RF, LF, LB
@@ -131,18 +131,18 @@ class SpotMicroSimpleCommand():
         self.config = Configuration()
         self.config.delta_x = l/2
         self.config.delta_y = w/2 + l1
-        self.default_z_ref = -default_height
+        self.default_z_ref = -self.default_height
         
         # Create controller object
         self.controller = Controller(self.config)
 
         # Create state object
         self.state = State()
-        self.state.foot_locations = (self.config.default_stance + np.array([0,0,-default_height])[:, np.newaxis])
+        self.state.foot_locations = (self.config.default_stance + np.array([0,0,-self.default_height])[:, np.newaxis])
         
         # Create Command object
         self.command = Command()
-        self.command.height = -default_height
+        self.command.height = -self.default_height
    
 
 
@@ -156,7 +156,7 @@ class SpotMicroSimpleCommand():
 
     def update_yaw_rate_cmd(self,msg):
         '''Updates yaw rate command from received message'''
-        self.yaw_rate_cmd_rp = msg.data
+        self.yaw_rate_cmd_rps = msg.data
 
     def set_leg_angles_servo_msg(self,leg_angs):
         '''Sets servo_cmds_rad to the set of 12 leg angles received from get_leg_angles'''
@@ -224,9 +224,25 @@ class SpotMicroSimpleCommand():
         self.send_servo_cmd_msg()
          
         while not rospy.is_shutdown():
+            
+            # Update subscriber variables incase they were updated from a message
+            self.command.horizontal_velocity = np.array([self.x_speed_cmd_mps, self.y_speed_cmd_mps])
+            self.command.yaw_rate = self.yaw_rate_cmd_rps
 
             #Call gait or stand controller
             foot_positions = self.controller.run(self.state, self.command)
+
+            # Reorder foot positions, and call inverse kinematics function
+            # Foot positions from controller are a 3x4 matrix in the order
+            # rightfront, leftfront, rightback, leftback
+            foot_positions_for_sm = np.array([ [foot_positions[0,2],self.default_height+foot_positions[2,2],foot_positions[1,2]],
+                                               [foot_positions[0,0],self.default_height+foot_positions[2,0],foot_positions[1,0]],
+                                               [foot_positions[0,1],self.default_height+foot_positions[2,1],foot_positions[1,1]],  
+                                               [foot_positions[0,3],self.default_height+foot_positions[2,3],foot_positions[1,3]] ])
+            self.sm.set_absolute_foot_coordinates(foot_positions_for_sm)
+            leg_angs = self.sm.get_leg_angles()
+
+            self.set_leg_angles_servo_msg(leg_angs)
 
             # Command Servos
             self.send_servo_cmd_msg()
@@ -242,167 +258,3 @@ def main():
     print('Got here!!!')
     smsc_obj.run()
 
-def main(use_imu=False):
-    """Main program
-    """
-
-    # Create config
-    config = Configuration()
-
-    # Create controller and user input handles
-    controller = Controller(config)
-
-
-    print(config.default_stance)
-    state = State()
-    state.foot_locations = (
-                config.default_stance + np.array([0, 0, -0.16])[:, np.newaxis]
-            )
-    # print("Creating joystick listener...")
-    # joystick_interface = JoystickInterface(config)
-    # print("Done.")
-
-    last_loop = time.time()
-
-    print("Summary of gait parameters:")
-    # print("overlap time: ", config.overlap_time)
-    # print("swing time: ", config.swing_time)
-    # print("z clearance: ", config.z_clearance)
-    # print("x shift: ", config.x_shift)
-
-
-    command = Command()
-    command.horizontal_velocity = np.array([0.2, 0])
-
-    foot_position_data = []
-    # Wait until the activate button has been pressed
-    # while True:
-        # print("Waiting for L1 to activate robot.")
-        # while True:
-        #     command = joystick_interface.get_command(state)
-        #     joystick_interface.set_color(config.ps4_deactivated_color)
-        #     if command.activate_event == 1:
-        #         break
-        #     time.sleep(0.1)
-        # print("Robot activated.")
-        # joystick_interface.set_color(config.ps4_color)
-    count = -1
-    
-    while count<101:
-        
-        now = time.time()
-        if now - last_loop < config.dt:
-            continue
-        else:
-            count += 1
-            last_loop = time.time()
-
-            # # Parse the udp joystick commands and then update the robot controller's parameters
-            # command = joystick_interface.get_command(state)
-            # if command.activate_event == 1:
-            #     print("Deactivating Robot")
-            #     break
-
-            # Read imu data. Orientation will be None if no data was available
-            # quat_orientation = (
-            #     imu.read_orientation() if use_imu else np.array([1, 0, 0, 0])
-            # )
-            # state.quat_orientation = quat_orientation
-
-
-            # Step the controller forward by dt
-            
-            test = controller.run(state, command)
-            # print(test)
-            if count>50:
-                foot_position_data.append(test)
-
-
-
-
-
-        # # Update the pwm widths going to the servos
-        # hardware_interface.set_actuator_postions(state.joint_angles)
-
-
-    fig, ax = plt.subplots(2,2)
-
-    # Reorganize data
-    f1xpos = []
-    f1zpos = []
-
-    f2xpos = []
-    f2zpos = []
-
-    f3xpos = []
-    f3zpos = []
-
-    f4xpos = []
-    f4zpos = []
-
-    for d in foot_position_data:
-        f1xpos.append(d[0][0])
-        f1zpos.append(d[2][0])
-
-        f2xpos.append(d[0][1])
-        f2zpos.append(d[2][1])
-
-        f3xpos.append(d[0][2])
-        f3zpos.append(d[2][2])
-        
-        f4xpos.append(d[0][3])
-        f4zpos.append(d[2][3])
-
-
-    COLOR='blue'
-    MAP='winter'
-    NPOINTS = len(f1xpos)
-
-    cm = plt.get_cmap(MAP)
-    colors = plt.cm.winter(np.linspace(0,1,NPOINTS))
-    ax[0,1].set_prop_cycle('color',colors)
-    for i in range(NPOINTS-1):
-        ax[0,1].plot(f1xpos[i:i+2],f1zpos[i:i+2])
-
-    ax[0,0].set_prop_cycle('color',colors)
-    for i in range(NPOINTS-1):
-        ax[0,0].plot(f2xpos[i:i+2],f2zpos[i:i+2])
-    
-    ax[1,1].set_prop_cycle('color',colors)
-    for i in range(NPOINTS-1):
-        ax[1,1].plot(f3xpos[i:i+2],f3zpos[i:i+2])
-
-
-    ax[1,0].set_prop_cycle('color',colors)
-    for i in range(NPOINTS-1):
-        ax[1,0].plot(f4xpos[i:i+2],f4zpos[i:i+2])
-
-    # Plot foot default stance points as red dots
-    ax[0,1].plot(config.default_stance[0,0],config.default_z_ref,'ro')
-    ax[0,0].plot(config.default_stance[0,1],config.default_z_ref,'ro')
-    ax[1,1].plot(config.default_stance[0,2],config.default_z_ref,'ro')
-    ax[1,0].plot(config.default_stance[0,3],config.default_z_ref,'ro')
-
-    # Set axis labels
-    for i in range(2):
-        for j in range(2):
-            ax[i,j].set_ylabel('z position')
-            ax[i,j].set_xlabel('x position')
-    
-    # Set titles
-    ax[0,1].set_title('Front Right Foot')
-    ax[0,0].set_title('Front Left Foot')
-    ax[1,0].set_title('Back Left Foot')
-    ax[1,1].set_title('Back Right Foot')
-
-    ax[0,0].axis('scaled')
-    ax[0,1].axis('scaled')
-    ax[1,0].axis('scaled')
-    ax[1,1].axis('scaled')
-    
-    # Set title
-    fig.suptitle('Pupper Trot Foot Positions, Forward Speed 0.2 m/s, alpha = 0.8',fontsize=16)
-    plt.show()
-    
-
-main()
