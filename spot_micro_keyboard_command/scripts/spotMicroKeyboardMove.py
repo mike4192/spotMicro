@@ -6,6 +6,7 @@ Class for sending keyboard commands to spot micro walk node, control velocity, y
 import rospy
 import sys, select, termios, tty # For terminal keyboard key press reading
 from std_msgs.msg import Float32, Bool 
+from math import pi
 
 msg = """
 Spot Micro Walk Command
@@ -13,8 +14,7 @@ Spot Micro Walk Command
 Enter one of the following options:
 -----------------------------
 quit: stop and quit the program
-oneServo: Move one servo manually, all others will be commanded to their center position
-allServos: Move all servo's manually together
+trot: Start trot mode and keyboard motion control
 
 Keyboard commands for body motion 
 ---------------------------
@@ -35,16 +35,36 @@ Keyboard commands for body motion
 
 CTRL-C to quit
 """
+valid_cmds = ('quit','Quit','trot')
+
+# Global body motion increment values
+speed_inc = 0.02
+yaw_rate_inc = 2*pi/180
+
 
 class SpotMicroKeyboardControl():
     def __init__(self):
+
+        # Create messages for body motion commands, and initialize to zero 
+        self._x_speed_cmd_msg = Float32()
+        self._x_speed_cmd_msg.data = 0
+
+        self._y_speed_cmd_msg = Float32()
+        self._y_speed_cmd_msg.data = 0
+
+        self._yaw_rate_cmd_msg = Float32()
+        self._yaw_rate_cmd_msg.data = 0
+
+        self._trot_event_cmd_msg = Bool()
+        self._trot_event_cmd_msg.data = True # Mostly acts as an event driven action on receipt of a true message
+
         rospy.loginfo("Setting Up the Spot Micro Keyboard Control Node...")
 
         # Set up and title the ros node for this code
         rospy.init_node('spot_micro_keyboard_control')
 
         # Create publishers for x,y speed command, body rate command, and state command
-        self.ros_pub_x_speed_cmd    = rospy.Publisher('/x_speed_cmd',Float32,queue_size=1)
+        self.ros_pub_x_speed_cmd    = rospy.Publisher('x_speed_cmd',Float32,queue_size=1)
         self.ros_pub_y_speed_cmd    = rospy.Publisher('/y_speed_cmd',Float32,queue_size=1)
         self.ros_pub_yaw_rate_cmd   = rospy.Publisher('/yaw_rate_cmd',Float32,queue_size=1)
         self.ros_pub_state_cmd      = rospy.Publisher('/state_cmd',Bool,queue_size=1)
@@ -55,6 +75,16 @@ class SpotMicroKeyboardControl():
         # Setup terminal input reading, taken from teleop_twist_keyboard
         self.settings = termios.tcgetattr(sys.stdin)
 
+    def reset_all_motion_commands_to_zero(self):
+        '''Reset body motion cmd states to zero and publish zero value body motion commands'''
+        self._x_speed_cmd_msg.data = 0
+        self._y_speed_cmd_msg.data = 0
+        self._yaw_rate_cmd_msg.data = 0
+
+        self.ros_pub_x_speed_cmd.publish(self._x_speed_cmd_msg)
+        self.ros_pub_y_speed_cmd.publish(self._y_speed_cmd_msg)
+        self.ros_pub_yaw_rate_cmd.publish(self._yaw_rate_cmd_msg)
+
     def getKey(self):
         tty.setraw(sys.stdin.fileno())
         select.select([sys.stdin], [], [], 0)
@@ -63,88 +93,71 @@ class SpotMicroKeyboardControl():
         return key
 
     def run(self):
+        # Publish all body motion commands to 0
+        self.reset_all_motion_commands_to_zero()
 
         # Prompt user with keyboard command information
-        # Ability to control individual servo to find limits and center values
-        # and ability to control all servos together
         
         while not rospy.is_shutdown():
             print(msg)
             userInput = raw_input("Command?: ")
 
-            if userInput not in validCmds:
+            if userInput not in valid_cmds:
                 print('Valid command not entered, try again...')
             else:
                 if userInput == 'quit':
                     print("Ending program...")
-                    print('Final Servo Values')
-                    print('--------------------')
-                    for i in range(numServos):
-                        print('Servo %2i:   Min: %4i,   Center: %4i,   Max: %4i'%(i,self.servos[i]._min,self.servos[i]._center,self.servos[i]._max))                    
                     break
 
-                elif userInput == 'oneServo':
-                    # Reset all servos to center value, and send command
-                    self.reset_all_servos_off()
-                    self.send_servo_msg()
+                elif userInput == 'trot':
+                    # Reset all body motion commands to zero
+                    self.reset_all_motion_commands_to_zero()
 
-                    # First get servo number to command
-                    nSrv = -1
-                    while (1):
-                        userInput = input('Which servo to control? Enter a number 1 through 12: ')
-                        
-                        if userInput not in range(1,numServos+1):
-                            print("Invalid servo number entered, try again")
-                        else:
-                            nSrv = userInput - 1
-                            break
+                    # Publish trot event
+                    self.ros_pub_state_cmd.publish(self._trot_event_cmd_msg)
 
-                    # Loop and act on user command
-                    print('Enter command, q to go back to option select: ')
+                    # Enter loop to act on user command
+
+                    print('Enter command, q to go back to rest mode: ')
+
                     while (1):
+                        print('Cmd Values: x speed: %1.2f m/s, y speed: %1.2f m/s, yaw rate: %1.2f deg/s '\
+                                %(self._x_speed_cmd_msg.data,self._y_speed_cmd_msg.data,self._yaw_rate_cmd_msg.data*180/pi))
                        
                         userInput = self.getKey()
 
-                        if userInput == 'q':
+                        if userInput == 'u':
+                            # Send trot event message, this will take robot back to rest mode
+                            self.ros_pub_state_cmd.publish(self._trot_event_cmd_msg)
                             break
-                        elif userInput not in keyDict:
+
+                        elif userInput not in ('w','a','s','d','q','e','u'):
                             print('Key not in valid key commands, try again')
                         else:
-                            keyDict[userInput](self.servos[nSrv])
-                            print('Servo %2i cmd: %4i'%(nSrv,self.servos[nSrv].value))
-                            self.send_servo_msg()
+                            if userInput == 'w':
+                                self._x_speed_cmd_msg.data = self._x_speed_cmd_msg.data + speed_inc
+                                self.ros_pub_x_speed_cmd.publish(self._x_speed_cmd_msg)
+                            
+                            elif userInput == 's':
+                                self._x_speed_cmd_msg.data = self._x_speed_cmd_msg.data - speed_inc
+                                self.ros_pub_x_speed_cmd.publish(self._x_speed_cmd_msg)
 
-                elif userInput == 'allServos':
-                    # Reset all servos to center value, and send command
-                    self.reset_all_servos_center()
-                    self.send_servo_msg()
+                            elif userInput == 'a':
+                                self._y_speed_cmd_msg.data = self._y_speed_cmd_msg.data + speed_inc
+                                self.ros_pub_y_speed_cmd.publish(self._y_speed_cmd_msg)
+                            
+                            elif userInput == 'd':
+                                self._y_speed_cmd_msg.data = self._y_speed_cmd_msg.data - speed_inc
+                                self.ros_pub_y_speed_cmd.publish(self._y_speed_cmd_msg)
 
-                    print('Enter command, q to go back to option select: ')                   
-                    while (1):
+                            elif userInput == 'q':
+                                self._yaw_rate_cmd_msg.data = self._yaw_rate_cmd_msg.data + yaw_rate_inc
+                                self.ros_pub_yaw_rate_cmd.publish(self._yaw_rate_cmd_msg)
 
-                        userInput = self.getKey()
+                            elif userInput == 'e':
+                                self._yaw_rate_cmd_msg.data = self._yaw_rate_cmd_msg.data - yaw_rate_inc
+                                self.ros_pub_yaw_rate_cmd.publish(self._yaw_rate_cmd_msg)
 
-                        if userInput == 'q':
-                            break
-                        elif userInput not in keyDict:
-                            print('Key not in valid key commands, try again')
-                        elif userInput in ('b','n','m'):
-                            print('Saving values not supported in all servo control mode')
-                        else:
-                            for s in self.servos.values():
-                                keyDict[userInput](s)
-                            print('All Servos Commanded')
-                            self.send_servo_msg()
-                                
-
-
-
-
-
-
-            # Set the control rate in Hz
-            rate = rospy.Rate(10)
-            rate.sleep()
 
 if __name__ == "__main__":
     smkc     = SpotMicroKeyboardControl()

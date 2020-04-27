@@ -46,6 +46,6 @@ class StanceController:
         foot_location = state.foot_locations[:, leg_index]
         (delta_p, delta_R) = self.position_delta(leg_index, state, command)
         #incremented_location = delta_R @ foot_location + delta_p
-        incremented_location = np.matmul(delta_R, foot_location) + delta_P
+        incremented_location = np.matmul(delta_R, foot_location) + delta_p
         
         return incremented_location

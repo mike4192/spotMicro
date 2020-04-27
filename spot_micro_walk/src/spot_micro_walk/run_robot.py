@@ -106,7 +106,7 @@ class SpotMicroSimpleCommand():
         rospy.loginfo("> Publisher corrrectly initialized")
 
         # Create subsribers for speed and body rate command topics, both using vector3
-        rospy.Subscriber('/x_speed_cmd',Float32,self.update_x_speed_cmd)
+        rospy.Subscriber('x_speed_cmd',Float32,self.update_x_speed_cmd)
         rospy.Subscriber('/y_speed_cmd',Float32,self.update_y_speed_cmd)
         rospy.Subscriber('/yaw_rate_cmd',Float32,self.update_yaw_rate_cmd)
         rospy.Subscriber('/state_cmd',Bool,self.update_state_cmd)
@@ -152,6 +152,7 @@ class SpotMicroSimpleCommand():
     def update_x_speed_cmd(self,msg):
         '''Updates x speed command from received message'''
         self.x_speed_cmd_mps = msg.data
+        print('here')
 
     def update_y_speed_cmd(self,msg):
         '''Updates y speed command from received message'''
@@ -250,6 +251,10 @@ class SpotMicroSimpleCommand():
             # Trot command cycles between trot and rest, if true, 
             self.update_trot_command()
 
+            # print(self.command.horizontal_velocity)
+            # print(self.command.yaw_rate)
+            # print(self.command.trot_event)
+
             # Call gait/stand controller
             foot_positions = self.controller.run(self.state, self.command)
 
@@ -267,12 +272,11 @@ class SpotMicroSimpleCommand():
             for i in range(4):
                 for j in range(3):
                     temp[i,j] = leg_angs[i][j]*180/pi
-            print(temp)
+            # print(temp)
             self.set_leg_angles_servo_msg(leg_angs)
 
             # Command Servos
             self.send_servo_cmd_msg()
-
 
             # Sleep till next loop
             rate.sleep()

@@ -25,7 +25,7 @@ class SwingController:
         #R = euler2mat(0, 0, theta)
         #return R @ self.config.default_stance[:, leg_index] + delta_p
         R = rotz(theta)
-        return np.matmul(R, self.config.default_stance[:, leg_index]) + delta_P 
+        return np.matmul(R, self.config.default_stance[:, leg_index]) + delta_p 
         
     def swing_height(self, swing_phase, triangular=True):
         if triangular:
