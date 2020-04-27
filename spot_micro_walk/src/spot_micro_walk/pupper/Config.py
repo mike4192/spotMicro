@@ -138,6 +138,8 @@ class Configuration:
 
     @property
     def default_stance(self):
+        # I think the order is:
+        # rightfront, leftfront, rightback, leftback
         return np.array(
             [
                 [

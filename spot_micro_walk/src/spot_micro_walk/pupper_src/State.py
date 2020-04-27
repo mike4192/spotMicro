@@ -16,8 +16,6 @@ class State:
         self.foot_locations = np.zeros((3, 4))
         self.joint_angles = np.zeros((3, 4))
 
-        self.behavior_state = BehaviorState.REST
-
 
 class BehaviorState(Enum):
     DEACTIVATED = -1

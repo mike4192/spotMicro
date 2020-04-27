@@ -12,7 +12,7 @@ from i2cpwm_board.srv import ServosConfig
 from spot_micro_simple_command.spot_micro_kinematics.spot_micro_stick_figure import SpotMicroStickFigure
 from spot_micro_simple_command.first_order_filter.fof import FirstOrderFilter 
 from math import pi
-from std_msgs.msg import Float32
+from std_msgs.msg import Float32, Bool 
 
 #########################################################################
 ########################## Global Variables #############################
@@ -50,10 +50,12 @@ class SpotMicroSimpleCommand():
 
     def __init__(self):
         '''Constructor'''
-        # Create speed and body rate command data variables
+        # Create speed, body rate, and state command data variables
         self.x_speed_cmd_mps = 0
         self.y_speed_cmd_mps = 0
         self.yaw_rate_cmd_rps = 0 
+        self.trot_event_cmd = False
+        self.prev_trot_event_cmd = False
 
         # Create and publish servo config message
         # Initialize servo_config_msg
@@ -107,6 +109,7 @@ class SpotMicroSimpleCommand():
         rospy.Subscriber('/x_speed_cmd',Float32,self.update_x_speed_cmd)
         rospy.Subscriber('/y_speed_cmd',Float32,self.update_y_speed_cmd)
         rospy.Subscriber('/yaw_rate_cmd',Float32,self.update_yaw_rate_cmd)
+        rospy.Subscriber('/state_cmd',Bool,self.update_state_cmd)
 
 
         rospy.loginfo("Initialization complete")
@@ -120,12 +123,12 @@ class SpotMicroSimpleCommand():
         l = self.sm.body_length
         w = self.sm.body_width
         l1 = self.sm.hip_length
-        desired_p4_points = np.array([ [-l/2,   0,  w/2 + l1],
-                                    [ l/2 ,  0,  w/2 + l1],
-                                    [ l/2 ,  0, -w/2 - l1],
-                                    [-l/2 ,  0, -w/2 - l1] ])
+        self.default_sm_foot_position = np.array([ [-l/2,   0,  w/2 + l1],
+                                                   [ l/2 ,  0,  w/2 + l1],
+                                                   [ l/2 ,  0, -w/2 - l1],
+                                                   [-l/2 ,  0, -w/2 - l1] ])
 
-        self.sm.set_absolute_foot_coordinates(desired_p4_points)
+        self.sm.set_absolute_foot_coordinates(self.default_sm_foot_position)
 
         # Create configuration object and update values to reflect spot micro configuration
         self.config = Configuration()
@@ -157,6 +160,22 @@ class SpotMicroSimpleCommand():
     def update_yaw_rate_cmd(self,msg):
         '''Updates yaw rate command from received message'''
         self.yaw_rate_cmd_rps = msg.data
+
+    def update_state_cmd(self,msg):
+        '''Update the state command from a received message'''
+        if msg.data == True:
+            self.trot_event_cmd = True
+
+    def update_trot_command(self):
+        '''Toggle the trot event command so it goes back false after one timestep'''
+        # Ensure self.command.trot_event is only true for one timestep
+        if self.trot_event_cmd == True:
+            self.trot_event_cmd = False
+            self.prev_trot_event_cmd = True
+            self.command.trot_event = True
+        elif self.prev_trot_event_cmd == True:
+            self.prev_trot_event_cmd = False
+            self.command.trot_event = False
 
     def set_leg_angles_servo_msg(self,leg_angs):
         '''Sets servo_cmds_rad to the set of 12 leg angles received from get_leg_angles'''
@@ -200,7 +219,6 @@ class SpotMicroSimpleCommand():
         # Publish message
         self.ros_pub_servo_array.publish(self._servo_msg)
 
-
     def run(self):
 
         print(self.config.default_stance)
@@ -225,23 +243,31 @@ class SpotMicroSimpleCommand():
          
         while not rospy.is_shutdown():
             
-            # Update subscriber variables incase they were updated from a message
+            # Update command values incase they were updated from a message
             self.command.horizontal_velocity = np.array([self.x_speed_cmd_mps, self.y_speed_cmd_mps])
             self.command.yaw_rate = self.yaw_rate_cmd_rps
+            
+            # Trot command cycles between trot and rest, if true, 
+            self.update_trot_command()
 
-            #Call gait or stand controller
+            # Call gait/stand controller
             foot_positions = self.controller.run(self.state, self.command)
 
             # Reorder foot positions, and call inverse kinematics function
             # Foot positions from controller are a 3x4 matrix in the order
             # rightfront, leftfront, rightback, leftback
-            foot_positions_for_sm = np.array([ [foot_positions[0,2],self.default_height+foot_positions[2,2],foot_positions[1,2]],
-                                               [foot_positions[0,0],self.default_height+foot_positions[2,0],foot_positions[1,0]],
-                                               [foot_positions[0,1],self.default_height+foot_positions[2,1],foot_positions[1,1]],  
-                                               [foot_positions[0,3],self.default_height+foot_positions[2,3],foot_positions[1,3]] ])
+            foot_positions_for_sm = np.array([ [foot_positions[0,2],self.default_height+foot_positions[2,2],-foot_positions[1,2]],
+                                               [foot_positions[0,0],self.default_height+foot_positions[2,0],-foot_positions[1,0]],
+                                               [foot_positions[0,1],self.default_height+foot_positions[2,1],-foot_positions[1,1]],
+                                               [foot_positions[0,3],self.default_height+foot_positions[2,3],-foot_positions[1,3]] ]) 
             self.sm.set_absolute_foot_coordinates(foot_positions_for_sm)
             leg_angs = self.sm.get_leg_angles()
-
+            
+            temp = np.zeros((4,3))
+            for i in range(4):
+                for j in range(3):
+                    temp[i,j] = leg_angs[i][j]*180/pi
+            print(temp)
             self.set_leg_angles_servo_msg(leg_angs)
 
             # Command Servos
