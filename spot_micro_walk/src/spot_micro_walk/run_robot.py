@@ -156,7 +156,7 @@ class SpotMicroSimpleCommand():
 
     def update_y_speed_cmd(self,msg):
         '''Updates y speed command from received message'''
-        self.x_speed_cmd_mps = msg.data
+        self.y_speed_cmd_mps = msg.data
 
     def update_yaw_rate_cmd(self,msg):
         '''Updates yaw rate command from received message'''

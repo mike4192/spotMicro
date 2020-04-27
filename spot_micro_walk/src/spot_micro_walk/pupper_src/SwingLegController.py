@@ -48,7 +48,7 @@ class SwingController:
         swing_height_ = self.swing_height(swing_prop)
         touchdown_location = self.raibert_touchdown_location(leg_index, command)
         time_left = self.config.dt * self.config.swing_ticks * (1.0 - swing_prop)
-        v = (touchdown_location - foot_location) / time_left * np.array([1, 1, 0])
+        v = (touchdown_location - foot_location) / float(time_left) * np.array([1, 1, 0])
         delta_foot_location = v * self.config.dt
         z_vector = np.array([0, 0, swing_height_ + command.height])
         return foot_location * np.array([1, 1, 0]) + z_vector + delta_foot_location

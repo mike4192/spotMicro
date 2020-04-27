@@ -58,7 +58,7 @@ class Configuration:
 
         #################### SWING ######################
         self.z_coeffs = None
-        self.z_clearance = 0.07
+        self.z_clearance = 0.03
         self.alpha = (
             0.5  # Ratio between touchdown distance and total horizontal stance movement
         )
@@ -67,7 +67,7 @@ class Configuration:
         )
 
         #################### GAIT #######################
-        self.dt = 0.01
+        self.dt = 0.02
         self.num_phases = 4
         self.contact_phases = np.array(
             [[1, 1, 1, 0],

@@ -48,7 +48,7 @@ class Controller:
                 new_location = self.stance_controller.next_foot_location(leg_index, state, command)
             else:
                 swing_proportion = (
-                    self.gait_controller.subphase_ticks(state.ticks) / self.config.swing_ticks
+                   float(self.gait_controller.subphase_ticks(state.ticks)) / float(self.config.swing_ticks)
                 )
                 new_location = self.swing_controller.next_foot_location(
                     swing_proportion,
@@ -56,6 +56,7 @@ class Controller:
                     state,
                     command
                 )
+
             new_foot_locations[:, leg_index] = new_location
         return new_foot_locations, contact_modes
 
@@ -124,7 +125,7 @@ class Controller:
         #     )
 
         elif state.behavior_state == BehaviorState.REST:
-            yaw_proportion = command.yaw_rate / self.config.max_yaw_rate
+            yaw_proportion = float(command.yaw_rate) / float(self.config.max_yaw_rate)
             self.smoothed_yaw += (
                 self.config.dt
                 * clipped_first_order_filter(

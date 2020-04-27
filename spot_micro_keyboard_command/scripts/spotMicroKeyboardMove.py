@@ -143,19 +143,19 @@ class SpotMicroKeyboardControl():
                                 self.ros_pub_x_speed_cmd.publish(self._x_speed_cmd_msg)
 
                             elif userInput == 'a':
-                                self._y_speed_cmd_msg.data = self._y_speed_cmd_msg.data + speed_inc
+                                self._y_speed_cmd_msg.data = self._y_speed_cmd_msg.data - speed_inc
                                 self.ros_pub_y_speed_cmd.publish(self._y_speed_cmd_msg)
                             
                             elif userInput == 'd':
-                                self._y_speed_cmd_msg.data = self._y_speed_cmd_msg.data - speed_inc
+                                self._y_speed_cmd_msg.data = self._y_speed_cmd_msg.data + speed_inc
                                 self.ros_pub_y_speed_cmd.publish(self._y_speed_cmd_msg)
 
                             elif userInput == 'q':
-                                self._yaw_rate_cmd_msg.data = self._yaw_rate_cmd_msg.data + yaw_rate_inc
+                                self._yaw_rate_cmd_msg.data = self._yaw_rate_cmd_msg.data - yaw_rate_inc
                                 self.ros_pub_yaw_rate_cmd.publish(self._yaw_rate_cmd_msg)
 
                             elif userInput == 'e':
-                                self._yaw_rate_cmd_msg.data = self._yaw_rate_cmd_msg.data - yaw_rate_inc
+                                self._yaw_rate_cmd_msg.data = self._yaw_rate_cmd_msg.data + yaw_rate_inc
                                 self.ros_pub_yaw_rate_cmd.publish(self._yaw_rate_cmd_msg)
 
 
