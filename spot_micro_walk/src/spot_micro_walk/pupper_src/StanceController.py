@@ -7,7 +7,7 @@ class StanceController:
         self.config = config
 
 
-    def position_delta(self, leg_index, state, command, move_fwd, first_cycle):
+    def position_delta(self, leg_index, state, command, move_fwd, first_cycle, move_sideways, move_left):
         """Calculate the difference between the next desired body location and the current body location
         
         Parameters
@@ -33,13 +33,22 @@ class StanceController:
             shift_factor = 1
         else:
             shift_factor = 2
+
+        side_vel = 0
+        if move_sideways == True:
+            if move_left == True:
+                side_vel = -(self.config.body_shift_y*shift_factor)/(float(self.config.dt)*self.config.stance_ticks)
+            else:
+                side_vel = (self.config.body_shift_y*shift_factor)/(float(self.config.dt)*self.config.stance_ticks)
+        else:
+            side_enable = 0.0
             
         if move_fwd == True:
 
             v_xy = np.array(
                 [
                     -(self.config.body_shift_x*shift_factor + step_dist_x/4.0)/(float(self.config.dt)*self.config.stance_ticks), 
-                    -0.0,
+                    side_vel, 
                     1.0
                     / self.config.z_time_constant
                     * (state.height - z),
@@ -49,7 +58,7 @@ class StanceController:
             v_xy = np.array(
                 [
                     (self.config.body_shift_x*shift_factor - step_dist_x/4.0)/(float(self.config.dt)*self.config.stance_ticks), 
-                    -0.0,
+                    side_vel,
                     1.0
                     / self.config.z_time_constant
                     * (state.height - z),
@@ -62,9 +71,9 @@ class StanceController:
 
 
     # TODO: put current foot location into state
-    def next_foot_location(self, leg_index, state, command, move_fwd, first_cycle):
+    def next_foot_location(self, leg_index, state, command, move_fwd, first_cycle, move_sideways, move_left):
         foot_location = state.foot_locations[:, leg_index]
-        (delta_p, delta_R) = self.position_delta(leg_index, state, command, move_fwd, first_cycle)
+        (delta_p, delta_R) = self.position_delta(leg_index, state, command, move_fwd, first_cycle, move_sideways, move_left)
         #incremented_location = delta_R @ foot_location + delta_p
         incremented_location = np.matmul(delta_R, foot_location) + delta_p
         

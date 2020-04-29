@@ -43,6 +43,7 @@ class Controller:
         prev_contact_modes = self.config.contact_phases[:,self.gait_controller.phase_index(state.ticks)-1]
         new_foot_locations = np.zeros((3, 4))
         for leg_index in range(4):
+            phase_idx = self.gait_controller.phase_index(state.ticks)
             contact_mode = contact_modes[leg_index]
             prev_contact_mode = prev_contact_modes[leg_index]
             foot_location = state.foot_locations[:, leg_index]
@@ -51,7 +52,20 @@ class Controller:
                     move_fwd = True
                 else:
                     move_fwd = False
-                new_location = self.stance_controller.next_foot_location(leg_index, state, command, move_fwd, self.first_cycle)
+
+                if phase_idx in (0,4):
+                    move_sideways = True
+                    if phase_idx == 0:
+                        move_left = True
+                    else:
+                        move_left = False
+                else:
+                    move_sideways = False
+                    move_left = False
+
+
+
+                new_location = self.stance_controller.next_foot_location(leg_index, state, command, move_fwd, self.first_cycle, move_sideways, move_left)
             elif contact_mode == 2:
                 new_location = foot_location
             else:
@@ -63,12 +77,19 @@ class Controller:
                 else:
                     shifted_forward = False
 
+                if phase_idx in (1,3):
+                    # Body is shifted left
+                    shifted_left = True
+                else:
+                    shifted_left = False
+
                 new_location = self.swing_controller.next_foot_location(
                     swing_proportion,
                     leg_index,
                     state,
                     command,
-                    shifted_forward
+                    shifted_forward,
+                    shifted_left
                 )
 
             new_foot_locations[:, leg_index] = new_location

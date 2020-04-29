@@ -7,7 +7,7 @@ class SwingController:
         self.config = config
 
     def raibert_touchdown_location(
-        self, leg_index, command, shifted_forward
+        self, leg_index, command, shifted_forward, shifted_left
     ):
         delta_p_2d = (
             self.config.alpha
@@ -32,6 +32,10 @@ class SwingController:
         else:
             shift_correction = np.array([-step_dist_x + self.config.body_shift_x + step_dist_x/4.0 ,0,0])
 
+        if shifted_left == True:
+            shift_correction[1] = -self.config.body_shift_y
+        else:
+            shift_correction[1] = self.config.body_shift_y
         return np.matmul(R, self.config.default_stance[:, leg_index]) + delta_p + shift_correction 
         
     def swing_height(self, swing_phase, triangular=True):
@@ -49,12 +53,13 @@ class SwingController:
         leg_index,
         state,
         command,
-        shifted_forward
+        shifted_forward,
+        shifted_left
     ):
         assert swing_prop >= 0 and swing_prop <= 1
         foot_location = state.foot_locations[:, leg_index]
         swing_height_ = self.swing_height(swing_prop)
-        touchdown_location = self.raibert_touchdown_location(leg_index, command, shifted_forward)
+        touchdown_location = self.raibert_touchdown_location(leg_index, command, shifted_forward, shifted_left)
 
         time_left = self.config.dt * self.config.swing_ticks * (1.0 - swing_prop)
         
