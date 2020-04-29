@@ -1,21 +1,22 @@
 import numpy as np
 #from transforms3d.euler import euler2mat
-from ..spot_micro_kinematics.utilities.transformations import rotz
+from ..spot_micro_kinematics.utilities.transformations import rotz\
 
 class SwingController:
     def __init__(self, config):
         self.config = config
 
     def raibert_touchdown_location(
-        self, leg_index, command
+        self, leg_index, command, shifted_forward
     ):
         delta_p_2d = (
             self.config.alpha
-            * self.config.stance_ticks
+            * self.config.swing_ticks
             * self.config.dt
-            * command.horizontal_velocity
+            * (command.horizontal_velocity * (float(self.config.phase_length)/self.config.swing_ticks))
         )
         delta_p = np.array([delta_p_2d[0], delta_p_2d[1], 0])
+
         theta = (
             self.config.beta
             * self.config.stance_ticks
@@ -25,7 +26,13 @@ class SwingController:
         #R = euler2mat(0, 0, theta)
         #return R @ self.config.default_stance[:, leg_index] + delta_p
         R = rotz(theta)
-        return np.matmul(R, self.config.default_stance[:, leg_index]) + delta_p 
+        step_dist_x = command.horizontal_velocity[0] * (float(self.config.phase_length)/self.config.swing_ticks)
+        if shifted_forward == True: 
+            shift_correction = np.array([-self.config.body_shift_x - step_dist_x/2.0 ,0,0])
+        else:
+            shift_correction = np.array([-step_dist_x + self.config.body_shift_x + step_dist_x/4.0 ,0,0])
+
+        return np.matmul(R, self.config.default_stance[:, leg_index]) + delta_p + shift_correction 
         
     def swing_height(self, swing_phase, triangular=True):
         if triangular:
@@ -42,13 +49,17 @@ class SwingController:
         leg_index,
         state,
         command,
+        shifted_forward
     ):
         assert swing_prop >= 0 and swing_prop <= 1
         foot_location = state.foot_locations[:, leg_index]
         swing_height_ = self.swing_height(swing_prop)
-        touchdown_location = self.raibert_touchdown_location(leg_index, command)
+        touchdown_location = self.raibert_touchdown_location(leg_index, command, shifted_forward)
+
         time_left = self.config.dt * self.config.swing_ticks * (1.0 - swing_prop)
+        
         v = (touchdown_location - foot_location) / float(time_left) * np.array([1, 1, 0])
+
         delta_foot_location = v * self.config.dt
         z_vector = np.array([0, 0, swing_height_ + command.height])
         return foot_location * np.array([1, 1, 0]) + z_vector + delta_foot_location

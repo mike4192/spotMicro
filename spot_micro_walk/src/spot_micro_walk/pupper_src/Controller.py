@@ -17,7 +17,7 @@ class Controller:
 
     def __init__(self, config):
         self.config = config
-
+        self.first_cycle = True
         self.smoothed_yaw = 0.0  # for REST mode only
         #self.inverse_kinematics = inverse_kinematics
 
@@ -40,21 +40,35 @@ class Controller:
             Matrix of new foot locations.
         """
         contact_modes = self.gait_controller.contacts(state.ticks)
+        prev_contact_modes = self.config.contact_phases[:,self.gait_controller.phase_index(state.ticks)-1]
         new_foot_locations = np.zeros((3, 4))
         for leg_index in range(4):
             contact_mode = contact_modes[leg_index]
+            prev_contact_mode = prev_contact_modes[leg_index]
             foot_location = state.foot_locations[:, leg_index]
-            if contact_mode == 1:
-                new_location = self.stance_controller.next_foot_location(leg_index, state, command)
+            if (contact_mode == 1) or (contact_mode == -1):
+                if contact_mode == 1:
+                    move_fwd = True
+                else:
+                    move_fwd = False
+                new_location = self.stance_controller.next_foot_location(leg_index, state, command, move_fwd, self.first_cycle)
+            elif contact_mode == 2:
+                new_location = foot_location
             else:
                 swing_proportion = (
                    float(self.gait_controller.subphase_ticks(state.ticks)) / float(self.config.swing_ticks)
                 )
+                if prev_contact_mode == 1:
+                    shifted_forward = True
+                else:
+                    shifted_forward = False
+
                 new_location = self.swing_controller.next_foot_location(
                     swing_proportion,
                     leg_index,
                     state,
-                    command
+                    command,
+                    shifted_forward
                 )
 
             new_foot_locations[:, leg_index] = new_location
@@ -75,6 +89,7 @@ class Controller:
             state.behavior_state = self.activate_transition_mapping[state.behavior_state]
         elif command.trot_event:
             state.behavior_state = self.trot_transition_mapping[state.behavior_state]
+            self.first_cycle = True
         # elif command.hop_event:
         #     state.behavior_state = self.hop_transition_mapping[state.behavior_state]
 
@@ -83,6 +98,8 @@ class Controller:
                 state,
                 command,
             )
+            if (self.gait_controller.phase_index(state.ticks) > 0) and (self.first_cycle == True):
+                self.first_cycle = False
 
             # Apply the desired body rotation
             #rotated_foot_locations = (

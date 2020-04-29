@@ -313,14 +313,14 @@ class SpotMicroSimpleCommand():
 
         coord_data = []
         num = 0
-        t_max = 20 
+        t_max = 40 
         t = 0
         while t<t_max:
             t += 0.02
             num += 1
-            
+            print(t)            
             # Update command values incase they were updated from a message
-            self.command.horizontal_velocity = np.array([0.05, 0.0])
+            self.command.horizontal_velocity = np.array([0.005, 0.0])
             self.command.yaw_rate = 0.0
             
             # Trot command cycles between trot and rest, if true, 

@@ -38,7 +38,7 @@ CTRL-C to quit
 valid_cmds = ('quit','Quit','trot')
 
 # Global body motion increment values
-speed_inc = 0.02
+speed_inc = 0.0025
 yaw_rate_inc = 2*pi/180
 
 

@@ -21,6 +21,9 @@ class Configuration:
         self.yaw_time_constant = 0.3
         self.max_stance_yaw = 1.2
         self.max_stance_yaw_rate = 2.0
+        
+        self.body_shift_x = 0.03 # Distance body shifts forward in x direction during stance phase
+        self.body_shift_y = 0.02 # Distance body shifts sideways during stance phase
 
         #################### STANCE ####################
         self.delta_x = 0.1
@@ -32,29 +35,35 @@ class Configuration:
         self.z_coeffs = None
         self.z_clearance = 0.03
         self.alpha = (
-            0.5  # Ratio between touchdown distance and total horizontal stance movement
+            1.0  # Ratio between touchdown distance and total horizontal stance movement
         )
         self.beta = (
-            0.5  # Ratio between touchdown distance and total horizontal stance movement
+            1.0  # Ratio between touchdown distance and total horizontal stance movement
         )
 
         #################### GAIT #######################
         # I think the order is:
         # rightfront, leftfront, rightback, leftback
+        
+        # Contact phases:
+        # 2: Leg stationary
+        # 1: Moving stance forward
+        # 0: leg swing
+        #-1: Moving stance backwards
 
         self.dt = 0.02
-        self.num_phases = 4
+        self.num_phases = 8
         self.contact_phases = np.array(
-            [[1, 0, 1, 1],
-             [1, 1, 1, 0],
-             [0, 1, 1, 1],
-             [1, 1, 0, 1]]
+            [[1, 2, -1, 0, 1, 2, -1, 2],
+             [1, 2, -1, 2, 1, 2, -1, 0],
+             [1, 0, -1, 2, 1, 2, -1, 2],
+             [1, 2, -1, 2, 1, 0, -1, 2]]
         )
         self.overlap_time = (
-            0.00  # duration of the phase where all four feet are on the ground
+            1.0  # duration of the phase where all four feet are on the ground
         )
         self.swing_time = (
-            0.24  # duration of the phase when only two feet are on the ground
+            1.0  # duration of the phase when only two feet are on the ground
         )
 
     @property
@@ -105,15 +114,15 @@ class Configuration:
 
     @property
     def stance_ticks(self):
-        return 0 * self.overlap_ticks +3 * self.swing_ticks
+        return 1 * self.overlap_ticks 
 
     @property
     def phase_ticks(self):
         return np.array(
-            [self.swing_ticks, self.swing_ticks, self.swing_ticks, self.swing_ticks]
+            [self.overlap_ticks, self.swing_ticks, self.overlap_ticks, self.swing_ticks, self.overlap_ticks, self.swing_ticks, self.overlap_ticks, self.swing_ticks]
         )
 
     @property
     def phase_length(self):
-        return 0 * self.overlap_ticks + 4 * self.swing_ticks
+        return 4 * self.overlap_ticks + 4 * self.swing_ticks
 
