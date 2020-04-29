@@ -29,7 +29,7 @@ class Configuration:
         self.delta_x = 0.1
         self.delta_y = 0.09
         self.x_shift_front = 0
-        self.y_shift_back = 0
+        self.x_shift_back = 0
         self.default_z_ref = -0.18
 
         #################### SWING ######################
