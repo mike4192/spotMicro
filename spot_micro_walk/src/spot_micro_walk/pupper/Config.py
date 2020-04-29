@@ -28,7 +28,8 @@ class Configuration:
         #################### STANCE ####################
         self.delta_x = 0.1
         self.delta_y = 0.09
-        self.x_shift = 0.0
+        self.x_shift_front = 0
+        self.y_shift_back = 0
         self.default_z_ref = -0.18
 
         #################### SWING ######################
@@ -73,10 +74,10 @@ class Configuration:
         return np.array(
             [
                 [
-                    self.delta_x + self.x_shift,
-                    self.delta_x + self.x_shift,
-                    -self.delta_x + self.x_shift,
-                    -self.delta_x + self.x_shift,
+                    self.delta_x + self.x_shift_front,
+                    self.delta_x + self.x_shift_front,
+                    -self.delta_x + self.x_shift_back,
+                    -self.delta_x + self.x_shift_back,
                 ],
                 [-self.delta_y, self.delta_y, -self.delta_y, self.delta_y],
                 [0, 0, 0, 0],

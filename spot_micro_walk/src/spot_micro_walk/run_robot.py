@@ -40,7 +40,7 @@ servo_dict = {
                 'LB_3': {'num':7, 'center':306,'range':347,'direction':1,'center_angle_deg': -52.6},
                 'LB_2': {'num':8, 'center':306,'range':333,'direction':1,'center_angle_deg':  30.3},
                 'LB_1': {'num':9, 'center':316,'range':343,'direction':-1,'center_angle_deg':  0.0},
-                'LF_3': {'num':10,'center':306,'range':333,'direction':1,'center_angle_deg': -55.1},
+                'LF_3': {'num':10,'center':306,'range':333,'direction':1,'center_angle_deg': -52.1},
                 'LF_2': {'num':11,'center':306,'range':347,'direction':1,'center_angle_deg':  26.6},
                 'LF_1': {'num':12,'center':282,'range':342,'direction': 1,'center_angle_deg':  0.0},
             }
@@ -115,7 +115,7 @@ class SpotMicroSimpleCommand():
         rospy.loginfo("Initialization complete")
 
         # Create a spot micro stick figure object to encapsulate robot state
-        self.default_height = 0.18
+        self.default_height = 0.16
         self.sm = SpotMicroStickFigure(y=self.default_height)
 
         # Set absolute foot positions for default stance,
