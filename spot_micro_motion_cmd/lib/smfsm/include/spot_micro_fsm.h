@@ -30,12 +30,37 @@
  * ---------------------------------------------------------------------
  */
 
-#ifndef SMFSM_HPP_INCLUDED
-#define SMFSM_HPP_INCLUDED
+#pragma once
 
 #include <iostream>
+#include "command.h"
+#include "spot_micro_state.h"
+// #include "spot_micro_idle.h"
 
 namespace smfsm
 {
+
+class SpotMicroState;
+
+class SpotMicroFsm {
+ public:
+  // Constructor
+  SpotMicroFsm();
+
+  // Static instances of states, as unique instances are not necessary
+  // static SpotMicroIdleState idle;
+  
+  void handleInputCommands(Command& cmd);
+  void update();
+  void changeState(SpotMicroState* sms);
+
+ private:
+  // Declaring SpotMicroFsmState a friend will allow that class to modify private members
+  // of this class
+  friend class SpotMicroState;
+
+  // Pointer to state object
+  SpotMicroState* _state;
+};
 
 }

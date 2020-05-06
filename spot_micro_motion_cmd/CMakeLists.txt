@@ -117,13 +117,12 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
   include/spot_micro_motion_cmd
+  lib/smfsm/include
   ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/spot_micro_motion_cmd.cpp
-# )
+add_library(smfsm STATIC lib/smfsm/src/spot_micro_fsm.cpp lib/smfsm/src/spot_micro_state.cpp lib/smfsm/src/spot_micro_idle.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -148,6 +147,7 @@ add_executable(${PROJECT_NAME}_node src/spot_micro_motion_cmd.cpp src/spot_micro
 ## Specify libraries to link a library or executable target against
  target_link_libraries(${PROJECT_NAME}_node
    ${catkin_LIBRARIES}
+   smfsm
 )
 
 #############
@@ -204,3 +204,5 @@ add_executable(${PROJECT_NAME}_node src/spot_micro_motion_cmd.cpp src/spot_micro
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+
