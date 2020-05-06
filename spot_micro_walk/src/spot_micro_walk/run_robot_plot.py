@@ -9,8 +9,8 @@ from pupper.Config import Configuration
 import rospy
 from i2cpwm_board.msg import Servo, ServoArray, ServoConfig, ServoConfigArray
 from i2cpwm_board.srv import ServosConfig
-from spot_micro_simple_command.spot_micro_kinematics.spot_micro_stick_figure import SpotMicroStickFigure
-from spot_micro_simple_command.first_order_filter.fof import FirstOrderFilter 
+from spot_micro_walk.spot_micro_kinematics.spot_micro_stick_figure import SpotMicroStickFigure
+from spot_micro_walk.first_order_filter.fof import FirstOrderFilter 
 from math import pi
 from std_msgs.msg import Float32, Bool 
 import matplotlib.pyplot as plt
@@ -320,7 +320,7 @@ class SpotMicroSimpleCommand():
             num += 1
             print(t)            
             # Update command values incase they were updated from a message
-            self.command.horizontal_velocity = np.array([0.005, 0.0])
+            self.command.horizontal_velocity = np.array([0.01, 1.0])
             self.command.yaw_rate = 0.0
             
             # Trot command cycles between trot and rest, if true, 

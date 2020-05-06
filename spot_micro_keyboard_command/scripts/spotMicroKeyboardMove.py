@@ -121,7 +121,7 @@ class SpotMicroKeyboardControl():
                     print('Enter command, q to go back to rest mode: ')
 
                     while (1):
-                        print('Cmd Values: x speed: %1.2f m/s, y speed: %1.2f m/s, yaw rate: %1.2f deg/s '\
+                        print('Cmd Values: x speed: %1.3f m/s, y speed: %1.3f m/s, yaw rate: %1.3f deg/s '\
                                 %(self._x_speed_cmd_msg.data,self._y_speed_cmd_msg.data,self._yaw_rate_cmd_msg.data*180/pi))
                        
                         userInput = self.getKey()
