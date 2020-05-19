@@ -115,7 +115,7 @@ class SpotMicroSimpleCommand():
         rospy.loginfo("Initialization complete")
 
         # Create a spot micro stick figure object to encapsulate robot state
-        self.default_height = 0.16
+        self.default_height = 0.17
         self.sm = SpotMicroStickFigure(y=self.default_height)
 
         # Set absolute foot positions for default stance,

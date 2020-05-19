@@ -153,8 +153,8 @@ class SpotMicroSimpleCommand():
         fof = FirstOrderFilter(0.02,tau=1,x0=0)
 
 
-        cmd_ang_1 = 25*d2r
-        cmd_ang_2 = -25*d2r
+        cmd_ang_1 = 20*d2r
+        cmd_ang_2 = -20*d2r
         cmd = cmd_ang_1
         time = 0
 
@@ -176,7 +176,7 @@ class SpotMicroSimpleCommand():
 
 
             # Command body pose
-            self.sm.set_body_angles(theta=filtered_cmd_ang)
+            self.sm.set_body_angles(phi=filtered_cmd_ang)
 
             # Get leg angles
             leg_angs = self.sm.get_leg_angles()
