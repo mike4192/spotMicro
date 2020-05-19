@@ -9,17 +9,18 @@ namespace smfsm {
 
 // Constructor
 SpotMicroFsm::SpotMicroFsm() {
-  _state = new SpotMicroIdleState();
+ // _state = new SpotMicroIdleState();
+  _state = std::make_unique<SpotMicroIdleState>();
 }
 
 
 void SpotMicroFsm::handleInputCommands(Command& cmd) {
   // Delegate to state object to handle input
-  _state->handleInputCommands(this, cmd);
+  _state->handleInputCommands(*this, cmd);
 }
 
-void SpotMicroFsm::changeState(SpotMicroState* sms) {
-  _state = sms;
+void SpotMicroFsm::changeState(std::unique_ptr<SpotMicroState> sms) {
+  _state = std::move(sms);
 }
 
 }

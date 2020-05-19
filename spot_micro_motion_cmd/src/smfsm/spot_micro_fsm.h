@@ -47,12 +47,8 @@ class SpotMicroFsm {
   // Constructor
   SpotMicroFsm();
 
-  // Static instances of states, as unique instances are not necessary
-  // static SpotMicroIdleState idle;
-  
   void handleInputCommands(Command& cmd);
-  void update();
-  void changeState(SpotMicroState* sms);
+  void changeState(std::unique_ptr<SpotMicroState> sms);
 
  private:
   // Declaring SpotMicroFsmState a friend will allow that class to modify private members
@@ -60,7 +56,7 @@ class SpotMicroFsm {
   friend class SpotMicroState;
 
   // Pointer to state object
-  SpotMicroState* _state;
+  std::unique_ptr<SpotMicroState> _state;
 };
 
 }

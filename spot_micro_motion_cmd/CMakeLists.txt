@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(spot_micro_motion_cmd)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-std=c++11)
+add_compile_options(-std=c++14)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   i2cpwm_board
 )
 
+add_subdirectory(libs/spot_micro_kinematics_cpp)
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -117,12 +118,16 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
   include/spot_micro_motion_cmd
-  lib/smfsm/include
+  src/smfsm
   ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
-add_library(smfsm STATIC lib/smfsm/src/spot_micro_fsm.cpp lib/smfsm/src/spot_micro_state.cpp lib/smfsm/src/spot_micro_idle.cpp)
+add_library(smfsm 
+            src/smfsm/spot_micro_fsm.cpp 
+            src/smfsm/spot_micro_state.cpp 
+            src/smfsm/spot_micro_idle.cpp
+            src/smfsm/spot_micro_stand.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -148,6 +153,7 @@ add_executable(${PROJECT_NAME}_node src/spot_micro_motion_cmd.cpp src/spot_micro
  target_link_libraries(${PROJECT_NAME}_node
    ${catkin_LIBRARIES}
    smfsm
+   spot_micro_kinematics
 )
 
 #############
