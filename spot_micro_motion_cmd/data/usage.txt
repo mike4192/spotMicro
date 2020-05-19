@@ -1,0 +1,1 @@
+This folder is to store the data related to the program

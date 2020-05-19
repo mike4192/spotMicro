@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Launch file -->
+
+<launch>
+    <!-- Defining the node and executable and publishing the output on terminal-->
+    <node name="spot_micro_motion_cmd_node" pkg="spot_micro_motion_cmd" type="spot_micro_motion_cmd_node" output="screen">
+        <!-- loading the parameters from yaml file during th runtime -->
+        <rosparam command="load" file="$(find spot_micro_motion_cmd)/config/spot_micro_motion_cmd.yaml"/>
+    </node>
+</launch>
