@@ -22,19 +22,19 @@ class Configuration:
         self.max_stance_yaw = 1.2
         self.max_stance_yaw_rate = 2.0
         
-        self.body_shift_x = 0.03 # Distance body shifts forward in x direction during stance phase
-        self.body_shift_y = 0.02 # Distance body shifts sideways during stance phase
+        self.body_shift_x = 0.035 # Distance body shifts forward in x direction during stance phase
+        self.body_shift_y = 0.025 # Distance body shifts sideways during stance phase
 
         #################### STANCE ####################
         self.delta_x = 0.1
         self.delta_y = 0.09
-        self.x_shift_front = 0
-        self.x_shift_back = 0
+        self.x_shift_front = 0.02
+        self.x_shift_back = -0.03
         self.default_z_ref = -0.18
 
         #################### SWING ######################
         self.z_coeffs = None
-        self.z_clearance = 0.03
+        self.z_clearance = 0.045
         self.alpha = (
             1.0  # Ratio between touchdown distance and total horizontal stance movement
         )
@@ -61,10 +61,10 @@ class Configuration:
              [1, 2, -1, 2, 1, 0, -1, 2]]
         )
         self.overlap_time = (
-            1.5  # duration of the phase where all four feet are on the ground
+            1.2  # duration of the phase where all four feet are on the ground
         )
         self.swing_time = (
-            1.5  # duration of the phase when only two feet are on the ground
+            1.2  # duration of the phase when only two feet are on the ground
         )
 
     @property
