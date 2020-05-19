@@ -15,6 +15,7 @@ Enter one of the following options:
 -----------------------------
 quit: stop and quit the program
 trot: Start trot mode and keyboard motion control
+stand: Stand robot up
 
 Keyboard commands for body motion 
 ---------------------------
@@ -35,7 +36,7 @@ Keyboard commands for body motion
 
 CTRL-C to quit
 """
-valid_cmds = ('quit','Quit','trot')
+valid_cmds = ('quit','Quit','trot','stand')
 
 # Global body motion increment values
 speed_inc = 0.0025
@@ -58,6 +59,9 @@ class SpotMicroKeyboardControl():
         self._trot_event_cmd_msg = Bool()
         self._trot_event_cmd_msg.data = True # Mostly acts as an event driven action on receipt of a true message
 
+        self._stand_event_cmd_msg = Bool()
+        self._stand_event_cmd_msg.data = True
+        
         rospy.loginfo("Setting Up the Spot Micro Keyboard Control Node...")
 
         # Set up and title the ros node for this code
@@ -68,6 +72,8 @@ class SpotMicroKeyboardControl():
         self.ros_pub_y_speed_cmd    = rospy.Publisher('/y_speed_cmd',Float32,queue_size=1)
         self.ros_pub_yaw_rate_cmd   = rospy.Publisher('/yaw_rate_cmd',Float32,queue_size=1)
         self.ros_pub_state_cmd      = rospy.Publisher('/state_cmd',Bool,queue_size=1)
+        self.ros_pub_stand_cmd      = rospy.Publisher('/stand_cmd',Bool,queue_size=1)
+        
         rospy.loginfo("> Publishers corrrectly initialized")
 
         rospy.loginfo("Initialization complete")
@@ -108,6 +114,10 @@ class SpotMicroKeyboardControl():
                 if userInput == 'quit':
                     print("Ending program...")
                     break
+                
+                elif userInput == 'stand':
+                    #Publish stand command event
+                    self.ros_pub_stand_cmd.publish(self._stand_event_cmd_msg)
 
                 elif userInput == 'trot':
                     # Reset all body motion commands to zero
