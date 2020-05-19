@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 """
-Class for sending keyboard commands to spot micro walk node, control velocity, yaw rate, and trot event 
+Class for sending keyboard commands to spot micro walk node, control velocity, yaw rate, and walk event 
 """
 import rospy
 import sys, select, termios, tty # For terminal keyboard key press reading
@@ -14,7 +14,7 @@ Spot Micro Walk Command
 Enter one of the following options:
 -----------------------------
 quit: stop and quit the program
-trot: Start trot mode and keyboard motion control
+walk: Start walk mode and keyboard motion control
 stand: Stand robot up
 
 Keyboard commands for body motion 
@@ -36,7 +36,7 @@ Keyboard commands for body motion
 
 CTRL-C to quit
 """
-valid_cmds = ('quit','Quit','trot','stand')
+valid_cmds = ('quit','Quit','walk','stand','idle')
 
 # Global body motion increment values
 speed_inc = 0.0025
@@ -56,12 +56,15 @@ class SpotMicroKeyboardControl():
         self._yaw_rate_cmd_msg = Float32()
         self._yaw_rate_cmd_msg.data = 0
 
-        self._trot_event_cmd_msg = Bool()
-        self._trot_event_cmd_msg.data = True # Mostly acts as an event driven action on receipt of a true message
+        self._walk_event_cmd_msg = Bool()
+        self._walk_event_cmd_msg.data = True # Mostly acts as an event driven action on receipt of a true message
 
         self._stand_event_cmd_msg = Bool()
         self._stand_event_cmd_msg.data = True
-        
+       
+        self._idle_event_cmd_msg = Bool()
+        self._idle_event_cmd_msg.data = True
+
         rospy.loginfo("Setting Up the Spot Micro Keyboard Control Node...")
 
         # Set up and title the ros node for this code
@@ -73,7 +76,8 @@ class SpotMicroKeyboardControl():
         self.ros_pub_yaw_rate_cmd   = rospy.Publisher('/yaw_rate_cmd',Float32,queue_size=1)
         self.ros_pub_state_cmd      = rospy.Publisher('/state_cmd',Bool,queue_size=1)
         self.ros_pub_stand_cmd      = rospy.Publisher('/stand_cmd',Bool,queue_size=1)
-        
+        self.ros_pub_idle_cmd       = rospy.Publisher('/idle_cmd',Bool,queue_size=1)
+
         rospy.loginfo("> Publishers corrrectly initialized")
 
         rospy.loginfo("Initialization complete")
@@ -118,13 +122,17 @@ class SpotMicroKeyboardControl():
                 elif userInput == 'stand':
                     #Publish stand command event
                     self.ros_pub_stand_cmd.publish(self._stand_event_cmd_msg)
+                
+                elif userInput == 'idle':
+                    #Publish idle command event
+                    self.ros_pub_idle_cmd.publish(self._idle_event_cmd_msg)
 
-                elif userInput == 'trot':
+                elif userInput == 'walk':
                     # Reset all body motion commands to zero
                     self.reset_all_motion_commands_to_zero()
 
-                    # Publish trot event
-                    self.ros_pub_state_cmd.publish(self._trot_event_cmd_msg)
+                    # Publish walk event
+                    self.ros_pub_state_cmd.publish(self._walk_event_cmd_msg)
 
                     # Enter loop to act on user command
 
@@ -137,8 +145,8 @@ class SpotMicroKeyboardControl():
                         userInput = self.getKey()
 
                         if userInput == 'u':
-                            # Send trot event message, this will take robot back to rest mode
-                            self.ros_pub_state_cmd.publish(self._trot_event_cmd_msg)
+                            # Send walk event message, this will take robot back to rest mode
+                            self.ros_pub_state_cmd.publish(self._walk_event_cmd_msg)
                             break
 
                         elif userInput not in ('w','a','s','d','q','e','u'):
