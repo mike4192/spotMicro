@@ -1,5 +1,5 @@
 // Node file to create object and initialising the ROS node
-#include "spot_micro_motion_cmd.hpp" 
+#include "spot_micro_motion_cmd.h" 
 #include <iostream>
 
 
@@ -14,7 +14,7 @@ int main(int argc, char** argv)
     
     SpotMicroMotionCmd node(nh,pnh); // Creating the object
     
-    std::cout << "Got here!!!" << std::endl;
+    std::cout << "Got here2!!!" << std::endl;
     
 
     ros::Rate rate(1.0); // Defing the looping rate

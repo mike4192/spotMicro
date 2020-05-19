@@ -1,25 +1,26 @@
 #pragma once
 
 #include "command.h"
-//#include "spot_micro_fsm.h"
 
 
-
-namespace smfsm {
-
-class SpotMicroFsm;
+class SpotMicroMotionCmd;
 
 class SpotMicroState {
  public:
 
-  
-  SpotMicroState(); // Constructor
-  virtual ~SpotMicroState(); // Destructor
+  // Constructor
+  SpotMicroState(); 
 
-  virtual void handleInputCommands(SpotMicroFsm& fsm, Command& cmd);
+  // Destructor
+  virtual ~SpotMicroState();
+
+  // virtual method to handle input commands, may change SpotMicroMotionCmd object
+  // passed by reference.
+  virtual void handleInputCommands(SpotMicroMotionCmd& smmc, const Command& cmd);
 
  protected:
-  void changeState(SpotMicroFsm& fsm, std::unique_ptr<SpotMicroState> sms);
+
+  // Calls SpotMicroMotionCmd's method to change the currently active state
+  void changeState(SpotMicroMotionCmd& smmc, std::unique_ptr<SpotMicroState> sms);
 };
 
-}

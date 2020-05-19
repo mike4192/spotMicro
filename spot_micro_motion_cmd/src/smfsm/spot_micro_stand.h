@@ -4,14 +4,12 @@
 #include "command.h"
 #include <iostream>
 
-namespace smfsm {
 
 class SpotMicroStandState : public SpotMicroState {
  public:
   SpotMicroStandState(); // Constructor
   ~SpotMicroStandState(); // Destructor
-  virtual void handleInputCommands(SpotMicroFsm& fsm, Command& cmd);
+  virtual void handleInputCommands(SpotMicroMotionCmd& smmc, const Command& cmd);
 
 };
 
-}

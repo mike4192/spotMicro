@@ -1,18 +1,16 @@
 #pragma once
 
-#include "spot_micro_state.h"
-//#include "spot_micro_fsm.h"
-#include "command.h"
 #include <iostream>
 
-namespace smfsm {
+#include "spot_micro_state.h"
+#include "command.h"
+
 
 class SpotMicroIdleState : public SpotMicroState {
  public:
   SpotMicroIdleState(); // Constructor
   ~SpotMicroIdleState(); // Destructor
-  virtual void handleInputCommands(SpotMicroFsm& fsm, Command& cmd);
+  virtual void handleInputCommands(SpotMicroMotionCmd& smmc, const Command& cmd);
 
 };
 
-}

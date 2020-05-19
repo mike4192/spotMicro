@@ -4,44 +4,47 @@
 #include "std_msgs/Bool.h"
 
 
-namespace smfsm {
-
 class Command {
  public:
   
-  float x_vel_cmd_mps;
-  float y_vel_cmd_mps;
-  float yaw_rate_cmd_rps;
+  float x_vel_cmd_mps_;
+  float y_vel_cmd_mps_;
+  float yaw_rate_cmd_rps_;
   
-  bool idle_cmd;
-  bool rest_cmd;
-  bool walk_cmd;
-  bool stand_cmd;
+  bool idle_cmd_;
+  bool rest_cmd_;
+  bool walk_cmd_;
+  bool stand_cmd_;
  
   // Constructor
   Command()
-      : x_vel_cmd_mps(0.0)
-      , y_vel_cmd_mps(0.0)
-      , yaw_rate_cmd_rps(0.0)
-      , idle_cmd(false)
-      , rest_cmd(false)
-      , walk_cmd(false)
-      , stand_cmd(false)
+      : x_vel_cmd_mps_(0.0)
+      , y_vel_cmd_mps_(0.0)
+      , yaw_rate_cmd_rps_(0.0)
+      , idle_cmd_(false)
+      , rest_cmd_(false)
+      , walk_cmd_(false)
+      , stand_cmd_(false)
       { }
 
-  bool getStandCmd()
-  {
-      // stand cmd status getter. If cmd state is true, sets it false and return true, 
-      // otherwise returns false
-      if (stand_cmd == true)
-      {
-          stand_cmd = false;
-          return true;
-      }
-      else
-      {
-          return false;
-      }
+  bool getStandCmd() const {
+      // stand cmd status getter.
+      return stand_cmd_;
+  }
+
+  bool getIdleCmd() const {
+    return idle_cmd_;
+  }
+
+ bool getWalkCmd() const {
+    return walk_cmd_;
+ } 
+
+  void resetEventCmds() {
+    // Reset all event commands to false
+    idle_cmd_ = false;
+    rest_cmd_ = false;
+    walk_cmd_ = false;
+    stand_cmd_ = false;
   }
 };
-}

@@ -1,8 +1,7 @@
 #include "spot_micro_state.h"
-#include "spot_micro_fsm.h"
+#include "spot_micro_motion_cmd.h"
 
 
-namespace smfsm {
 
 // Constructor
 SpotMicroState::SpotMicroState() {
@@ -10,13 +9,17 @@ SpotMicroState::SpotMicroState() {
   std::cout << "SpotMicroState Ctor" << std::endl;
 }
 
+
 SpotMicroState::~SpotMicroState() {
   std::cout << "SpotMicroState Dtor" << std::endl;
 }
-void SpotMicroState::handleInputCommands(SpotMicroFsm& fsm, Command& cmd) {}
 
-void SpotMicroState::changeState(SpotMicroFsm& fsm, std::unique_ptr<SpotMicroState> sms) {
-  fsm.changeState(std::move(sms));
+
+void SpotMicroState::handleInputCommands(SpotMicroMotionCmd& smmc, const Command& cmd) {}
+
+
+void SpotMicroState::changeState(SpotMicroMotionCmd& smmc, std::unique_ptr<SpotMicroState> sms) {
+  //fsm.changeState(std::move(sms));
+  smmc.changeState(std::move(sms));
 }
 
-}

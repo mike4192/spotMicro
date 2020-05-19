@@ -124,11 +124,13 @@ include_directories(
 
 ## Declare a C++ library
 add_library(smfsm 
-            src/smfsm/spot_micro_fsm.cpp 
             src/smfsm/spot_micro_state.cpp 
             src/smfsm/spot_micro_idle.cpp
             src/smfsm/spot_micro_stand.cpp)
 
+target_link_libraries(smfsm
+		spot_micro_kinematics
+)
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
