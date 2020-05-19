@@ -1,0 +1,3 @@
+[submodule "spot_micro_motion_cmd/libs/spot_micro_kinematics_cpp"]
+	path = spot_micro_motion_cmd/libs/spot_micro_kinematics_cpp
+	url = git@github.com:mike4192/spot_micro_kinematics_cpp.git
