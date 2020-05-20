@@ -1,4 +1,3 @@
-#include <memory>
 
 #include "std_msgs/Float32.h"
 #include "std_msgs/Bool.h"
@@ -7,6 +6,11 @@
 #include "spot_micro_kinematics/spot_micro_kinematics.h"
 #include "i2cpwm_board/Servo.h"
 #include "i2cpwm_board/ServoArray.h"
+#include "i2cpwm_board/ServoConfig.h"
+#include "i2cpwm_board/ServoConfigArray.h"
+#include "i2cpwm_board/ServosConfig.h"
+
+
 
 #include "spot_micro_idle.h"
 
@@ -34,10 +38,14 @@ void SpotMicroMotionCmd::resetEventCommands() {
 }
 
 
+
+
 //constructor method
 SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh) {
 
   nh_ = nh;
+  pnh_ = pnh;
+
   std::cout<<"from Constructor \n";
 
   // Initialize Command 
@@ -73,11 +81,14 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
   // walk cmd event subscriber
     
   // servos_absolute publisher
-  servos_absolute_pub_ = nh.advertise<i2cpwm_board::ServoArray>("servos_absolute", 500);
+  servos_absolute_pub_ = nh.advertise<i2cpwm_board::ServoArray>("servos_absolute", 1);
 
   // Servos proportional publisher
-    
+  servos_proportional_pub_ = nh.advertise<i2cpwm_board::ServoArray>("servos_proportional",1);  
+  
   // Servos configuration publisher
+  servos_config_client_ = nh.serviceClient<i2cpwm_board::ServosConfig>("config_servos");
+  
 }
 
 // Destructor method
@@ -87,8 +98,41 @@ SpotMicroMotionCmd::~SpotMicroMotionCmd() {
   // Free up the memory assigned from heap
 }
 
-void SpotMicroMotionCmd::runOnce() {
 
+void SpotMicroMotionCmd::readInConfigParameters() {
+
+  // Read in and save parameters 
+  // Use private node handle for getting params so just the relative
+  // parameter name can be used (as opposed to the global name, e.g.:
+  // /spot_micro_motion_cmd/param1
+  pnh_.getParam("hip_link_length", smnc_.smc.hip_link_length);
+  pnh_.getParam("upper_leg_link_length", smnc_.smc.upper_leg_link_length);
+  pnh_.getParam("lower_leg_link_length", smnc_.smc.lower_leg_link_length);
+  pnh_.getParam("body_width", smnc_.smc.body_width);
+  pnh_.getParam("body_length", smnc_.smc.body_length);
+  pnh_.getParam("default_stand_height", smnc_.default_stand_height);
+  pnh_.getParam("lie_down_height", smnc_.lie_down_height);
+  pnh_.getParam("num_servos", smnc_.num_servos);
+  pnh_.getParam("servo_max_angle_deg", smnc_.servo_max_angle_deg);
+
+  std::map<std::string, float> temp_map;
+  // Iterate over servo names, as defined in the map servo_cmds_rad, to populate
+  // the servo config map in smnc_
+  for(std::map<std::string, float>::iterator 
+      iter = servo_cmds_rad_.begin();
+      iter != servo_cmds_rad_.end();
+      ++iter) {
+
+    std::string servo_name = iter->first; // Get key, string of the servo name
+    
+    pnh_.getParam(servo_name, temp_map); // Read the parameter. Parameter name must match servo name
+    smnc_.servo_config[servo_name] = temp_map; // Assing in servo config to map in the struct
+  }
+}
+
+
+
+void SpotMicroMotionCmd::runOnce() {
   std::cout<<"from Runonce \n";
 
   // Call method to handle input commands
@@ -98,6 +142,7 @@ void SpotMicroMotionCmd::runOnce() {
   // This resets all event commands if they were true. Doing this enforces a rising edge detection
   resetEventCommands();
 }
+
 
 void SpotMicroMotionCmd::handleInputCommands() {
   // Delegate input handling to state

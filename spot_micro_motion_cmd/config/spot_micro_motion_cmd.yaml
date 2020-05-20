@@ -1,2 +1,29 @@
 # yaml file to store the configurations
 
+
+# Robot structure parameters
+hip_link_length: 0.055
+upper_leg_link_length: 0.1075
+lower_leg_link_length: 0.130
+body_width: 0.078
+body_length: 0.186
+
+# Stance parameters
+default_stand_height: 0.17
+lie_down_height: 0.05
+
+# Servo parameters
+num_servos: 12
+servo_max_angle_deg: 70.0
+RF_3: {num: 1,  center: 306,range: 367,direction:  1, center_angle_deg:  57.2}
+RF_2: {num: 2,  center: 306,range: 328,direction:  1, center_angle_deg: -25.6}
+RF_1: {num: 3,  center: 320,range: 352,direction: -1, center_angle_deg:   0.0}
+RB_3: {num: 4,  center: 306,range: 331,direction:  1, center_angle_deg:  54.8}
+RB_2: {num: 5,  center: 306,range: 344,direction:  1, center_angle_deg: -17.1}
+RB_1: {num: 6,  center: 306,range: 345,direction:  1, center_angle_deg:   0.0}
+LB_3: {num: 7,  center: 306,range: 347,direction:  1, center_angle_deg: -52.6}
+LB_2: {num: 8,  center: 306,range: 333,direction:  1, center_angle_deg:  30.3}
+LB_1: {num: 9,  center: 316,range: 343,direction: -1, center_angle_deg:   0.0}
+LF_3: {num: 10, center: 306,range: 333,direction:  1, center_angle_deg: -52.1}
+LF_2: {num: 11, center: 306,range: 347,direction:  1, center_angle_deg:  26.6}
+LF_1: {num: 12, center: 282,range: 342,direction:  1, center_angle_deg:   0.0}
