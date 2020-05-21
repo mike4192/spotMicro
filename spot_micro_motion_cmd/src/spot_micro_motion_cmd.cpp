@@ -63,6 +63,21 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
   // Initialize spot micro kinematics object of this class
   sm_ = smk::SpotMicroKinematics(0.0f, 0.0f, 0.0f, smnc_.smc);
 
+  // Set an initial body height and stance for idle mode
+  float len = smnc_.smc.body_length;
+  float width = smnc_.smc.body_width;
+  float l1 = smnc_.smc.hip_link_length;
+
+  smk::LegsFootPos initial_feet_pos;
+  initial_feet_pos.right_back  = {.x = -len/2, .y = 0.0f, .z =  width/2 + l1};
+  initial_feet_pos.right_front = {.x =  len/2, .y = 0.0f, .z =  width/2 + l1};
+  initial_feet_pos.left_front  = {.x =  len/2, .y = 0.0f, .z = -width/2 - l1};
+  initial_feet_pos.left_back   = {.x = -len/2, .y = 0.0f, .z = -width/2 - l1};
+
+  sm_.setFeetPosGlobalCoordinates(initial_feet_pos); 
+  sm_.setBodyPosition(0.0f, smnc_.lie_down_height, 0.0f);
+
+
   // Initialize servo array message with 12 servo objects
   for (int i = 1; i <= smnc_.num_servos; i++) {
     i2cpwm_board::Servo temp_servo;
