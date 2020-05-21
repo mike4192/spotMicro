@@ -18,6 +18,7 @@ class SpotMicroState {
   // passed by reference.
   virtual void handleInputCommands(SpotMicroMotionCmd& smmc, const Command& cmd);
 
+  virtual void init(SpotMicroMotionCmd& smmc, const Command& cmd);
  protected:
 
   // Calls SpotMicroMotionCmd's method to change the currently active state

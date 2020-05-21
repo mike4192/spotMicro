@@ -28,14 +28,32 @@ struct SpotMicroNodeConfig {
 /* defining the class */
 class SpotMicroMotionCmd
 {
+
  public:
   SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh); //constructor method
   ~SpotMicroMotionCmd(); // distructor method
   void runOnce(); // runOnce method to control the flow of program
 
-  // Reads parameters from parameter server to initialize spot micro node config
-  // struct
-  void readInConfigParameters(); 
+  // Publish a servo configuration message
+  bool publishServoConfiguration();
+
+  // Spot Micro Kinematics object. Holds state of robot, and holds
+  // kinematics operations for setting position/orientation of the robot
+  smk::SpotMicroKinematics sm_; 
+
+  // Set servo proprotional message data
+  void setServoCommandMessageData(const smk::LegsJointAngles& joint_angs); 
+
+  // Publishes a servo proportional command message
+  void publishServoProportionalCommand(); 
+
+  // Publishes a servo absolute command message with all servos set to a command
+  // value of 0. This effectively disables the servos (stops them from holding
+  // position, should just freewheel)
+  void publishZeroServoAbsoluteCommand();
+
+  // Spot Micro Node Config object
+  SpotMicroNodeConfig smnc_;
 
  private:
   // Declare SpotMicroState a friend so it can access and modify private
@@ -54,15 +72,16 @@ class SpotMicroMotionCmd
                                                    {"LB_3", 0.0f}, {"LB_2", 0.0f}, {"LB_1", 0.0f},
                                                    {"LF_3", 0.0f}, {"LF_2", 0.0f}, {"LF_1", 0.0f} };
 
-  // Spot Micro Node Config object
-  SpotMicroNodeConfig smnc_;
+  // Reads parameters from parameter server to initialize spot micro node config
+  // struct
+  void readInConfigParameters();
 
-  // Servo array message 
+  // Servo array message for servo proportional command
   i2cpwm_board::ServoArray servo_array_;
 
-  // Spot Micro Kinematics object. Holds state of robot, and holds
-  // kinematics operations for setting position/orientation of the robot
-  smk::SpotMicroKinematics sm_; 
+  // Servo array message for servo absolute command
+  i2cpwm_board::ServoArray servo_array_absolute_;
+
 
   // Ros publisher and subscriber handles
   ros::NodeHandle nh_; // Defining the ros NodeHandle variable for registrating the same with the master
@@ -73,6 +92,7 @@ class SpotMicroMotionCmd
   ros::Subscriber speed_cmd_sub_;
   ros::Subscriber position_cmd_sub_;
   ros::Subscriber body_rate_cmd_sub_;
+  ros::Subscriber body_angle_cmd_sub_;
   ros::Publisher servos_absolute_pub_;
   ros::Publisher servos_proportional_pub_; 
   ros::ServiceClient servos_config_client_;
@@ -83,26 +103,19 @@ class SpotMicroMotionCmd
   // Callback method for idle command
   void idleCommandCallback(const std_msgs::Bool::ConstPtr& msg);
 
-  void resetEventCommands();
+  // Callback method for walk command
+  void walkCommandCallback(const std_msgs::Bool::ConstPtr& msg);
 
+  // Resets all events if they were true
+  void resetEventCommands();
+  
+
+  // State Machine Related Methods
   // Handle input commands, delegate to state machine
   void handleInputCommands();
 
   // Changes state of the state machine
   void changeState(std::unique_ptr<SpotMicroState> sms);
 
-  // Publish a servo configuration message
-  int publishServoConfiguratio(); 
-
-  // Publishes a servo proportional command message
-  
-
-  // Publishes a servo absolute command message
-  
-
-  // Set servo proprotional message data
-  
-
-  // Set sero absolute message data
 };
 #endif  

@@ -15,17 +15,21 @@ int main(int argc, char** argv) {
 
   ros::Rate rate(1.0); // Defing the looping rate
 
-  // Read in the parameters
-  node.readInConfigParameters();
 
-  /* Looking for any interupt else it will continue looping */
-  // Main loop runs indefinitely unless there is an interupt call
-  while (ros::ok())
-  {   
-      node.runOnce();
-      ros::spinOnce();
-      rate.sleep();
+  // Only proceed if servo configuration publishing succeeds
+  if (node.publishServoConfiguration()) {
+  
+  //node.publishServoConfiguration();
+    
+    /* Looking for any interupt else it will continue looping */
+    // Main loop runs indefinitely unless there is an interupt call
+    while (ros::ok())
+    {   
+        node.runOnce();
+        ros::spinOnce();
+        rate.sleep();
+    }
+    // TODO: Command idle mode event
   }
-  // TODO: Command idle mode event
   return 0;
 }

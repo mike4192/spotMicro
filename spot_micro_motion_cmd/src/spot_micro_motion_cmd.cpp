@@ -7,7 +7,6 @@
 #include "i2cpwm_board/Servo.h"
 #include "i2cpwm_board/ServoArray.h"
 #include "i2cpwm_board/ServoConfig.h"
-#include "i2cpwm_board/ServoConfigArray.h"
 #include "i2cpwm_board/ServosConfig.h"
 
 
@@ -20,15 +19,19 @@ using namespace smk;
 
 void SpotMicroMotionCmd::standCommandCallback(
     const std_msgs::Bool::ConstPtr& msg) {
-  // Toggle event true only on rising edge from external command
   if (msg->data == true) {cmd_.stand_cmd_ = true;}
 }
 
 
 void SpotMicroMotionCmd::idleCommandCallback(
     const std_msgs::Bool::ConstPtr& msg) {
-  // Toggle event true only on rising edge from external command
   if (msg->data == true) {cmd_.idle_cmd_ = true;}
+}
+
+
+void SpotMicroMotionCmd::walkCommandCallback(
+    const std_msgs::Bool::ConstPtr& msg) {
+  if (msg->data == true) {cmd_.walk_cmd_ = true;}
 }
 
 
@@ -40,7 +43,7 @@ void SpotMicroMotionCmd::resetEventCommands() {
 
 
 
-//constructor method
+// Constructor
 SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh) {
 
   nh_ = nh;
@@ -54,24 +57,25 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
   // Initialize state to Idle state
   state_ = std::make_unique<SpotMicroIdleState>();
 
-  // Initialize spot micro kinematics object 
-  // TODO: Convert to reading values from configuration/parameter server
-  smk::SpotMicroConfig smc = {.hip_link_length = 0.055f,
-                              .upper_leg_link_length = 0.1075f,
-                              .lower_leg_link_length = 0.130f,
-                              .body_width = 0.078f,
-                              .body_length = 0.186};
-    
-  smk::SpotMicroKinematics sm = smk::SpotMicroKinematics(0.0f, 0.0f, 0.0f, smc);
+  // Read in config parameters into smnc_
+  readInConfigParameters();
 
-  // storing the values in the member variable
-  // get the parameters or configurations and store them in member variables
- 
+  // Initialize spot micro kinematics object of this class
+  sm_ = smk::SpotMicroKinematics(0.0f, 0.0f, 0.0f, smnc_.smc);
 
+  // Initialize servo array message with 12 servo objects
+  for (int i = 1; i <= smnc_.num_servos; i++) {
+    i2cpwm_board::Servo temp_servo;
+    temp_servo.servo = i;
+    temp_servo.value = 0;
+    servo_array_.servos.push_back(temp_servo);
+  }
 
+  // Initialize servo array absolute message with 12 servo object with a value of
+  // zero, just copy servo_array_msg since it's already correct 
+  servo_array_absolute_.servos = servo_array_.servos;
 
   // Initialize publishers and subscribers
-    
   // stand cmd event subscriber 
   stand_sub_ = nh.subscribe("/stand_cmd", 1, &SpotMicroMotionCmd::standCommandCallback, this);
     
@@ -79,7 +83,18 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
   idle_sub_ = nh.subscribe("/idle_cmd", 1, &SpotMicroMotionCmd::idleCommandCallback, this);
 
   // walk cmd event subscriber
-    
+  walk_sub_ = nh.subscribe("/walk_cmd", 1, &SpotMicroMotionCmd::walkCommandCallback, this);
+ 
+  // speed command subscriber
+  
+
+  // position command subscriber
+  
+  // body rate command subscriber
+  
+  // body angle command subscriber
+  
+
   // servos_absolute publisher
   servos_absolute_pub_ = nh.advertise<i2cpwm_board::ServoArray>("servos_absolute", 1);
 
@@ -100,7 +115,6 @@ SpotMicroMotionCmd::~SpotMicroMotionCmd() {
 
 
 void SpotMicroMotionCmd::readInConfigParameters() {
-
   // Read in and save parameters 
   // Use private node handle for getting params so just the relative
   // parameter name can be used (as opposed to the global name, e.g.:
@@ -115,7 +129,9 @@ void SpotMicroMotionCmd::readInConfigParameters() {
   pnh_.getParam("num_servos", smnc_.num_servos);
   pnh_.getParam("servo_max_angle_deg", smnc_.servo_max_angle_deg);
 
+  // Temporary map for populating map in smnc_
   std::map<std::string, float> temp_map;
+  
   // Iterate over servo names, as defined in the map servo_cmds_rad, to populate
   // the servo config map in smnc_
   for(std::map<std::string, float>::iterator 
@@ -128,9 +144,102 @@ void SpotMicroMotionCmd::readInConfigParameters() {
     pnh_.getParam(servo_name, temp_map); // Read the parameter. Parameter name must match servo name
     smnc_.servo_config[servo_name] = temp_map; // Assing in servo config to map in the struct
   }
+  
 }
 
 
+bool SpotMicroMotionCmd::publishServoConfiguration() {  
+  // Create a temporary servo config
+  i2cpwm_board::ServoConfig temp_servo_config;
+  i2cpwm_board::ServosConfig temp_servo_config_array;
+
+  // Loop through servo configuration dictionary in smnc_, append servo to
+  for (std::map<std::string, std::map<std::string, float>>::iterator
+       iter = smnc_.servo_config.begin();
+       iter != smnc_.servo_config.end();
+       ++iter) {
+
+    std::map<std::string, float> servo_config_params = iter->second;
+    temp_servo_config.center = servo_config_params["center"];
+    temp_servo_config.range = servo_config_params["range"];
+    temp_servo_config.servo = servo_config_params["num"];
+    temp_servo_config.direction = servo_config_params["direction"];
+
+    // Append to temp_servo_config_array
+    temp_servo_config_array.request.servos.push_back(temp_servo_config);
+  }
+
+  // call the client service, return true if succesful false if not
+  if (!servos_config_client_.call(temp_servo_config_array)) {
+    ROS_ERROR("Failed to call service servo_config");
+    return false;
+  }
+
+  return true;
+}
+
+
+void SpotMicroMotionCmd::setServoCommandMessageData(
+    const smk::LegsJointAngles& joint_angs) {
+
+  // Set the angles for the servo command message
+  servo_cmds_rad_["RF_1"] = joint_angs.right_front.ang1;
+  servo_cmds_rad_["RF_2"] = joint_angs.right_front.ang2;
+  servo_cmds_rad_["RF_3"] = joint_angs.right_front.ang3;
+ 
+  servo_cmds_rad_["RB_1"] = joint_angs.right_back.ang1;
+  servo_cmds_rad_["RB_2"] = joint_angs.right_back.ang2;
+  servo_cmds_rad_["RB_3"] = joint_angs.right_back.ang3;
+ 
+  servo_cmds_rad_["LF_1"] = joint_angs.left_front.ang1;
+  servo_cmds_rad_["LF_2"] = joint_angs.left_front.ang2;
+  servo_cmds_rad_["LF_3"] = joint_angs.left_front.ang3;
+ 
+  servo_cmds_rad_["LB_1"] = joint_angs.left_back.ang1;
+  servo_cmds_rad_["LB_2"] = joint_angs.left_back.ang2;
+  servo_cmds_rad_["LB_3"] = joint_angs.left_back.ang3;
+}
+
+
+void SpotMicroMotionCmd::publishServoProportionalCommand() {
+  for (std::map<std::string, std::map<std::string, float>>::iterator
+       iter = smnc_.servo_config.begin();
+       iter != smnc_.servo_config.end();
+       ++iter) {
+ 
+    std::string servo_name = iter->first;
+    std::map<std::string, float> servo_config_params = iter->second;
+    
+    int servo_num = servo_config_params["num"];
+    float cmd_ang_rad = servo_cmds_rad_[servo_name];
+    float center_ang_rad = servo_config_params["center_angle_deg"]*M_PI/180.0f;
+    float servo_proportional_cmd = (cmd_ang_rad - center_ang_rad) /
+                                   (smnc_.servo_max_angle_deg*M_PI/180.0f);
+ 
+    if (servo_proportional_cmd > 1.0f) {
+      servo_proportional_cmd = 1.0f;
+      ROS_WARN("Proportional Command above +1.0 was computed, clipped to 1.0");
+      ROS_WARN("Joint %s, Angle: %1.2f", servo_name.c_str(), cmd_ang_rad*180.0/M_PI);
+ 
+    } else if (servo_proportional_cmd < -1.0f) {
+      servo_proportional_cmd = -1.0f;
+      ROS_WARN("Proportional Command below -1.0 was computed, clipped to -1.0");
+      ROS_WARN("Joint %s, Angle: %1.2f", servo_name.c_str(), cmd_ang_rad*180.0/M_PI);
+    }
+ 
+    servo_array_.servos[servo_num-1].servo = servo_num;
+    servo_array_.servos[servo_num-1].value = servo_proportional_cmd; 
+ }
+
+ // Publish message
+ servos_proportional_pub_.publish(servo_array_);
+}
+
+
+void SpotMicroMotionCmd::publishZeroServoAbsoluteCommand() {
+  // Publish the servo absolute message
+  servos_absolute_pub_.publish(servo_array_absolute_);
+}
 
 void SpotMicroMotionCmd::runOnce() {
   std::cout<<"from Runonce \n";
@@ -155,6 +264,7 @@ void SpotMicroMotionCmd::changeState(std::unique_ptr<SpotMicroState> sms) {
   state_ = std::move(sms);
 
   // TODO: Call init method of new state?
+  state_->init(*this, cmd_);
 }
 
 

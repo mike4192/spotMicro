@@ -17,6 +17,7 @@ SpotMicroState::~SpotMicroState() {
 
 void SpotMicroState::handleInputCommands(SpotMicroMotionCmd& smmc, const Command& cmd) {}
 
+void SpotMicroState::init(SpotMicroMotionCmd& smmc, const Command& cmd) {}
 
 void SpotMicroState::changeState(SpotMicroMotionCmd& smmc, std::unique_ptr<SpotMicroState> sms) {
   //fsm.changeState(std::move(sms));
