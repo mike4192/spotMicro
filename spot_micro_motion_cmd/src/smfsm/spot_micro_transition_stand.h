@@ -13,14 +13,17 @@ class SpotMicroTransitionStandState : public SpotMicroState {
   SpotMicroTransitionStandState(); // Constructor
   ~SpotMicroTransitionStandState(); // Destructor
 
-  virtual void handleInputCommands(SpotMicroMotionCmd& smmc, const Command& cmd);
+  virtual void handleInputCommands(SpotMicroMotionCmd* smmc,
+                                   const smk::BodyState& body_state,
+                                   const SpotMicroNodeConfig& smnc,
+                                   const Command& cmd);
 
-  virtual void init(SpotMicroMotionCmd& smmc, const Command& cmd);
+  virtual void init(SpotMicroMotionCmd* smmc, 
+                    const smk::BodyState& body_state,
+                    const SpotMicroNodeConfig& smnc,
+                    const Command& cmd);
 
  private:
-  smk::LegsFootPos start_feet_pos_;
-  smk::LegsFootPos end_feet_pos_;
-
   smk::BodyState start_body_state_;
   smk::BodyState end_body_state_;
   RateLmtdFirstOrderFilter rlfof; 

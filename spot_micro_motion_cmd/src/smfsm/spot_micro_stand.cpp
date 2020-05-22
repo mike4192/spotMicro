@@ -11,7 +11,10 @@ SpotMicroStandState::~SpotMicroStandState() {
   std::cout << "SpotMicroStandState Dtor" << std::endl;
 }
 
-void SpotMicroStandState::handleInputCommands(SpotMicroMotionCmd& smmc, const Command& cmd) {
+void SpotMicroStandState::handleInputCommands(SpotMicroMotionCmd* smmc, 
+                                   const smk::BodyState& body_state,
+                                   const SpotMicroNodeConfig& smnc,
+                                   const Command& cmd) {
   std::cout << "In Spot Micro Stand State" << std::endl;
 
   if (cmd.getIdleCmd() == true) {

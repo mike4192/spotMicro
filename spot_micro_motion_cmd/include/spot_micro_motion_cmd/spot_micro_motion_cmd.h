@@ -37,12 +37,8 @@ class SpotMicroMotionCmd
   // Publish a servo configuration message
   bool publishServoConfiguration();
 
-  // Spot Micro Kinematics object. Holds state of robot, and holds
-  // kinematics operations for setting position/orientation of the robot
-  smk::SpotMicroKinematics sm_; 
-
   // Set servo proprotional message data
-  void setServoCommandMessageData(const smk::LegsJointAngles& joint_angs); 
+  void setServoCommandMessageData();
 
   // Publishes a servo proportional command message
   void publishServoProportionalCommand(); 
@@ -51,9 +47,6 @@ class SpotMicroMotionCmd
   // value of 0. This effectively disables the servos (stops them from holding
   // position, should just freewheel)
   void publishZeroServoAbsoluteCommand();
-
-  // Spot Micro Node Config object
-  SpotMicroNodeConfig smnc_;
 
  private:
   // Declare SpotMicroState a friend so it can access and modify private
@@ -65,6 +58,17 @@ class SpotMicroMotionCmd
 
   // Command object for encapsulating external commands
   Command cmd_; // Command object, encapsulate commands
+
+  // Spot Micro Kinematics object. Holds kinematic state of robot, and holds
+  // kinematics operations for setting position/orientation of the robot
+  smk::SpotMicroKinematics sm_; 
+
+  // Spot Micro Node Config object
+  SpotMicroNodeConfig smnc_;
+
+  // Holds the body state to be commanded: feet position, body position and
+  // angles
+  smk::BodyState body_state_cmd_; 
 
   // Map to hold servo command values in radians
   std::map<std::string, float> servo_cmds_rad_ = { {"RF_3", 0.0f}, {"RF_2", 0.0f}, {"RF_1", 0.0f},

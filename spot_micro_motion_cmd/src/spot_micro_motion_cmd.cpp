@@ -63,19 +63,20 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
   // Initialize spot micro kinematics object of this class
   sm_ = smk::SpotMicroKinematics(0.0f, 0.0f, 0.0f, smnc_.smc);
 
-  // Set an initial body height and stance for idle mode
-  float len = smnc_.smc.body_length;
+  // Set an initial body height and stance cmd for idle mode
+  float len   = smnc_.smc.body_length;
   float width = smnc_.smc.body_width;
-  float l1 = smnc_.smc.hip_link_length;
+  float l1    = smnc_.smc.hip_link_length;
 
-  smk::LegsFootPos initial_feet_pos;
-  initial_feet_pos.right_back  = {.x = -len/2, .y = 0.0f, .z =  width/2 + l1};
-  initial_feet_pos.right_front = {.x =  len/2, .y = 0.0f, .z =  width/2 + l1};
-  initial_feet_pos.left_front  = {.x =  len/2, .y = 0.0f, .z = -width/2 - l1};
-  initial_feet_pos.left_back   = {.x = -len/2, .y = 0.0f, .z = -width/2 - l1};
+  body_state_cmd_.euler_angs = {.phi = 0.0f, .theta = 0.0f, .psi = 0.0f};
+  body_state_cmd_.xyz_pos = {.x = 0.0f, .y = smnc_.lie_down_height, .z = 0.0f};
+  body_state_cmd_.leg_feet_pos.right_back  = {.x = -len/2, .y = 0.0f, .z =  width/2 + l1};
+  body_state_cmd_.leg_feet_pos.right_front = {.x =  len/2, .y = 0.0f, .z =  width/2 + l1};
+  body_state_cmd_.leg_feet_pos.left_front  = {.x =  len/2, .y = 0.0f, .z = -width/2 - l1};
+  body_state_cmd_.leg_feet_pos.left_back   = {.x = -len/2, .y = 0.0f, .z = -width/2 - l1};
 
-  sm_.setFeetPosGlobalCoordinates(initial_feet_pos); 
-  sm_.setBodyPosition(0.0f, smnc_.lie_down_height, 0.0f);
+  // Set the spot micro kinematics object to this initial command
+  sm_.setBodyState(body_state_cmd_);
 
 
   // Initialize servo array message with 12 servo objects
@@ -194,8 +195,13 @@ bool SpotMicroMotionCmd::publishServoConfiguration() {
 }
 
 
-void SpotMicroMotionCmd::setServoCommandMessageData(
-    const smk::LegsJointAngles& joint_angs) {
+void SpotMicroMotionCmd::setServoCommandMessageData() {
+
+  // Set the state of the spot micro kinematics object by setting the foot
+  // positions, body position, and body orientation. Retrieve joint angles and
+  // set the servo cmd message data
+  sm_.setBodyState(body_state_cmd_);
+  LegsJointAngles joint_angs = sm_.getLegsJointAngles();
 
   // Set the angles for the servo command message
   servo_cmds_rad_["RF_1"] = joint_angs.right_front.ang1;
@@ -270,7 +276,7 @@ void SpotMicroMotionCmd::runOnce() {
 
 void SpotMicroMotionCmd::handleInputCommands() {
   // Delegate input handling to state
-  state_->handleInputCommands(*this, cmd_);
+  state_->handleInputCommands(this, sm_.getBodyState(), smnc_, cmd_);
 }
 
 
@@ -279,7 +285,7 @@ void SpotMicroMotionCmd::changeState(std::unique_ptr<SpotMicroState> sms) {
   state_ = std::move(sms);
 
   // TODO: Call init method of new state?
-  state_->init(*this, cmd_);
+  state_->init(this, sm_.getBodyState(), smnc_, cmd_);
 }
 
 

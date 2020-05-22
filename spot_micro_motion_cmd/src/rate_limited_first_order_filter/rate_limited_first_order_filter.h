@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cmath>
 
 // Encapsulates a first order filter with rate limiting

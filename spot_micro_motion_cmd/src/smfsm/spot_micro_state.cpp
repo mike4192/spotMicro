@@ -1,3 +1,5 @@
+#include "spot_micro_kinematics/spot_micro_kinematics.h"
+
 #include "spot_micro_state.h"
 #include "spot_micro_motion_cmd.h"
 
@@ -15,12 +17,17 @@ SpotMicroState::~SpotMicroState() {
 }
 
 
-void SpotMicroState::handleInputCommands(SpotMicroMotionCmd& smmc, const Command& cmd) {}
+void SpotMicroState::handleInputCommands(SpotMicroMotionCmd* smmc,
+                                         const smk::BodyState& body_state,
+                                         const SpotMicroNodeConfig& smnc,
+                                         const Command& cmd) {}
 
-void SpotMicroState::init(SpotMicroMotionCmd& smmc, const Command& cmd) {}
+void SpotMicroState::init(SpotMicroMotionCmd* smmc, 
+                          const smk::BodyState& body_state,
+                          const SpotMicroNodeConfig& smnc,
+                          const Command& cmd) {}
 
-void SpotMicroState::changeState(SpotMicroMotionCmd& smmc, std::unique_ptr<SpotMicroState> sms) {
-  //fsm.changeState(std::move(sms));
-  smmc.changeState(std::move(sms));
+void SpotMicroState::changeState(SpotMicroMotionCmd* smmc, std::unique_ptr<SpotMicroState> sms) {
+  smmc->changeState(std::move(sms));
 }
 

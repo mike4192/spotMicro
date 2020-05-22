@@ -18,48 +18,52 @@ SpotMicroTransitionStandState::~SpotMicroTransitionStandState() {
 }
 
 
-void SpotMicroTransitionStandState::init(SpotMicroMotionCmd& smmc, const Command& cmd) {
+void SpotMicroTransitionStandState::init(SpotMicroMotionCmd* smmc, 
+                    const smk::BodyState& body_state,
+                    const SpotMicroNodeConfig& smnc,
+                    const Command& cmd) {
   // Set initial state and end state
   
-  // Get starting feet positions
-  start_feet_pos_ = smmc.sm_.getLegsFootPos();
-  
+  // Get starting body state
+  start_body_state_ = body_state;
+ 
+  // Create end state 
   // Create end state feet positions, a default foot stance
-  float len = smmc.smnc_.smc.body_length; // body length
-  float width = smmc.smnc_.smc.body_width; // body width
-  float l1 = smmc.smnc_.smc.hip_link_length; // liength of the hip link
+  float len = smnc.smc.body_length; // body length
+  float width = smnc.smc.body_width; // body width
+  float l1 = smnc.smc.hip_link_length; // liength of the hip link
   // TODO: add stance offset parameters
 
-  end_feet_pos_.right_back  = {.x = -len/2, .y = 0.0f, .z =  width/2 + l1};
-  end_feet_pos_.right_front = {.x =  len/2, .y = 0.0f, .z =  width/2 + l1};
-  end_feet_pos_.left_front  = {.x =  len/2, .y = 0.0f, .z = -width/2 - l1};
-  end_feet_pos_.left_back   = {.x = -len/2, .y = 0.0f, .z = -width/2 - l1};
+  end_body_state_.leg_feet_pos.right_back  = {.x = -len/2, .y = 0.0f, .z =  width/2 + l1};
+  end_body_state_.leg_feet_pos.right_front = {.x =  len/2, .y = 0.0f, .z =  width/2 + l1};
+  end_body_state_.leg_feet_pos.left_front  = {.x =  len/2, .y = 0.0f, .z = -width/2 - l1};
+  end_body_state_.leg_feet_pos.left_back   = {.x = -len/2, .y = 0.0f, .z = -width/2 - l1};
 
-  // Get starting body state
-  start_body_state_ = smmc.sm_.getBodyState();
-
-  // End body state is x=0, z=0, y= stand height, phi, theta, psi = 0
+  // End body state position and angles
   end_body_state_.euler_angs.phi = 0.0f;
   end_body_state_.euler_angs.theta = 0.0f;
   end_body_state_.euler_angs.psi = 0.0f;
 
   end_body_state_.xyz_pos.x = 0.0f;
-  end_body_state_.xyz_pos.y = smmc.smnc_.default_stand_height;
+  end_body_state_.xyz_pos.y = smnc.default_stand_height;
   end_body_state_.xyz_pos.z = 0.0f;
 }
 
 
-void SpotMicroTransitionStandState::handleInputCommands(SpotMicroMotionCmd& smmc, const Command& cmd) {
+void SpotMicroTransitionStandState::handleInputCommands(SpotMicroMotionCmd* smmc,
+                                   const smk::BodyState& body_state,
+                                   const SpotMicroNodeConfig& smnc,
+                                   const Command& cmd) {
   std::cout << "In Spot Micro Idle State" << std::endl;
   
   // Check if desired end state reached, if so, change to stand state
-  if (cmd.getStandCmd() == true) {
-    changeState(smmc, std::make_unique<SpotMicroStandState>());
+  if (false) {
+    //changeState(smmc, std::make_unique<SpotMicroStandState>());
   
   } else {
     // Otherwise, otherwise, set transitory body/feet position/orientation, and
     // set and send servo proportional command
-    smmc.publishZeroServoAbsoluteCommand();
+    smmc->publishZeroServoAbsoluteCommand();
   }
 
 }

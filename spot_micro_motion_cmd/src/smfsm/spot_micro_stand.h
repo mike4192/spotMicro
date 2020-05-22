@@ -9,7 +9,10 @@ class SpotMicroStandState : public SpotMicroState {
  public:
   SpotMicroStandState(); // Constructor
   ~SpotMicroStandState(); // Destructor
-  virtual void handleInputCommands(SpotMicroMotionCmd& smmc, const Command& cmd);
+  virtual void handleInputCommands(SpotMicroMotionCmd* smmc, 
+                                   const smk::BodyState& body_state,
+                                   const SpotMicroNodeConfig& smnc,
+                                   const Command& cmd);
 
 };
 
