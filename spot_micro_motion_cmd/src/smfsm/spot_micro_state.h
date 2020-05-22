@@ -19,15 +19,16 @@ class SpotMicroState {
 
   // virtual method to handle input commands, may change SpotMicroMotionCmd object
   // passed by reference.
-  virtual void handleInputCommands(SpotMicroMotionCmd* smmc, 
-                                   const smk::BodyState& body_state,
+  virtual void handleInputCommands(const smk::BodyState& body_state,
                                    const SpotMicroNodeConfig& smnc,
-                                   const Command& cmd);
+                                   const Command& cmd,
+                                   SpotMicroMotionCmd* smmc, 
+                                   smk::BodyState* body_state_cmd) {}
 
   virtual void init(SpotMicroMotionCmd* smmc, 
                     const smk::BodyState& body_state,
                     const SpotMicroNodeConfig& smnc,
-                    const Command& cmd);
+                    const Command& cmd) {}
  protected:
 
   // Calls SpotMicroMotionCmd's method to change the currently active state

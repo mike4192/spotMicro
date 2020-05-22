@@ -10,9 +10,11 @@ class Command {
   float x_vel_cmd_mps_;
   float y_vel_cmd_mps_;
   float yaw_rate_cmd_rps_;
-  
+  float phi_cmd_;
+  float theta_cmd_;
+  float psi_cmd_;
+
   bool idle_cmd_;
-  bool rest_cmd_;
   bool walk_cmd_;
   bool stand_cmd_;
  
@@ -21,8 +23,10 @@ class Command {
       : x_vel_cmd_mps_(0.0)
       , y_vel_cmd_mps_(0.0)
       , yaw_rate_cmd_rps_(0.0)
+      , phi_cmd_(0.0f)
+      , theta_cmd_(0.0f)
+      , psi_cmd_(0.0f)
       , idle_cmd_(false)
-      , rest_cmd_(false)
       , walk_cmd_(false)
       , stand_cmd_(false)
       { }
@@ -43,7 +47,6 @@ class Command {
   void resetEventCmds() {
     // Reset all event commands to false
     idle_cmd_ = false;
-    rest_cmd_ = false;
     walk_cmd_ = false;
     stand_cmd_ = false;
   }

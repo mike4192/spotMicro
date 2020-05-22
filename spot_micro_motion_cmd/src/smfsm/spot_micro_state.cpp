@@ -17,15 +17,15 @@ SpotMicroState::~SpotMicroState() {
 }
 
 
-void SpotMicroState::handleInputCommands(SpotMicroMotionCmd* smmc,
-                                         const smk::BodyState& body_state,
-                                         const SpotMicroNodeConfig& smnc,
-                                         const Command& cmd) {}
+//void SpotMicroState::handleInputCommands(SpotMicroMotionCmd* smmc,
+                                         //const smk::BodyState& body_state,
+                                         //const SpotMicroNodeConfig& smnc,
+                                         //const Command& cmd) {}
 
-void SpotMicroState::init(SpotMicroMotionCmd* smmc, 
-                          const smk::BodyState& body_state,
-                          const SpotMicroNodeConfig& smnc,
-                          const Command& cmd) {}
+//void SpotMicroState::init(SpotMicroMotionCmd* smmc, 
+                          //const smk::BodyState& body_state,
+                          //const SpotMicroNodeConfig& smnc,
+                          //const Command& cmd) {}
 
 void SpotMicroState::changeState(SpotMicroMotionCmd* smmc, std::unique_ptr<SpotMicroState> sms) {
   smmc->changeState(std::move(sms));

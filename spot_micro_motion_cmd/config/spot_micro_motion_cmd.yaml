@@ -27,3 +27,12 @@ LB_1: {num: 9,  center: 316,range: 343,direction: -1, center_angle_deg:   0.0}
 LF_3: {num: 10, center: 306,range: 333,direction:  1, center_angle_deg: -52.1}
 LF_2: {num: 11, center: 306,range: 347,direction:  1, center_angle_deg:  26.6}
 LF_1: {num: 12, center: 282,range: 342,direction:  1, center_angle_deg:   0.0}
+
+# Control Parameters
+transit_tau: 0.5 # Time constant in seconds for transition state first order filters
+transit_rl: 0.05 # rate limit in m/s for transition state first order filters
+transit_angle_rl: 0.175 # rate limit in rad/s for transition angle state first order filters
+
+# Node parameters
+dt: 0.02 #50 hz
+

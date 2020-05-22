@@ -10,6 +10,7 @@ add_compile_options(-std=c++14)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
+  geometry_msgs
   i2cpwm_board
 )
 
@@ -106,7 +107,7 @@ add_subdirectory(libs/spot_micro_kinematics_cpp)
 catkin_package(
   INCLUDE_DIRS include/spot_micro_motion_cmd
 #  LIBRARIES spot_micro_motion_cmd
-  CATKIN_DEPENDS roscpp std_msgs
+  CATKIN_DEPENDS roscpp std_msgs geometry_msgs
 #  DEPENDS system_lib
 )
 

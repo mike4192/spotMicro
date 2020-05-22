@@ -5,7 +5,7 @@
 #define SPOT_MICRO_MOTION_CMD
 #include <ros/ros.h>
 #include "std_msgs/Bool.h"
-
+#include "geometry_msgs/Vector3.h"
 #include "i2cpwm_board/Servo.h"
 #include "i2cpwm_board/ServoArray.h"
 
@@ -22,6 +22,10 @@ struct SpotMicroNodeConfig {
   int num_servos;
   float servo_max_angle_deg;
   std::map<std::string, std::map<std::string, float>> servo_config;
+  float dt;
+  float transit_tau;
+  float transit_rl;
+  float transit_angle_rl;
 };
 
 
@@ -93,9 +97,7 @@ class SpotMicroMotionCmd
   ros::Subscriber stand_sub_; // ros subscriber handle for stand_cmd topic
   ros::Subscriber idle_sub_; // ros subscriber handle for idle_cmd topic
   ros::Subscriber walk_sub_;
-  ros::Subscriber speed_cmd_sub_;
-  ros::Subscriber position_cmd_sub_;
-  ros::Subscriber body_rate_cmd_sub_;
+  ros::Subscriber speed_cmd_sub_; // includes body yaw rate as the z component
   ros::Subscriber body_angle_cmd_sub_;
   ros::Publisher servos_absolute_pub_;
   ros::Publisher servos_proportional_pub_; 
@@ -110,9 +112,14 @@ class SpotMicroMotionCmd
   // Callback method for walk command
   void walkCommandCallback(const std_msgs::Bool::ConstPtr& msg);
 
+  // Callback method for speed command
+  void speedCommandCallback(const geometry_msgs::Vector3ConstPtr& msg);
+
+  // Callback method for angle command
+  void angleCommandCallback(const geometry_msgs::Vector3ConstPtr& msg);
+
   // Resets all events if they were true
   void resetEventCommands();
-  
 
   // State Machine Related Methods
   // Handle input commands, delegate to state machine

@@ -1,6 +1,7 @@
 
 #include "std_msgs/Float32.h"
 #include "std_msgs/Bool.h"
+#include "geometry_msgs/Vector3.h"
 
 #include "spot_micro_motion_cmd.h"
 #include "spot_micro_kinematics/spot_micro_kinematics.h"
@@ -32,6 +33,21 @@ void SpotMicroMotionCmd::idleCommandCallback(
 void SpotMicroMotionCmd::walkCommandCallback(
     const std_msgs::Bool::ConstPtr& msg) {
   if (msg->data == true) {cmd_.walk_cmd_ = true;}
+}
+
+void SpotMicroMotionCmd::speedCommandCallback(
+    const geometry_msgs::Vector3ConstPtr& msg) {
+  cmd_.x_vel_cmd_mps_ = msg->x;
+  cmd_.y_vel_cmd_mps_ = msg->y;
+  cmd_.yaw_rate_cmd_rps_ = msg->z;
+}
+
+
+void SpotMicroMotionCmd::angleCommandCallback(
+    const geometry_msgs::Vector3ConstPtr& msg) {
+  cmd_.phi_cmd_ = msg->x;
+  cmd_.theta_cmd_ = msg->y;
+  cmd_.psi_cmd_ = msg->z;
 }
 
 
@@ -102,14 +118,10 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
   walk_sub_ = nh.subscribe("/walk_cmd", 1, &SpotMicroMotionCmd::walkCommandCallback, this);
  
   // speed command subscriber
-  
+  speed_cmd_sub_ = nh.subscribe("/speed_cmd", 1, &SpotMicroMotionCmd::speedCommandCallback, this);  
 
-  // position command subscriber
-  
-  // body rate command subscriber
-  
   // body angle command subscriber
-  
+  body_angle_cmd_sub_ = nh.subscribe("/angle_cmd", 1, &SpotMicroMotionCmd::angleCommandCallback, this);  
 
   // servos_absolute publisher
   servos_absolute_pub_ = nh.advertise<i2cpwm_board::ServoArray>("servos_absolute", 1);
@@ -144,6 +156,10 @@ void SpotMicroMotionCmd::readInConfigParameters() {
   pnh_.getParam("lie_down_height", smnc_.lie_down_height);
   pnh_.getParam("num_servos", smnc_.num_servos);
   pnh_.getParam("servo_max_angle_deg", smnc_.servo_max_angle_deg);
+  pnh_.getParam("transit_tau", smnc_.transit_tau);
+  pnh_.getParam("transit_rl", smnc_.transit_rl);
+  pnh_.getParam("transit_angle_rl", smnc_.transit_angle_rl);
+  pnh_.getParam("dt", smnc_.dt);
 
   // Temporary map for populating map in smnc_
   std::map<std::string, float> temp_map;
@@ -276,7 +292,7 @@ void SpotMicroMotionCmd::runOnce() {
 
 void SpotMicroMotionCmd::handleInputCommands() {
   // Delegate input handling to state
-  state_->handleInputCommands(this, sm_.getBodyState(), smnc_, cmd_);
+  state_->handleInputCommands(sm_.getBodyState(), smnc_, cmd_, this, &body_state_cmd_);
 }
 
 
