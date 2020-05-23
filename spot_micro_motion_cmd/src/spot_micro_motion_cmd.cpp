@@ -1,6 +1,7 @@
 
 #include "std_msgs/Float32.h"
 #include "std_msgs/Bool.h"
+#include "std_msgs/Float32MultiArray.h"
 #include "geometry_msgs/Vector3.h"
 
 #include "spot_micro_motion_cmd.h"
@@ -131,6 +132,9 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
   
   // Servos configuration publisher
   servos_config_client_ = nh.serviceClient<i2cpwm_board::ServosConfig>("config_servos");
+
+  // Joint angles publisher
+  // joint_angles_pub_ = nh.advertise<std_msgs::Float32MultiArray>("joint_angles",1);
   
 }
 
@@ -160,6 +164,7 @@ void SpotMicroMotionCmd::readInConfigParameters() {
   pnh_.getParam("transit_rl", smnc_.transit_rl);
   pnh_.getParam("transit_angle_rl", smnc_.transit_angle_rl);
   pnh_.getParam("dt", smnc_.dt);
+  pnh_.getParam("debug_mode", smnc_.debug_mode);
 
   // Temporary map for populating map in smnc_
   std::map<std::string, float> temp_map;
@@ -201,8 +206,8 @@ bool SpotMicroMotionCmd::publishServoConfiguration() {
     temp_servo_config_array.request.servos.push_back(temp_servo_config);
   }
 
-  // call the client service, return true if succesful false if not
-  if (!servos_config_client_.call(temp_servo_config_array)) {
+  // call the client service, return true if succesfull, false if not
+  if (!smnc_.debug_mode && !servos_config_client_.call(temp_servo_config_array)) {
     ROS_ERROR("Failed to call service servo_config");
     return false;
   }
@@ -287,6 +292,15 @@ void SpotMicroMotionCmd::runOnce() {
   // Consume all event commands.
   // This resets all event commands if they were true. Doing this enforces a rising edge detection
   resetEventCommands();
+
+  if (smnc_.debug_mode) {
+    std::cout << sm_.getBodyState().xyz_pos.y << std::endl;
+    std_msgs::Float32MultiArray joint_ang_data;
+    // joint_ang_data.data[0] = 0.1f;
+    // joint_ang_data.data[1] = 0.2f;
+    
+    // joint_angles_pub_.publish(joint_ang_data);
+  }
 }
 
 
@@ -306,3 +320,6 @@ void SpotMicroMotionCmd::changeState(std::unique_ptr<SpotMicroState> sms) {
 
 
 
+SpotMicroNodeConfig SpotMicroMotionCmd::getNodeConfig() {
+  return smnc_;
+}

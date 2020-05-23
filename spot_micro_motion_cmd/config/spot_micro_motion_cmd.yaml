@@ -10,7 +10,7 @@ body_length: 0.186
 
 # Stance parameters
 default_stand_height: 0.17
-lie_down_height: 0.05
+lie_down_height: 0.093
 
 # Servo parameters
 num_servos: 12
@@ -34,5 +34,7 @@ transit_rl: 0.05 # rate limit in m/s for transition state first order filters
 transit_angle_rl: 0.175 # rate limit in rad/s for transition angle state first order filters
 
 # Node parameters
-dt: 0.02 #50 hz
+dt: 0.2 #50 hz
 
+# Debug mode
+debug_mode: true

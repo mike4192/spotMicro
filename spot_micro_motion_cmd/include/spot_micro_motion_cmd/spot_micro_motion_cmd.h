@@ -26,6 +26,7 @@ struct SpotMicroNodeConfig {
   float transit_tau;
   float transit_rl;
   float transit_angle_rl;
+  bool debug_mode;
 };
 
 
@@ -51,6 +52,9 @@ class SpotMicroMotionCmd
   // value of 0. This effectively disables the servos (stops them from holding
   // position, should just freewheel)
   void publishZeroServoAbsoluteCommand();
+
+  // Returns the loaded parameters
+  SpotMicroNodeConfig getNodeConfig();
 
  private:
   // Declare SpotMicroState a friend so it can access and modify private
@@ -100,7 +104,8 @@ class SpotMicroMotionCmd
   ros::Subscriber speed_cmd_sub_; // includes body yaw rate as the z component
   ros::Subscriber body_angle_cmd_sub_;
   ros::Publisher servos_absolute_pub_;
-  ros::Publisher servos_proportional_pub_; 
+  ros::Publisher servos_proportional_pub_;
+  // ros::Publisher joint_angles_pub_;
   ros::ServiceClient servos_config_client_;
 
   // Callback method for stand command

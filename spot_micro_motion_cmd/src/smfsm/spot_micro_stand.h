@@ -15,5 +15,12 @@ class SpotMicroStandState : public SpotMicroState {
                                    SpotMicroMotionCmd* smmc,
                                    smk::BodyState* body_state_cmd);
 
+  virtual void init(SpotMicroMotionCmd* smmc, 
+                    const smk::BodyState& body_state,
+                    const SpotMicroNodeConfig& smnc,
+                    const Command& cmd);
+
+ private:
+  smk::BodyState cmd_state_;
 };
 

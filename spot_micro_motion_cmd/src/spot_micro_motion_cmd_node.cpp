@@ -13,11 +13,11 @@ int main(int argc, char** argv) {
  
   SpotMicroMotionCmd node(nh,pnh); // Creating the object
 
-  ros::Rate rate(1.0); // Defing the looping rate
+  ros::Rate rate(1.0/node.getNodeConfig().dt); // Defing the looping rate
 
 
   // Only proceed if servo configuration publishing succeeds
-  if (node.publishServoConfiguration()) {
+  // if (node.publishServoConfiguration()) {
   
   //node.publishServoConfiguration();
     
@@ -30,6 +30,6 @@ int main(int argc, char** argv) {
         rate.sleep();
     }
     // TODO: Command idle mode event
-  }
+  // }
   return 0;
 }
