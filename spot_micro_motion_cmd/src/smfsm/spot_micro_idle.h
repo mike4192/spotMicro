@@ -16,5 +16,8 @@ class SpotMicroIdleState : public SpotMicroState {
                                    SpotMicroMotionCmd* smmc, 
                                    smk::BodyState* body_state_cmd);
 
+  virtual std::string getCurrentStateName() {
+    return "Idle";
+  }
 };
 

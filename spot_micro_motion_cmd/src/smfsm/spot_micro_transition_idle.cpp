@@ -1,20 +1,20 @@
-#include "spot_micro_transition_stand.h"
+#include "spot_micro_transition_idle.h"
 
-#include "spot_micro_stand.h"
+#include "spot_micro_idle.h"
 #include "spot_micro_motion_cmd.h"
 #include "spot_micro_state.h"
 
-SpotMicroTransitionStandState::SpotMicroTransitionStandState() {
+SpotMicroTransitionIdleState::SpotMicroTransitionIdleState() {
   // Construcotr, doesn't need to do anything, for now...
-  std::cout << "SpotMicroTransitionStandState Ctor" << std::endl;
+  std::cout << "SpotMicroTransitionIdleState Ctor" << std::endl;
 }
 
-SpotMicroTransitionStandState::~SpotMicroTransitionStandState() {
-  std::cout << "SpotMicroTransitionStandState Dtor" << std::endl;
+SpotMicroTransitionIdleState::~SpotMicroTransitionIdleState() {
+  std::cout << "SpotMicroTransitionIdleState Dtor" << std::endl;
 }
 
 
-void SpotMicroTransitionStandState::init(const smk::BodyState& body_state,
+void SpotMicroTransitionIdleState::init(const smk::BodyState& body_state,
                                          const SpotMicroNodeConfig& smnc,
                                          const Command& cmd,
                                          SpotMicroMotionCmd* smmc) {
@@ -32,7 +32,7 @@ void SpotMicroTransitionStandState::init(const smk::BodyState& body_state,
   end_body_state_.euler_angs.psi = 0.0f;
 
   end_body_state_.xyz_pos.x = 0.0f;
-  end_body_state_.xyz_pos.y = smnc.default_stand_height;
+  end_body_state_.xyz_pos.y = smnc.lie_down_height;
   end_body_state_.xyz_pos.z = 0.0f;
 
   // Initialize filters
@@ -49,17 +49,17 @@ void SpotMicroTransitionStandState::init(const smk::BodyState& body_state,
 }
 
 
-void SpotMicroTransitionStandState::handleInputCommands(
+void SpotMicroTransitionIdleState::handleInputCommands(
                                    const smk::BodyState& body_state,
                                    const SpotMicroNodeConfig& smnc,
                                    const Command& cmd,
                                    SpotMicroMotionCmd* smmc,
                                    smk:: BodyState* body_state_cmd) {
-  std::cout << "In Spot Micro Transition Stand State" << std::endl;
+  std::cout << "In Spot Micro Transition Idle State" << std::endl;
   
   // Check if desired end state reached, if so, change to stand state
   if (checkBodyStateEquality(body_state, end_body_state_, 0.001f)) {
-    changeState(smmc, std::make_unique<SpotMicroStandState>());
+    changeState(smmc, std::make_unique<SpotMicroIdleState>());
   
   } else {
     // Otherwise, rise filters and assign output values to body state command
@@ -76,5 +76,6 @@ void SpotMicroTransitionStandState::handleInputCommands(
   }
 
 }
+
 
 

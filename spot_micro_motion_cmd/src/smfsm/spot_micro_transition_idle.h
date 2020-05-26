@@ -2,13 +2,15 @@
 
 #include "spot_micro_state.h"
 #include "command.h"
-#include <iostream>
+#include "rate_limited_first_order_filter.h"
 
+#include "spot_micro_kinematics/spot_micro_kinematics.h"
 
-class SpotMicroStandState : public SpotMicroState {
+class SpotMicroTransitionIdleState : public SpotMicroState {
  public:
-  SpotMicroStandState(); // Constructor
-  ~SpotMicroStandState(); // Destructor
+  SpotMicroTransitionIdleState(); // Constructor
+  ~SpotMicroTransitionIdleState(); // Destructor
+
   virtual void handleInputCommands(const smk::BodyState& body_state,
                                    const SpotMicroNodeConfig& smnc,
                                    const Command& cmd,
@@ -22,10 +24,13 @@ class SpotMicroStandState : public SpotMicroState {
 
   // Returns current state name as a string
   virtual std::string getCurrentStateName() {
-    return "Stand";
+    return "Transit Idle";
   }
-
  private:
-  smk::BodyState cmd_state_;
+  smk::BodyState start_body_state_;
+  smk::BodyState end_body_state_;
+  RateLmtdFirstOrderFilter rlfof; 
+  BodyStateFilters body_state_filters_;
 };
+
 

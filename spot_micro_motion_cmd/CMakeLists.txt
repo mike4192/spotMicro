@@ -130,6 +130,7 @@ add_library(smfsm
             src/smfsm/spot_micro_idle.cpp
             src/smfsm/spot_micro_stand.cpp
 			src/smfsm/spot_micro_transition_stand.cpp
+			src/smfsm/spot_micro_transition_idle.cpp
 )
 
 target_link_libraries(smfsm

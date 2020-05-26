@@ -78,7 +78,7 @@ void runTimestep() {
 }
 
 
-float getOutput() {
+float getOutput() const {
   return state_;
 }
 

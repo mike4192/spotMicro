@@ -29,7 +29,22 @@ int main(int argc, char** argv) {
         ros::spinOnce();
         rate.sleep();
     }
-    // TODO: Command idle mode event
+    // On exit, command idle mode event to safely lower robot and disable servo
+    // position hold
+    // Command idle mode
+    node.commandIdle();
+
+    //std::cout << node.getCurrentStateName() << std::endl;
+    //Continue loop until idle mode is entered
+    while (node.getCurrentStateName().compare("Idle") != 0) {
+      std::cout << node.getCurrentStateName() << std::endl;
+      node.runOnce();
+      ros::spinOnce();
+      rate.sleep(); 
+    }
+    node.runOnce();
+
+
   }
   return 0;
 }

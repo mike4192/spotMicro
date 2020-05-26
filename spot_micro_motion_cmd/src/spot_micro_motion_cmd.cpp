@@ -1,4 +1,3 @@
-
 #include "std_msgs/Float32.h"
 #include "std_msgs/Bool.h"
 #include "std_msgs/Float32MultiArray.h"
@@ -79,16 +78,9 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
   sm_ = smk::SpotMicroKinematics(0.0f, 0.0f, 0.0f, smnc_.smc);
 
   // Set an initial body height and stance cmd for idle mode
-  float len   = smnc_.smc.body_length;
-  float width = smnc_.smc.body_width;
-  float l1    = smnc_.smc.hip_link_length;
-
   body_state_cmd_.euler_angs = {.phi = 0.0f, .theta = 0.0f, .psi = 0.0f};
   body_state_cmd_.xyz_pos = {.x = 0.0f, .y = smnc_.lie_down_height, .z = 0.0f};
-  body_state_cmd_.leg_feet_pos.right_back  = {.x = -len/2, .y = 0.0f, .z =  width/2 + l1};
-  body_state_cmd_.leg_feet_pos.right_front = {.x =  len/2, .y = 0.0f, .z =  width/2 + l1};
-  body_state_cmd_.leg_feet_pos.left_front  = {.x =  len/2, .y = 0.0f, .z = -width/2 - l1};
-  body_state_cmd_.leg_feet_pos.left_back   = {.x = -len/2, .y = 0.0f, .z = -width/2 - l1};
+  body_state_cmd_.leg_feet_pos = getNeutralStance();
 
   // Set the spot micro kinematics object to this initial command
   sm_.setBodyState(body_state_cmd_);
@@ -135,20 +127,21 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
   body_state_pub_ = nh.advertise<std_msgs::Float32MultiArray>("body_state",1);
  
 
-  // TODO: Only do if debug mode
+  // Only do if debug mode
   // Initialize body state message for plot debug only
   // Initialize 18 values to hold xyz positions of the four legs (12) + 
   // the body x,y,z positions (3), and the body angles (3) for a total of 18
-  for (int i = 0; i < 18; i++) {
-    body_state_msg_.data.push_back(0.0f); 
+  if (smnc_.debug_mode) {
+    for (int i = 0; i < 18; i++) {
+      body_state_msg_.data.push_back(0.0f); 
+    }
   }
- 
 }
 
 // Destructor method
 SpotMicroMotionCmd::~SpotMicroMotionCmd() {
 
-  std::cout<<"from Distructor \n";
+  std::cout<<"from Destructor \n";
   // Free up the memory assigned from heap
 }
 
@@ -300,6 +293,7 @@ void SpotMicroMotionCmd::runOnce() {
   // This resets all event commands if they were true. Doing this enforces a rising edge detection
   resetEventCommands();
 
+  // Only publish body state message in debug mode
   if (smnc_.debug_mode) {
     publishBodyState();
   }
@@ -316,8 +310,8 @@ void SpotMicroMotionCmd::changeState(std::unique_ptr<SpotMicroState> sms) {
   // Change the active state
   state_ = std::move(sms);
 
-  // TODO: Call init method of new state?
-  state_->init(this, sm_.getBodyState(), smnc_, cmd_);
+  // Call init method of new state
+  state_->init(sm_.getBodyState(), smnc_, cmd_, this);
 }
 
 void SpotMicroMotionCmd::publishBodyState() {
@@ -328,7 +322,6 @@ void SpotMicroMotionCmd::publishBodyState() {
   // 3 floats xyz for leftback leg foot pos
   // 3 floats for xyz body position
   // 3 floats for phi, theta, psi body angles
-  
   
   body_state_msg_.data[0] = body_state_cmd_.leg_feet_pos.right_back.x;
   body_state_msg_.data[1] = body_state_cmd_.leg_feet_pos.right_back.y;
@@ -360,4 +353,29 @@ void SpotMicroMotionCmd::publishBodyState() {
 
 SpotMicroNodeConfig SpotMicroMotionCmd::getNodeConfig() {
   return smnc_;
+}
+
+
+
+LegsFootPos SpotMicroMotionCmd::getNeutralStance() {
+  float len = smnc_.smc.body_length; // body length
+  float width = smnc_.smc.body_width; // body width
+  float l1 = smnc_.smc.hip_link_length; // liength of the hip link
+  // TODO: add stance offset parameters
+
+  LegsFootPos neutral_stance;
+  neutral_stance.right_back  = {.x = -len/2, .y = 0.0f, .z =  width/2 + l1};
+  neutral_stance.right_front = {.x =  len/2, .y = 0.0f, .z =  width/2 + l1};
+  neutral_stance.left_front  = {.x =  len/2, .y = 0.0f, .z = -width/2 - l1};
+  neutral_stance.left_back   = {.x = -len/2, .y = 0.0f, .z = -width/2 - l1};
+
+  return neutral_stance;
+}
+
+void SpotMicroMotionCmd::commandIdle() {
+  cmd_.idle_cmd_ = true;
+}
+
+std::string SpotMicroMotionCmd::getCurrentStateName() {
+  return state_->getCurrentStateName();
 }

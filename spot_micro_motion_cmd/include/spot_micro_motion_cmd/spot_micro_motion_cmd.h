@@ -57,6 +57,15 @@ class SpotMicroMotionCmd
   // Returns the loaded parameters
   SpotMicroNodeConfig getNodeConfig();
 
+  // Returns leg positions representing a neutral stance
+  smk::LegsFootPos getNeutralStance();
+
+  // Manually override and command idle mode, used for shutdown
+  void commandIdle();
+
+  // Returns current state name
+  std::string getCurrentStateName();
+
  private:
   // Declare SpotMicroState a friend so it can access and modify private
   // members of this class

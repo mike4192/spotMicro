@@ -1,6 +1,6 @@
 #include "spot_micro_stand.h"
 
-#include "spot_micro_idle.h"
+#include "spot_micro_transition_idle.h"
 #include "spot_micro_motion_cmd.h"
 
 SpotMicroStandState::SpotMicroStandState() {
@@ -23,7 +23,7 @@ void SpotMicroStandState::handleInputCommands(const smk::BodyState& body_state,
 
   if (cmd.getIdleCmd() == true) {
     // Call parent class's change state method
-    changeState(smmc, std::make_unique<SpotMicroIdleState>());
+    changeState(smmc, std::make_unique<SpotMicroTransitionIdleState>());
   } else {
     body_state_cmd->euler_angs = cmd_state_.euler_angs;
 
@@ -39,19 +39,12 @@ void SpotMicroStandState::handleInputCommands(const smk::BodyState& body_state,
 
 
 
-void SpotMicroStandState::init(SpotMicroMotionCmd* smmc,
-                               const smk::BodyState& body_state,
+void SpotMicroStandState::init(const smk::BodyState& body_state,
                                const SpotMicroNodeConfig& smnc,
-                               const Command& cmd) {
+                               const Command& cmd,
+                               SpotMicroMotionCmd* smmc) {
   // Set default stance
-  float len = smnc.smc.body_length; // body length
-  float width = smnc.smc.body_width; // body width
-  float l1 = smnc.smc.hip_link_length; // liength of the hip link
-  // TODO: Incorporate stance offset parameters
-  cmd_state_.leg_feet_pos.right_back  = {.x = -len/2, .y = 0.0f, .z =  width/2 + l1};
-  cmd_state_.leg_feet_pos.right_front = {.x =  len/2, .y = 0.0f, .z =  width/2 + l1};
-  cmd_state_.leg_feet_pos.left_front  = {.x =  len/2, .y = 0.0f, .z = -width/2 - l1};
-  cmd_state_.leg_feet_pos.left_back   = {.x = -len/2, .y = 0.0f, .z = -width/2 - l1};
+  cmd_state_.leg_feet_pos = smmc->getNeutralStance();
 
   // End body state position and angles
   cmd_state_.euler_angs.phi = 0.0f;
