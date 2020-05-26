@@ -11,8 +11,6 @@
 #include "i2cpwm_board/ServoConfig.h"
 #include "i2cpwm_board/ServosConfig.h"
 
-
-
 #include "spot_micro_idle.h"
 
 
@@ -133,9 +131,18 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
   // Servos configuration publisher
   servos_config_client_ = nh.serviceClient<i2cpwm_board::ServosConfig>("config_servos");
 
-  // Joint angles publisher
-  // joint_angles_pub_ = nh.advertise<std_msgs::Float32MultiArray>("joint_angles",1);
-  
+  // Body state publisher for plotting
+  body_state_pub_ = nh.advertise<std_msgs::Float32MultiArray>("body_state",1);
+ 
+
+  // TODO: Only do if debug mode
+  // Initialize body state message for plot debug only
+  // Initialize 18 values to hold xyz positions of the four legs (12) + 
+  // the body x,y,z positions (3), and the body angles (3) for a total of 18
+  for (int i = 0; i < 18; i++) {
+    body_state_msg_.data.push_back(0.0f); 
+  }
+ 
 }
 
 // Destructor method
@@ -294,12 +301,7 @@ void SpotMicroMotionCmd::runOnce() {
   resetEventCommands();
 
   if (smnc_.debug_mode) {
-    std::cout << sm_.getBodyState().xyz_pos.y << std::endl;
-    std_msgs::Float32MultiArray joint_ang_data;
-    // joint_ang_data.data[0] = 0.1f;
-    // joint_ang_data.data[1] = 0.2f;
-    
-    // joint_angles_pub_.publish(joint_ang_data);
+    publishBodyState();
   }
 }
 
@@ -318,6 +320,42 @@ void SpotMicroMotionCmd::changeState(std::unique_ptr<SpotMicroState> sms) {
   state_->init(this, sm_.getBodyState(), smnc_, cmd_);
 }
 
+void SpotMicroMotionCmd::publishBodyState() {
+  // Order of the float array:
+  // 3 floats xyz for rightback leg foot pos
+  // 3 floats xyz for rightfront leg foot pos
+  // 3 floats xyz for leftfront leg foot pos
+  // 3 floats xyz for leftback leg foot pos
+  // 3 floats for xyz body position
+  // 3 floats for phi, theta, psi body angles
+  
+  
+  body_state_msg_.data[0] = body_state_cmd_.leg_feet_pos.right_back.x;
+  body_state_msg_.data[1] = body_state_cmd_.leg_feet_pos.right_back.y;
+  body_state_msg_.data[2] = body_state_cmd_.leg_feet_pos.right_back.z;
+
+  body_state_msg_.data[3] = body_state_cmd_.leg_feet_pos.right_front.x;
+  body_state_msg_.data[4] = body_state_cmd_.leg_feet_pos.right_front.y;
+  body_state_msg_.data[5] = body_state_cmd_.leg_feet_pos.right_front.z;
+
+  body_state_msg_.data[6] = body_state_cmd_.leg_feet_pos.left_front.x;
+  body_state_msg_.data[7] = body_state_cmd_.leg_feet_pos.left_front.y;
+  body_state_msg_.data[8] = body_state_cmd_.leg_feet_pos.left_front.z;
+
+  body_state_msg_.data[9] = body_state_cmd_.leg_feet_pos.left_back.x;
+  body_state_msg_.data[10] = body_state_cmd_.leg_feet_pos.left_back.y;
+  body_state_msg_.data[11] = body_state_cmd_.leg_feet_pos.left_back.z;
+
+  body_state_msg_.data[12] = body_state_cmd_.xyz_pos.x;
+  body_state_msg_.data[13] = body_state_cmd_.xyz_pos.y;
+  body_state_msg_.data[14] = body_state_cmd_.xyz_pos.z;
+
+  body_state_msg_.data[15] = body_state_cmd_.euler_angs.phi;
+  body_state_msg_.data[16] = body_state_cmd_.euler_angs.theta;
+  body_state_msg_.data[17] = body_state_cmd_.euler_angs.psi;
+
+  body_state_pub_.publish(body_state_msg_);
+}
 
 
 SpotMicroNodeConfig SpotMicroMotionCmd::getNodeConfig() {

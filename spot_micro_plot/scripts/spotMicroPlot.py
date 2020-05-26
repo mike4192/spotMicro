@@ -5,6 +5,7 @@ import time
 
 import rospy
 from spot_micro_kinematics_python.spot_micro_stick_figure import SpotMicroStickFigure
+from spot_micro_kinematics_python.utilities import transformations
 from math import pi
 from std_msgs.msg import Float32, Bool 
 from std_msgs.msg import Float32MultiArray
@@ -43,35 +44,126 @@ x = 0
 #         print('here')
 
 def update_lines(num, x, lines):
-    for l in lines:
-        msg = rospy.wait_for_message("/joint_angles", Float32MultiArray, timeout=None)
-        print(len(joint_angles))
-        print(msg.data)
-        l.set_data([0, num/100.0], [0, num/100.0])
-        print(num/100.0)
-        l.set_3d_properties([0, num/100.0])
+    msg = rospy.wait_for_message("/body_state", Float32MultiArray, timeout=None)
 
+    foot_data = np.array([ [msg.data[0], msg.data[1], msg.data[2]],
+                           [msg.data[3], msg.data[4], msg.data[5]],
+                           [msg.data[6], msg.data[7], msg.data[8]],
+                           [msg.data[9], msg.data[10], msg.data[11]] ])
+    
+    xpos = msg.data[12]
+    ypos = msg.data[13]
+    zpos = msg.data[14]
+
+    phi = msg.data[15]
+    theta = msg.data[16]
+    psi = msg.data[17]
+
+    print(foot_data)
+    sm.set_absolute_foot_coordinates(foot_data)
+    temp_rot = transformations.rotxyz(phi, psi, theta)
+    temp_pose = np.identity(4)
+    temp_pose[0:3, 0:3] = temp_rot
+    temp_pose[0,3] = xpos
+    temp_pose[1,3] = ypos
+    temp_pose[2,3] = zpos
+
+    sm.set_absolute_body_pose(temp_pose)
+
+    # print(len(msg.data))
+    # print(msg.data[0])
+    # l.set_data([0, num/100.0], [0, num/100.0])
+    # print(num/100.0)
+    # l.set_3d_properties([0, num/100.0])
+
+    # Get leg coordinates and append to data list
+    coord_data = sm.get_leg_coordinates()
+
+    line_to_leg__and_link_dict =   {4:(0,0),
+                                    5:(0,1),
+                                    6:(0,2),
+                                    7:(1,0),
+                                    8:(1,1),
+                                    9:(1,2),
+                                    10:(2,0),
+                                    11:(2,1),
+                                    12:(2,2),
+                                    13:(3,0),
+                                    14:(3,1),
+                                    15:(3,2)}
+
+    for line, i in zip(lines, range(len(lines))):
+
+        if i < 4:
+            # First four lines are the square body
+            if i == 3:
+                ind = -1
+            else:
+                ind = i
+            x_vals = [coord_data[ind][0][0], coord_data[ind+1][0][0]]
+            y_vals = [coord_data[ind][0][1], coord_data[ind+1][0][1]]
+            z_vals = [coord_data[ind][0][2], coord_data[ind+1][0][2]]
+            # NOTE: there is no .set_data() for 3 dim data...
+            line.set_data(x_vals,z_vals)
+            line.set_3d_properties(y_vals)
+
+    # Next 12 lines are legs
+    # Leg 1, link 1, link 2, link 3
+    # Leg 2, link 1, link 2, link 3...
+        else:
+            leg_num = line_to_leg__and_link_dict[i][0]
+            link_num = line_to_leg__and_link_dict[i][1]
+            x_vals = [coord_data[leg_num][link_num][0], coord_data[leg_num][link_num+1][0]]
+            y_vals = [coord_data[leg_num][link_num][1], coord_data[leg_num][link_num+1][1]]
+            z_vals = [coord_data[leg_num][link_num][2], coord_data[leg_num][link_num+1][2]]
+            
+            line.set_data(x_vals,z_vals)
+            line.set_3d_properties(y_vals)
     return lines
 
 # Set up and title the ros node for this code
 rospy.init_node('spot_micro_plot') 
 
-# rospy.Subscriber('x_speed_cmd',Float32,update_x_speed_cmd)
+# Instantiate spot micro stick figure obeject
+sm = SpotMicroStickFigure(x=0,y=0.093,z=0)
 
-# Define the loop rate in Hz
-# rate = rospy.Rate(2)
+coords = sm.get_leg_coordinates()
 
-# cnt = 0
-# while not rospy.is_shutdown():
-
-
+# Initialize empty list top hold line objects
 lines = []
-lines.append(ax.plot([0, 0.01], [0, 0.01], [0, 0.01])[0])
+
+# Construct the body of 4 lines from the first point of each leg (the four corners of the body)
+for i in range(4):
+    # For last leg, connect back to first leg point
+    if i == 3:
+        ind = -1
+    else:
+        ind = i
+
+    # Due to mplot3d rotation and view limitations, swap y and z to make the stick figure
+    # appear oriented better
+    x_vals = [coords[ind][0][0], coords[ind+1][0][0]]
+    y_vals = [coords[ind][0][1], coords[ind+1][0][1]]
+    z_vals = [coords[ind][0][2], coords[ind+1][0][2]]
+    lines.append(ax.plot(x_vals,z_vals,y_vals,color='k')[0])
+
+
+# Plot color order for leg links: (hip, upper leg, lower leg)
+plt_colors = ['r','c','b']
+for leg in coords:
+    for i in range(3):
+        
+        # Due to mplot3d rotation and view limitations, swap y and z to make the stick figure
+        # appear oriented better
+        x_vals = [leg[i][0], leg[i+1][0]]
+        y_vals = [leg[i][1], leg[i+1][1]]
+        z_vals = [leg[i][2], leg[i+1][2]]
+        lines.append(ax.plot(x_vals,z_vals,y_vals,color=plt_colors[i])[0])
 
 
 
 
-lines_ani = animation.FuncAnimation(fig, update_lines, frames=1000, fargs=(x,lines), interval=1000)
+lines_ani = animation.FuncAnimation(fig, update_lines, frames=1000, fargs=(x,lines), interval=100)
 
 plt.show()
 

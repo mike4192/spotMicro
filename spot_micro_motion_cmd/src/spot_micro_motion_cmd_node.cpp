@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
 
 
   // Only proceed if servo configuration publishing succeeds
-  // if (node.publishServoConfiguration()) {
+   if (node.publishServoConfiguration()) {
   
   //node.publishServoConfiguration();
     
@@ -30,6 +30,6 @@ int main(int argc, char** argv) {
         rate.sleep();
     }
     // TODO: Command idle mode event
-  // }
+  }
   return 0;
 }

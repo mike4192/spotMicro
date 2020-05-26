@@ -6,6 +6,7 @@
 #include <ros/ros.h>
 #include "std_msgs/Bool.h"
 #include "geometry_msgs/Vector3.h"
+#include "std_msgs/Float32MultiArray.h"
 #include "i2cpwm_board/Servo.h"
 #include "i2cpwm_board/ServoArray.h"
 
@@ -105,8 +106,11 @@ class SpotMicroMotionCmd
   ros::Subscriber body_angle_cmd_sub_;
   ros::Publisher servos_absolute_pub_;
   ros::Publisher servos_proportional_pub_;
-  // ros::Publisher joint_angles_pub_;
+  ros::Publisher body_state_pub_;
   ros::ServiceClient servos_config_client_;
+
+  // Body state cmd message
+  std_msgs::Float32MultiArray body_state_msg_;
 
   // Callback method for stand command
   void standCommandCallback(const std_msgs::Bool::ConstPtr& msg);
@@ -132,6 +136,9 @@ class SpotMicroMotionCmd
 
   // Changes state of the state machine
   void changeState(std::unique_ptr<SpotMicroState> sms);
+
+  // Publishes body state as a float array for plotting by another node
+  void publishBodyState();
 
 };
 #endif  
