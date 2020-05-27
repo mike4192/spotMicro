@@ -6,6 +6,7 @@ Class for sending keyboard commands to spot micro walk node, control velocity, y
 import rospy
 import sys, select, termios, tty # For terminal keyboard key press reading
 from std_msgs.msg import Float32, Bool 
+from geometry_msgs.msg import Vector3
 from math import pi
 
 msg = """
@@ -19,8 +20,8 @@ stand: Stand robot up
 
 Keyboard commands for body motion 
 ---------------------------
-   q   w   e         u
-   a   s   d    
+   q   w   e    r   t   y    u
+   a   s   d    f   g   h   
             
 
   u: Quit body motion command mode and go back to rest mode
@@ -30,18 +31,25 @@ Keyboard commands for body motion
   d: Increment right speed command by 0.02 m/s
   q: Increment body yaw rate command by -2 deg/s (negative left, positive right) 
   e: Increment body yaw rate command by +2 deg/s (negative left, positive right) 
+  t: Increment body pitch angle negative
+  g: Increment body pitch angle positive
+  f: Increment roll angle negative
+  h: Increment roll angle positive
+  r: Increment yaw angle negative
+  y: Increment yaw angle positive
+
 
   anything else : Prompt again for command
 
 
 CTRL-C to quit
 """
-valid_cmds = ('quit','Quit','walk','stand','idle')
+valid_cmds = ('quit','Quit','walk','stand','idle', 'angle_cmd')
 
 # Global body motion increment values
 speed_inc = 0.0025
 yaw_rate_inc = 2*pi/180
-
+angle_inc = 2.5*pi/180
 
 class SpotMicroKeyboardControl():
     def __init__(self):
@@ -55,6 +63,11 @@ class SpotMicroKeyboardControl():
 
         self._yaw_rate_cmd_msg = Float32()
         self._yaw_rate_cmd_msg.data = 0
+
+        self._angle_cmd_msg = Vector3()
+        self._angle_cmd_msg.x = 0
+        self._angle_cmd_msg.y = 0
+        self._angle_cmd_msg.z = 0
 
         self._walk_event_cmd_msg = Bool()
         self._walk_event_cmd_msg.data = True # Mostly acts as an event driven action on receipt of a true message
@@ -74,6 +87,8 @@ class SpotMicroKeyboardControl():
         self.ros_pub_x_speed_cmd    = rospy.Publisher('x_speed_cmd',Float32,queue_size=1)
         self.ros_pub_y_speed_cmd    = rospy.Publisher('/y_speed_cmd',Float32,queue_size=1)
         self.ros_pub_yaw_rate_cmd   = rospy.Publisher('/yaw_rate_cmd',Float32,queue_size=1)
+        self.ros_pub_speed_cmd      = rospy.Publisher('/speed_cmd',Vector3,queue_size=1)
+        self.ros_pub_angle_cmd      = rospy.Publisher('/angle_cmd',Vector3,queue_size=1)
         self.ros_pub_state_cmd      = rospy.Publisher('/state_cmd',Bool,queue_size=1)
         self.ros_pub_stand_cmd      = rospy.Publisher('/stand_cmd',Bool,queue_size=1)
         self.ros_pub_idle_cmd       = rospy.Publisher('/idle_cmd',Bool,queue_size=1)
@@ -127,6 +142,47 @@ class SpotMicroKeyboardControl():
                     #Publish idle command event
                     self.ros_pub_idle_cmd.publish(self._idle_event_cmd_msg)
 
+                elif userInput == 'angle_cmd':
+                    # Enter loop to act on user command
+                    print('Enter command, u to go back to command select: ')
+
+                    while (1):
+                        print('Cmd Values: phi: %1.3f deg, theta: %1.3f deg, psi: %1.3f deg '\
+                                %(self._angle_cmd_msg.x*180/pi, self._angle_cmd_msg.y*180/pi, self._angle_cmd_msg.z*180/pi))
+                       
+                        userInput = self.getKey()
+
+                        if userInput == 'u':
+                            # Break out of angle command mode 
+                            break
+
+                        elif userInput not in ('u','t','r','y','f','g','h'):
+                            print('Key not in valid key commands, try again')
+                        else:
+                            if userInput == 't':
+                                self._angle_cmd_msg.y = self._angle_cmd_msg.y - angle_inc
+                                self.ros_pub_angle_cmd.publish(self._angle_cmd_msg)
+                            
+                            elif userInput == 'g':
+                                self._angle_cmd_msg.y = self._angle_cmd_msg.y + angle_inc
+                                self.ros_pub_angle_cmd.publish(self._angle_cmd_msg)
+
+                            elif userInput == 'r':
+                                self._angle_cmd_msg.z = self._angle_cmd_msg.z - angle_inc
+                                self.ros_pub_angle_cmd.publish(self._angle_cmd_msg)
+
+                            elif userInput == 'y':
+                                self._angle_cmd_msg.z = self._angle_cmd_msg.z + angle_inc
+                                self.ros_pub_angle_cmd.publish(self._angle_cmd_msg)
+
+                            elif userInput == 'f':
+                                self._angle_cmd_msg.x = self._angle_cmd_msg.x - angle_inc
+                                self.ros_pub_angle_cmd.publish(self._angle_cmd_msg)
+
+                            elif userInput == 'h':
+                                self._angle_cmd_msg.x = self._angle_cmd_msg.x + angle_inc
+                                self.ros_pub_angle_cmd.publish(self._angle_cmd_msg)
+
                 elif userInput == 'walk':
                     # Reset all body motion commands to zero
                     self.reset_all_motion_commands_to_zero()
@@ -175,6 +231,7 @@ class SpotMicroKeyboardControl():
                             elif userInput == 'e':
                                 self._yaw_rate_cmd_msg.data = self._yaw_rate_cmd_msg.data - yaw_rate_inc
                                 self.ros_pub_yaw_rate_cmd.publish(self._yaw_rate_cmd_msg)
+
 
 
 if __name__ == "__main__":

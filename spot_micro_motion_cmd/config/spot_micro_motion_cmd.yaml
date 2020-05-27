@@ -30,11 +30,11 @@ LF_1: {num: 12, center: 282,range: 342,direction:  1, center_angle_deg:   0.0}
 
 # Control Parameters
 transit_tau: 0.5 # Time constant in seconds for transition state first order filters
-transit_rl: 0.02 # rate limit in m/s for transition state first order filters
+transit_rl: 0.03 # rate limit in m/s for transition state first order filters
 transit_angle_rl: 0.175 # rate limit in rad/s for transition angle state first order filters
 
 # Node parameters
-dt: 0.2 #50 hz
+dt: 0.02 #50 hz
 
 # Debug mode
 debug_mode: true

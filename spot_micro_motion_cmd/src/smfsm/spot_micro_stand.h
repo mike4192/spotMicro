@@ -27,5 +27,8 @@ class SpotMicroStandState : public SpotMicroState {
 
  private:
   smk::BodyState cmd_state_;
+
+  // Three filters for angle commands
+  XyzFilters angle_cmd_filters_;
 };
 

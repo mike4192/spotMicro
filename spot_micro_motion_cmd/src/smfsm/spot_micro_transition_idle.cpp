@@ -6,11 +6,11 @@
 
 SpotMicroTransitionIdleState::SpotMicroTransitionIdleState() {
   // Construcotr, doesn't need to do anything, for now...
-  std::cout << "SpotMicroTransitionIdleState Ctor" << std::endl;
+  //std::cout << "SpotMicroTransitionIdleState Ctor" << std::endl;
 }
 
 SpotMicroTransitionIdleState::~SpotMicroTransitionIdleState() {
-  std::cout << "SpotMicroTransitionIdleState Dtor" << std::endl;
+  //std::cout << "SpotMicroTransitionIdleState Dtor" << std::endl;
 }
 
 
@@ -55,7 +55,9 @@ void SpotMicroTransitionIdleState::handleInputCommands(
                                    const Command& cmd,
                                    SpotMicroMotionCmd* smmc,
                                    smk:: BodyState* body_state_cmd) {
-  std::cout << "In Spot Micro Transition Idle State" << std::endl;
+  if (smnc.debug_mode) {
+    std::cout << "In Spot Micro Transition Idle State" << std::endl;
+  }
   
   // Check if desired end state reached, if so, change to stand state
   if (checkBodyStateEquality(body_state, end_body_state_, 0.001f)) {

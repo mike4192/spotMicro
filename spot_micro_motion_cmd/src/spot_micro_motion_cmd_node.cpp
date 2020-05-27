@@ -25,25 +25,14 @@ int main(int argc, char** argv) {
     // Main loop runs indefinitely unless there is an interupt call
     while (ros::ok())
     {   
+        ros::Time begin = ros::Time::now();
+
         node.runOnce();
         ros::spinOnce();
         rate.sleep();
-    }
-    // On exit, command idle mode event to safely lower robot and disable servo
-    // position hold
-    // Command idle mode
-    node.commandIdle();
 
-    //std::cout << node.getCurrentStateName() << std::endl;
-    //Continue loop until idle mode is entered
-    while (node.getCurrentStateName().compare("Idle") != 0) {
-      std::cout << node.getCurrentStateName() << std::endl;
-      node.runOnce();
-      ros::spinOnce();
-      rate.sleep(); 
+        std::cout << (ros::Time::now() - begin) << std::endl;
     }
-    node.runOnce();
-
 
   }
   return 0;

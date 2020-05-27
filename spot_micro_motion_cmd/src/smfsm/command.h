@@ -40,10 +40,36 @@ class Command {
     return idle_cmd_;
   }
 
- bool getWalkCmd() const {
-    return walk_cmd_;
- } 
+  bool getWalkCmd() const {
+     return walk_cmd_;
+  } 
+ 
+  float getXSpeedCmd() const {
+    return x_vel_cmd_mps_;
+  }
+ 
+  float getYSpeedCmd() const {
+    return y_vel_cmd_mps_;
+  }
 
+  float getYawRateCmd() const {
+    return yaw_rate_cmd_rps_;
+  }
+
+  float getPhiCmd() const {
+    return phi_cmd_;
+  }
+
+  float getThetaCmd() const {
+    return theta_cmd_;
+  }
+
+  float getPsiCmd() const {
+    return psi_cmd_;
+  }
+
+
+ 
   void resetEventCmds() {
     // Reset all event commands to false
     idle_cmd_ = false;

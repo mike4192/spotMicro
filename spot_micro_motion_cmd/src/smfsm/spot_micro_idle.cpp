@@ -4,11 +4,11 @@
 
 SpotMicroIdleState::SpotMicroIdleState() {
   // Construcotr, doesn't need to do anything, for now...
-  std::cout << "SpotMicroIdleState Ctor" << std::endl;
+  //std::cout << "SpotMicroIdleState Ctor" << std::endl;
 }
 
 SpotMicroIdleState::~SpotMicroIdleState() {
-  std::cout << "SpotMicroIdleState Dtor" << std::endl;
+  //std::cout << "SpotMicroIdleState Dtor" << std::endl;
 }
 
 void SpotMicroIdleState::handleInputCommands(const smk::BodyState& body_state,
@@ -16,7 +16,9 @@ void SpotMicroIdleState::handleInputCommands(const smk::BodyState& body_state,
                                              const Command& cmd,
                                              SpotMicroMotionCmd* smmc,
                                              smk::BodyState* body_state_cmd_) {
-  std::cout << "In Spot Micro Idle State" << std::endl;
+  if (smnc.debug_mode) {
+    std::cout << "In Spot Micro Idle State" << std::endl;
+  }
   
   // Check if stand command issued, if so, transition to stand state
   if (cmd.getStandCmd() == true) {

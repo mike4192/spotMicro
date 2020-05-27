@@ -8,12 +8,12 @@ using namespace smk;
 // Constructor
 SpotMicroState::SpotMicroState() {
   // Nothing needs to be done
-  std::cout << "SpotMicroState Ctor" << std::endl;
+  //std::cout << "SpotMicroState Ctor" << std::endl;
 }
 
 
 SpotMicroState::~SpotMicroState() {
-  std::cout << "SpotMicroState Dtor" << std::endl;
+  //std::cout << "SpotMicroState Dtor" << std::endl;
 }
 
 

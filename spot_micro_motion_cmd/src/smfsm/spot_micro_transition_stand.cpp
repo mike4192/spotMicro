@@ -6,11 +6,11 @@
 
 SpotMicroTransitionStandState::SpotMicroTransitionStandState() {
   // Construcotr, doesn't need to do anything, for now...
-  std::cout << "SpotMicroTransitionStandState Ctor" << std::endl;
+  //std::cout << "SpotMicroTransitionStandState Ctor" << std::endl;
 }
 
 SpotMicroTransitionStandState::~SpotMicroTransitionStandState() {
-  std::cout << "SpotMicroTransitionStandState Dtor" << std::endl;
+  //std::cout << "SpotMicroTransitionStandState Dtor" << std::endl;
 }
 
 
@@ -55,7 +55,9 @@ void SpotMicroTransitionStandState::handleInputCommands(
                                    const Command& cmd,
                                    SpotMicroMotionCmd* smmc,
                                    smk:: BodyState* body_state_cmd) {
-  std::cout << "In Spot Micro Transition Stand State" << std::endl;
+  if (smnc.debug_mode) {
+    std::cout << "In Spot Micro Transition Stand State" << std::endl;
+  }
   
   // Check if desired end state reached, if so, change to stand state
   if (checkBodyStateEquality(body_state, end_body_state_, 0.001f)) {

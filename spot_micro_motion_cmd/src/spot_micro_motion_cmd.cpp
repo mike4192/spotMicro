@@ -62,8 +62,9 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
 
   nh_ = nh;
   pnh_ = pnh;
-
-  std::cout<<"from Constructor \n";
+  if (smnc_.debug_mode) {
+    std::cout<<"from Constructor \n";
+  }
 
   // Initialize Command 
   cmd_ = Command();
@@ -141,7 +142,9 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
 // Destructor method
 SpotMicroMotionCmd::~SpotMicroMotionCmd() {
 
-  std::cout<<"from Destructor \n";
+  if (smnc_.debug_mode) {
+    std::cout<<"from Destructor \n";
+  }
   // Free up the memory assigned from heap
 }
 
@@ -284,7 +287,9 @@ void SpotMicroMotionCmd::publishZeroServoAbsoluteCommand() {
 }
 
 void SpotMicroMotionCmd::runOnce() {
-  std::cout<<"from Runonce \n";
+  if (smnc_.debug_mode) {
+    std::cout<<"from Runonce \n";
+  }
 
   // Call method to handle input commands
   handleInputCommands();
