@@ -168,11 +168,11 @@ class SpotMicroKeyboardControl():
                                 self.ros_pub_angle_cmd.publish(self._angle_cmd_msg)
 
                             elif userInput == 'r':
-                                self._angle_cmd_msg.z = self._angle_cmd_msg.z - angle_inc
+                                self._angle_cmd_msg.z = self._angle_cmd_msg.z + angle_inc
                                 self.ros_pub_angle_cmd.publish(self._angle_cmd_msg)
 
                             elif userInput == 'y':
-                                self._angle_cmd_msg.z = self._angle_cmd_msg.z + angle_inc
+                                self._angle_cmd_msg.z = self._angle_cmd_msg.z - angle_inc
                                 self.ros_pub_angle_cmd.publish(self._angle_cmd_msg)
 
                             elif userInput == 'f':
