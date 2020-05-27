@@ -20,6 +20,7 @@ struct SpotMicroNodeConfig {
   smk::SpotMicroConfig smc;
   float default_stand_height;
   float lie_down_height;
+  float lie_down_feet_x_offset;
   int num_servos;
   float servo_max_angle_deg;
   std::map<std::string, std::map<std::string, float>> servo_config;
@@ -59,6 +60,9 @@ class SpotMicroMotionCmd
 
   // Returns leg positions representing a neutral stance
   smk::LegsFootPos getNeutralStance();
+
+  // Returns leg positions representing a lieing down stance
+  smk::LegsFootPos getLieDownStance();
 
   // Manually override and command idle mode, used for shutdown
   void commandIdle();

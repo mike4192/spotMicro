@@ -56,7 +56,6 @@ void SpotMicroMotionCmd::resetEventCommands() {
 
 
 
-
 // Constructor
 SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh) {
 
@@ -81,7 +80,7 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
   // Set an initial body height and stance cmd for idle mode
   body_state_cmd_.euler_angs = {.phi = 0.0f, .theta = 0.0f, .psi = 0.0f};
   body_state_cmd_.xyz_pos = {.x = 0.0f, .y = smnc_.lie_down_height, .z = 0.0f};
-  body_state_cmd_.leg_feet_pos = getNeutralStance();
+  body_state_cmd_.leg_feet_pos = getLieDownStance();
 
   // Set the spot micro kinematics object to this initial command
   sm_.setBodyState(body_state_cmd_);
@@ -161,6 +160,7 @@ void SpotMicroMotionCmd::readInConfigParameters() {
   pnh_.getParam("body_length", smnc_.smc.body_length);
   pnh_.getParam("default_stand_height", smnc_.default_stand_height);
   pnh_.getParam("lie_down_height", smnc_.lie_down_height);
+  pnh_.getParam("lie_down_foot_x_offset", smnc_.lie_down_feet_x_offset);
   pnh_.getParam("num_servos", smnc_.num_servos);
   pnh_.getParam("servo_max_angle_deg", smnc_.servo_max_angle_deg);
   pnh_.getParam("transit_tau", smnc_.transit_tau);
@@ -375,6 +375,22 @@ LegsFootPos SpotMicroMotionCmd::getNeutralStance() {
   neutral_stance.left_back   = {.x = -len/2, .y = 0.0f, .z = -width/2 - l1};
 
   return neutral_stance;
+}
+
+
+LegsFootPos SpotMicroMotionCmd::getLieDownStance() {
+  float len = smnc_.smc.body_length; // body length
+  float width = smnc_.smc.body_width; // body width
+  float l1 = smnc_.smc.hip_link_length; // length of the hip link
+  float x_off = smnc_.lie_down_feet_x_offset;
+
+  LegsFootPos lie_down_stance;
+  lie_down_stance.right_back  = {.x = -len/2 + x_off, .y = 0.0f, .z =  width/2 + l1};
+  lie_down_stance.right_front = {.x =  len/2 + x_off, .y = 0.0f, .z =  width/2 + l1};
+  lie_down_stance.left_front  = {.x =  len/2 + x_off, .y = 0.0f, .z = -width/2 - l1};
+  lie_down_stance.left_back   = {.x = -len/2 + x_off, .y = 0.0f, .z = -width/2 - l1};
+
+  return lie_down_stance;
 }
 
 void SpotMicroMotionCmd::commandIdle() {

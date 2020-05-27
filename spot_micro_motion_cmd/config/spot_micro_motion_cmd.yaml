@@ -10,7 +10,8 @@ body_length: 0.186
 
 # Stance parameters
 default_stand_height: 0.17
-lie_down_height: 0.093
+lie_down_height: 0.083
+lie_down_foot_x_offset: 0.065 
 
 # Servo parameters
 num_servos: 12

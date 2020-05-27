@@ -24,7 +24,7 @@ void SpotMicroTransitionIdleState::init(const smk::BodyState& body_state,
  
   // Create end state 
   // Create end state feet positions, a default foot stance
-  end_body_state_.leg_feet_pos = smmc->getNeutralStance();
+  end_body_state_.leg_feet_pos = smmc->getLieDownStance();
 
   // End body state position and angles
   end_body_state_.euler_angs.phi = 0.0f;
