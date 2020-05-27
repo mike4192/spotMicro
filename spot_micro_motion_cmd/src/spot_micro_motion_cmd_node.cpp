@@ -19,19 +19,23 @@ int main(int argc, char** argv) {
   // Only proceed if servo configuration publishing succeeds
    if (node.publishServoConfiguration()) {
   
-  //node.publishServoConfiguration();
-    
+    bool debug_mode = node.getNodeConfig().debug_mode;  
+    ros::Time begin;
     /* Looking for any interupt else it will continue looping */
     // Main loop runs indefinitely unless there is an interupt call
     while (ros::ok())
     {   
-        ros::Time begin = ros::Time::now();
+        if (debug_mode) {
+          begin = ros::Time::now();
+        }
 
         node.runOnce();
         ros::spinOnce();
         rate.sleep();
 
-        std::cout << (ros::Time::now() - begin) << std::endl;
+        if (debug_mode) {
+          std::cout << (ros::Time::now() - begin) << std::endl;
+        }
     }
 
   }
