@@ -210,9 +210,12 @@ bool SpotMicroMotionCmd::publishServoConfiguration() {
   }
 
   // call the client service, return true if succesfull, false if not
-  if (!smnc_.debug_mode && !servos_config_client_.call(temp_servo_config_array)) {
-    ROS_ERROR("Failed to call service servo_config");
-    return false;
+  if (!servos_config_client_.call(temp_servo_config_array)) {
+    if (!smnc_.debug_mode) {
+      // Only error out if not in debug mode
+      ROS_ERROR("Failed to call service servo_config");
+      return false;
+    }
   }
 
   return true;
