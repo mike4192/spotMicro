@@ -127,11 +127,11 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
   body_state_pub_ = nh.advertise<std_msgs::Float32MultiArray>("body_state",1);
  
 
-  // Only do if debug mode
+  // Only do if plot mode
   // Initialize body state message for plot debug only
   // Initialize 18 values to hold xyz positions of the four legs (12) + 
   // the body x,y,z positions (3), and the body angles (3) for a total of 18
-  if (smnc_.debug_mode) {
+  if (smnc_.plot_mode) {
     for (int i = 0; i < 18; i++) {
       body_state_msg_.data.push_back(0.0f); 
     }
@@ -168,6 +168,7 @@ void SpotMicroMotionCmd::readInConfigParameters() {
   pnh_.getParam("transit_angle_rl", smnc_.transit_angle_rl);
   pnh_.getParam("dt", smnc_.dt);
   pnh_.getParam("debug_mode", smnc_.debug_mode);
+  pnh_.getParam("plot_mode", smnc_.plot_mode);
 
   // Temporary map for populating map in smnc_
   std::map<std::string, float> temp_map;
@@ -302,7 +303,7 @@ void SpotMicroMotionCmd::runOnce() {
   resetEventCommands();
 
   // Only publish body state message in debug mode
-  if (smnc_.debug_mode) {
+  if (smnc_.plot_mode) {
     publishBodyState();
   }
 }

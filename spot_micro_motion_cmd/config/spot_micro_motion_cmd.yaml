@@ -15,19 +15,19 @@ lie_down_foot_x_offset: 0.065
 
 # Servo parameters
 num_servos: 12
-servo_max_angle_deg: 70.0
-RF_3: {num: 1,  center: 306,range: 367,direction:  1, center_angle_deg:  57.2}
-RF_2: {num: 2,  center: 306,range: 328,direction:  1, center_angle_deg: -25.6}
-RF_1: {num: 3,  center: 320,range: 352,direction: -1, center_angle_deg:   0.0}
-RB_3: {num: 4,  center: 306,range: 331,direction:  1, center_angle_deg:  54.8}
-RB_2: {num: 5,  center: 306,range: 344,direction:  1, center_angle_deg: -17.1}
-RB_1: {num: 6,  center: 306,range: 345,direction:  1, center_angle_deg:   0.0}
-LB_3: {num: 7,  center: 306,range: 347,direction:  1, center_angle_deg: -52.6}
-LB_2: {num: 8,  center: 306,range: 333,direction:  1, center_angle_deg:  30.3}
-LB_1: {num: 9,  center: 316,range: 343,direction: -1, center_angle_deg:   0.0}
-LF_3: {num: 10, center: 306,range: 333,direction:  1, center_angle_deg: -52.1}
-LF_2: {num: 11, center: 306,range: 347,direction:  1, center_angle_deg:  26.6}
-LF_1: {num: 12, center: 282,range: 342,direction:  1, center_angle_deg:   0.0}
+servo_max_angle_deg: 82.5
+RF_3: {num: 1,  center: 306,range: 385,direction:  1, center_angle_deg:  84.0}
+RF_2: {num: 2,  center: 306,range: 385,direction:  1, center_angle_deg: -27.9}
+RF_1: {num: 3,  center: 306,range: 396,direction: -1, center_angle_deg:  -5.4}
+RB_3: {num: 4,  center: 306,range: 394,direction:  1, center_angle_deg:  90.4}
+RB_2: {num: 5,  center: 306,range: 396,direction:  1, center_angle_deg: -35.4}
+RB_1: {num: 6,  center: 306,range: 410,direction:  1, center_angle_deg:  -4.4}
+LB_3: {num: 7,  center: 306,range: 390,direction:  1, center_angle_deg: -84.1}
+LB_2: {num: 8,  center: 306,range: 392,direction:  1, center_angle_deg:  37.4}
+LB_1: {num: 9,  center: 306,range: 374,direction: -1, center_angle_deg:  -0.4}
+LF_3: {num: 10, center: 306,range: 394,direction:  1, center_angle_deg: -80.0}
+LF_2: {num: 11, center: 306,range: 392,direction:  1, center_angle_deg:  37.9}
+LF_1: {num: 12, center: 306,range: 403,direction:  1, center_angle_deg:  -9.0}
 
 # Control Parameters
 transit_tau: 0.5 # Time constant in seconds for transition state first order filters
@@ -38,4 +38,5 @@ transit_angle_rl: 0.175 # rate limit in rad/s for transition angle state first o
 dt: 0.02 #50 hz
 
 # Debug mode
-debug_mode: true
+debug_mode: false
+plot_mode: true
