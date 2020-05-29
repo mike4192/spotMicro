@@ -9,7 +9,9 @@ body_width: 0.078
 body_length: 0.186
 
 # Stance parameters
-default_stand_height: 0.17
+default_stand_height: 0.19
+stand_front_x_offset: 0.035
+stand_back_x_offset: 0.0
 lie_down_height: 0.083
 lie_down_foot_x_offset: 0.065 
 
@@ -30,13 +32,13 @@ LF_2: {num: 11, center: 306,range: 392,direction:  1, center_angle_deg:  37.9}
 LF_1: {num: 12, center: 306,range: 403,direction:  1, center_angle_deg:  -9.0}
 
 # Control Parameters
-transit_tau: 0.5 # Time constant in seconds for transition state first order filters
-transit_rl: 0.03 # rate limit in m/s for transition state first order filters
-transit_angle_rl: 0.175 # rate limit in rad/s for transition angle state first order filters
+transit_tau: 0.3 # Time constant in seconds for transition state first order filters
+transit_rl: 0.06 # rate limit in m/s for transition state first order filters
+transit_angle_rl: 0.35 # rate limit in rad/s for transition angle state first order filters
 
 # Node parameters
 dt: 0.02 #50 hz
 
 # Debug mode
-debug_mode: false
+debug_mode: true
 plot_mode: true

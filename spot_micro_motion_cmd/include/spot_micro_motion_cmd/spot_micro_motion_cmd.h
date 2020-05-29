@@ -19,6 +19,8 @@
 struct SpotMicroNodeConfig {
   smk::SpotMicroConfig smc;
   float default_stand_height;
+  float stand_front_x_offset;
+  float stand_back_x_offset;
   float lie_down_height;
   float lie_down_feet_x_offset;
   int num_servos;

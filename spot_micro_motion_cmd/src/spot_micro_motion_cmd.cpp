@@ -159,6 +159,8 @@ void SpotMicroMotionCmd::readInConfigParameters() {
   pnh_.getParam("body_width", smnc_.smc.body_width);
   pnh_.getParam("body_length", smnc_.smc.body_length);
   pnh_.getParam("default_stand_height", smnc_.default_stand_height);
+  pnh_.getParam("stand_front_x_offset", smnc_.stand_front_x_offset);
+  pnh_.getParam("stand_back_x_offset", smnc_.stand_back_x_offset);
   pnh_.getParam("lie_down_height", smnc_.lie_down_height);
   pnh_.getParam("lie_down_foot_x_offset", smnc_.lie_down_feet_x_offset);
   pnh_.getParam("num_servos", smnc_.num_servos);
@@ -370,13 +372,14 @@ LegsFootPos SpotMicroMotionCmd::getNeutralStance() {
   float len = smnc_.smc.body_length; // body length
   float width = smnc_.smc.body_width; // body width
   float l1 = smnc_.smc.hip_link_length; // liength of the hip link
-  // TODO: add stance offset parameters
+  float f_offset = smnc_.stand_front_x_offset; // x offset for front feet in neutral stance
+  float b_offset = smnc_.stand_back_x_offset; // y offset for back feet in neutral stance
 
   LegsFootPos neutral_stance;
-  neutral_stance.right_back  = {.x = -len/2, .y = 0.0f, .z =  width/2 + l1};
-  neutral_stance.right_front = {.x =  len/2, .y = 0.0f, .z =  width/2 + l1};
-  neutral_stance.left_front  = {.x =  len/2, .y = 0.0f, .z = -width/2 - l1};
-  neutral_stance.left_back   = {.x = -len/2, .y = 0.0f, .z = -width/2 - l1};
+  neutral_stance.right_back  = {.x = -len/2 + b_offset, .y = 0.0f, .z =  width/2 + l1};
+  neutral_stance.right_front = {.x =  len/2 + f_offset, .y = 0.0f, .z =  width/2 + l1};
+  neutral_stance.left_front  = {.x =  len/2 + f_offset, .y = 0.0f, .z = -width/2 - l1};
+  neutral_stance.left_back   = {.x = -len/2 + b_offset, .y = 0.0f, .z = -width/2 - l1};
 
   return neutral_stance;
 }

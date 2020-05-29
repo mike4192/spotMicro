@@ -34,7 +34,7 @@ ax.set_zlabel('Y')
 
 ax.set_xlim3d([-0.2, 0.2])
 ax.set_zlim3d([0, 0.4])
-ax.set_ylim3d([-0.2,0.2])
+ax.set_ylim3d([0.2,-0.2])
 
 x = 0
 
