@@ -27,14 +27,15 @@ d2r = pi/180
 fig = plt.figure()
 ax = p3.Axes3D(fig)
 ax.set_proj_type('ortho')
+ax.set_facecolor('black')
 
 ax.set_xlabel('X')
 ax.set_ylabel('Z')
 ax.set_zlabel('Y')
 
 ax.set_xlim3d([-0.2, 0.2])
-ax.set_zlim3d([0, 0.4])
-ax.set_ylim3d([0.2,-0.2])
+ax.set_zlim3d([0, 0.3])
+ax.set_ylim3d([-0.2,0.2])
 
 x = 0
 
@@ -94,6 +95,7 @@ def update_lines(num, x, lines):
 
     for line, i in zip(lines, range(len(lines))):
 
+        line.set_linewidth(4)
         if i < 4:
             # First four lines are the square body
             if i == 3:
