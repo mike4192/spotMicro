@@ -171,6 +171,29 @@ void SpotMicroMotionCmd::readInConfigParameters() {
   pnh_.getParam("dt", smnc_.dt);
   pnh_.getParam("debug_mode", smnc_.debug_mode);
   pnh_.getParam("plot_mode", smnc_.plot_mode);
+  pnh_.getParam("max_fwd_velocity", smnc_.max_fwd_velocity);
+  pnh_.getParam("max_side_velocity", smnc_.max_side_velocity);
+  pnh_.getParam("max_yaw_rate", smnc_.max_yaw_rate);
+  pnh_.getParam("z_clearance", smnc_.z_clearance);
+  pnh_.getParam("alpha", smnc_.alpha);
+  pnh_.getParam("beta", smnc_.beta);
+  pnh_.getParam("num_phases", smnc_.num_phases);
+  pnh_.getParam("rb_contact_phases", smnc_.rb_contact_phases);
+  pnh_.getParam("rf_contact_phases", smnc_.rf_contact_phases);
+  pnh_.getParam("lf_contact_phases", smnc_.lf_contact_phases);
+  pnh_.getParam("lb_contact_phases", smnc_.lb_contact_phases);
+  pnh_.getParam("overlap_time", smnc_.overlap_time);
+  pnh_.getParam("swing_time", smnc_.swing_time);
+
+  // Derived parameters
+  // Round result of division of floats
+  smnc_.overlap_ticks = round(smnc_.overlap_time / smnc_.dt);
+  smnc_.swing_ticks = round(smnc_.swing_time / smnc_.dt);
+  smnc_.stance_ticks = smnc_.swing_ticks;
+  smnc_.overlap_ticks = round(smnc_.overlap_time / smnc_.dt);
+  smnc_.phase_ticks = std::vector<int>
+      {smnc_.swing_ticks, smnc_.swing_ticks, smnc_.swing_ticks, smnc_.swing_ticks}; 
+  smnc_.phase_length = smnc_.num_phases * smnc_.swing_ticks;
 
   // Temporary map for populating map in smnc_
   std::map<std::string, float> temp_map;

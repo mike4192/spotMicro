@@ -36,9 +36,26 @@ transit_tau: 0.3 # Time constant in seconds for transition state first order fil
 transit_rl: 0.06 # rate limit in m/s for transition state first order filters
 transit_angle_rl: 0.35 # rate limit in rad/s for transition angle state first order filters
 
+# Gait parameters
+max_fwd_velocity: 0.4
+max_side_velocity: 0.4
+max_yaw_rate: 0.35
+z_clearance: 0.03
+alpha: 0.5
+beta: 0.5
+num_phases: 4
+rb_contact_phases: [0, 1, 1, 1]
+rf_contact_phases: [1, 0, 1, 1]
+lf_contact_phases: [1, 1, 1, 0]
+lb_contact_phases: [1, 1, 0, 1]
+overlap_time: 0.0
+swing_time: 0.24
+
+
 # Node parameters
 dt: 0.02 #50 hz
 
 # Debug mode
 debug_mode: true
 plot_mode: true
+

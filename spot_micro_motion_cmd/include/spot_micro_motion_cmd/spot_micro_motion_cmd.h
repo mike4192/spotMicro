@@ -32,6 +32,25 @@ struct SpotMicroNodeConfig {
   float transit_angle_rl;
   bool debug_mode;
   bool plot_mode;
+  float max_fwd_velocity;
+  float max_side_velocity;
+  float max_yaw_rate;
+  float z_clearance;
+  float alpha;
+  float beta;
+  int num_phases;
+  std::vector<int> rb_contact_phases;
+  std::vector<int> rf_contact_phases;
+  std::vector<int> lf_contact_phases;
+  std::vector<int> lb_contact_phases;
+  float overlap_time;
+  float swing_time;
+  int overlap_ticks;
+  int swing_ticks;
+  int stance_ticks;
+  std::vector<int> phase_ticks;
+  float phase_length;
+
 };
 
 
