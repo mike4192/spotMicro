@@ -49,7 +49,7 @@ struct SpotMicroNodeConfig {
   int swing_ticks;
   int stance_ticks;
   std::vector<int> phase_ticks;
-  float phase_length;
+  int phase_length;
 
 };
 

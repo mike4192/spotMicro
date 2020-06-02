@@ -121,19 +121,8 @@ include_directories(
   include/spot_micro_motion_cmd
   src/smfsm
   src/rate_limited_first_order_filter
-  src/gait_controller
   ${catkin_INCLUDE_DIRS}
 )
-
-## Declare a C++ library
-add_library(gait_controller 
-            src/gait_controller/stance_controller.cpp
-			src/gait_controller/swing_leg_controller.cpp
-)
-
-#target_link_libraries(smfsm
-		#spot_micro_kinematics
-#)
 
 ## Declare a C++ library
 add_library(smfsm 
@@ -146,7 +135,6 @@ add_library(smfsm
 
 target_link_libraries(smfsm
 		spot_micro_kinematics
-		gait_controller
 )
 
 ## Add cmake target dependencies of the library
