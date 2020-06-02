@@ -69,6 +69,11 @@ class SpotMicroKeyboardControl():
         self._angle_cmd_msg.y = 0
         self._angle_cmd_msg.z = 0
 
+        self._speed_cmd_msg = Vector3()
+        self._speed_cmd_msg.x = 0
+        self._speed_cmd_msg.y = 0
+        self._speed_cmd_msg.z = 0
+
         self._walk_event_cmd_msg = Bool()
         self._walk_event_cmd_msg.data = True # Mostly acts as an event driven action on receipt of a true message
 
@@ -90,6 +95,7 @@ class SpotMicroKeyboardControl():
         self.ros_pub_speed_cmd      = rospy.Publisher('/speed_cmd',Vector3,queue_size=1)
         self.ros_pub_angle_cmd      = rospy.Publisher('/angle_cmd',Vector3,queue_size=1)
         self.ros_pub_state_cmd      = rospy.Publisher('/state_cmd',Bool,queue_size=1)
+        self.ros_pub_walk_cmd       = rospy.Publisher('/walk_cmd',Bool, queue_size=1)
         self.ros_pub_stand_cmd      = rospy.Publisher('/stand_cmd',Bool,queue_size=1)
         self.ros_pub_idle_cmd       = rospy.Publisher('/idle_cmd',Bool,queue_size=1)
 
@@ -189,6 +195,7 @@ class SpotMicroKeyboardControl():
 
                     # Publish walk event
                     self.ros_pub_state_cmd.publish(self._walk_event_cmd_msg)
+                    self.ros_pub_walk_cmd.publish(self._walk_event_cmd_msg)
 
                     # Enter loop to act on user command
 
@@ -203,6 +210,8 @@ class SpotMicroKeyboardControl():
                         if userInput == 'u':
                             # Send walk event message, this will take robot back to rest mode
                             self.ros_pub_state_cmd.publish(self._walk_event_cmd_msg)
+
+                            self.ros_pub_stand_cmd.publish(self._stand_event_cmd_msg)
                             break
 
                         elif userInput not in ('w','a','s','d','q','e','u'):
@@ -211,26 +220,44 @@ class SpotMicroKeyboardControl():
                             if userInput == 'w':
                                 self._x_speed_cmd_msg.data = self._x_speed_cmd_msg.data + speed_inc
                                 self.ros_pub_x_speed_cmd.publish(self._x_speed_cmd_msg)
+
+                                self._speed_cmd_msg.x = self._speed_cmd_msg.x + speed_inc
+                                self.ros_pub_speed_cmd.publish(self._speed_cmd_msg)
                             
                             elif userInput == 's':
                                 self._x_speed_cmd_msg.data = self._x_speed_cmd_msg.data - speed_inc
                                 self.ros_pub_x_speed_cmd.publish(self._x_speed_cmd_msg)
 
+                                self._speed_cmd_msg.x = self._speed_cmd_msg.x - speed_inc
+                                self.ros_pub_speed_cmd.publish(self._speed_cmd_msg)
+
                             elif userInput == 'a':
                                 self._y_speed_cmd_msg.data = self._y_speed_cmd_msg.data + speed_inc
                                 self.ros_pub_y_speed_cmd.publish(self._y_speed_cmd_msg)
+
+                                self._speed_cmd_msg.y = self._speed_cmd_msg.y + speed_inc
+                                self.ros_pub_speed_cmd.publish(self._speed_cmd_msg)
                             
                             elif userInput == 'd':
                                 self._y_speed_cmd_msg.data = self._y_speed_cmd_msg.data - speed_inc
                                 self.ros_pub_y_speed_cmd.publish(self._y_speed_cmd_msg)
 
+                                self._speed_cmd_msg.y = self._speed_cmd_msg.y - speed_inc
+                                self.ros_pub_speed_cmd.publish(self._speed_cmd_msg)
+
                             elif userInput == 'q':
                                 self._yaw_rate_cmd_msg.data = self._yaw_rate_cmd_msg.data + yaw_rate_inc
                                 self.ros_pub_yaw_rate_cmd.publish(self._yaw_rate_cmd_msg)
 
+                                self._speed_cmd_msg.z = self._speed_cmd_msg.z + yaw_rate_inc
+                                self.ros_pub_speed_cmd.publish(self._speed_cmd_msg)
+
                             elif userInput == 'e':
                                 self._yaw_rate_cmd_msg.data = self._yaw_rate_cmd_msg.data - yaw_rate_inc
                                 self.ros_pub_yaw_rate_cmd.publish(self._yaw_rate_cmd_msg)
+
+                                self._speed_cmd_msg.z = self._speed_cmd_msg.z - yaw_rate_inc
+                                self.ros_pub_speed_cmd.publish(self._speed_cmd_msg)
 
 
 

@@ -184,6 +184,7 @@ void SpotMicroMotionCmd::readInConfigParameters() {
   pnh_.getParam("lb_contact_phases", smnc_.lb_contact_phases);
   pnh_.getParam("overlap_time", smnc_.overlap_time);
   pnh_.getParam("swing_time", smnc_.swing_time);
+  pnh_.getParam("foot_height_time_constant", smnc_.foot_height_time_constant);
 
   // Derived parameters
   // Round result of division of floats

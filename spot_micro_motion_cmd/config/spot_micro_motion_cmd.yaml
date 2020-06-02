@@ -49,8 +49,8 @@ rf_contact_phases: [1, 0, 1, 1]
 lf_contact_phases: [1, 1, 1, 0]
 lb_contact_phases: [1, 1, 0, 1]
 overlap_time: 0.0
-swing_time: 0.24
-
+swing_time: 0.50
+foot_height_time_constant: 0.02
 
 # Node parameters
 dt: 0.02 #50 hz

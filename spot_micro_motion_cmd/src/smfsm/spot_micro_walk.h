@@ -54,7 +54,8 @@ class SpotMicroWalkState : public SpotMicroState {
   // necessary
   smk::LegsFootPos stepGait(const smk::BodyState& body_state,
                             const Command& cmd,
-                            const SpotMicroNodeConfig& smnc);
+                            const SpotMicroNodeConfig& smnc,
+                            const smk::LegsFootPos& default_stance_feet_pos);
 
   // Returns new foot position incremented by stance controller
   smk::Point stanceController(const smk::Point& foot_pos,
@@ -65,7 +66,8 @@ class SpotMicroWalkState : public SpotMicroState {
   smk::Point swingLegController(const smk::Point& foot_pos,
                                 const Command& cmd,
                                 const SpotMicroNodeConfig& smnc,
-                                float swing_proportion);
+                                float swing_proportion,
+                                const smk::Point& default_stance_foot_pos);
 };
 
   

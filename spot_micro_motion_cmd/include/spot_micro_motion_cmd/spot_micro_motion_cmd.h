@@ -50,6 +50,7 @@ struct SpotMicroNodeConfig {
   int stance_ticks;
   std::vector<int> phase_ticks;
   int phase_length;
+  float foot_height_time_constant;
 
 };
 

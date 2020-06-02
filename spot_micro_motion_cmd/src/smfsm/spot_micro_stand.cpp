@@ -1,6 +1,7 @@
 #include "spot_micro_stand.h"
 
 #include "spot_micro_transition_idle.h"
+#include "spot_micro_walk.h"
 #include "spot_micro_motion_cmd.h"
 #include "rate_limited_first_order_filter.h"
 
@@ -28,6 +29,9 @@ void SpotMicroStandState::handleInputCommands(const smk::BodyState& body_state,
   if (cmd.getIdleCmd() == true) {
     // Call parent class's change state method
     changeState(smmc, std::make_unique<SpotMicroTransitionIdleState>());
+
+  } else if (cmd.getWalkCmd() == true) {
+    changeState(smmc, std::make_unique<SpotMicroWalkState>());
 
   } else {
     // Get command values
