@@ -37,22 +37,16 @@ void SpotMicroWalkState::handleInputCommands(const smk::BodyState& body_state,
     changeState(smmc, std::make_unique<SpotMicroTransitionStandState>());
 
   } else {
-    // Get command values
-    // Fwd and side speed commands, yaw rate command
-    x_speed_cmd_ = cmd.getXSpeedCmd();
-    y_speed_cmd_ = cmd.getYSpeedCmd();
-    yaw_rate_cmd_ = cmd.getYawRateCmd();
-
     // Update gate phasing data
     updatePhaseData();
 
     // Step the gait controller
-    stepGait();
+    body_state_cmd->leg_feet_pos = stepGait(body_state, cmd, smnc);
 
     // Set body state command values
-    body_state_cmd->xyz_pos = cmd_state_.xyz_pos;
+    //body_state_cmd->xyz_pos = cmd_state_.xyz_pos;
 
-    body_state_cmd->leg_feet_pos = cmd_state_.leg_feet_pos;
+    //body_state_cmd->leg_feet_pos = cmd_state_.leg_feet_pos;
 
     // Set servo data and publish command
     smmc->setServoCommandMessageData();
@@ -129,6 +123,74 @@ void SpotMicroWalkState::updatePhaseData() {
 }
 
 
-void SpotMicroWalkState::stepGait() {
+smk::LegsFootPos SpotMicroWalkState::stepGait(const smk::BodyState& body_state,
+                                              const Command& cmd,
+                                              const SpotMicroNodeConfig& smnc) {
+  bool contact_mode;
+  float swing_proportion;
+  smk::Point foot_pos;
+  smk::LegsFootPos new_feet_pos;
 
+  for (int i = 0; i < 4; i++) {
+    if (i == 1) { // right back
+      contact_mode = contact_feet_states_.right_back_in_swing;
+      foot_pos = body_state.leg_feet_pos.right_back;
+
+    } else if (i == 1) { // right front
+      contact_mode = contact_feet_states_.right_front_in_swing;
+      foot_pos = body_state.leg_feet_pos.right_front;
+
+    } else if (i == 2) { // left front
+      contact_mode = contact_feet_states_.left_front_in_swing;
+      foot_pos = body_state.leg_feet_pos.left_front;
+
+    } else { // left back
+      contact_mode = contact_feet_states_.left_back_in_swing;
+      foot_pos = body_state.leg_feet_pos.left_back;
+    }
+
+    if (contact_mode == true) { // Stance controller
+      foot_pos = stanceController(foot_pos, cmd, smnc); 
+
+    } else { // swing leg controller
+      swing_proportion = (float)subphase_ticks_ / (float)smnc.swing_ticks;
+      foot_pos = swingLegController(foot_pos, cmd, smnc, swing_proportion);
+    }
+
+    if (i == 1) { // right back
+      new_feet_pos.right_back = foot_pos;
+
+    } else if (i == 1) { // right front
+      new_feet_pos.right_front = foot_pos;
+
+    } else if (i == 2) { // left front
+      new_feet_pos.left_front = foot_pos;
+
+    } else { // left back
+      new_feet_pos.left_back = foot_pos;
+    }
+  }
+
+  // Return new feet positions
+  return new_feet_pos;
+}
+
+
+smk::Point SpotMicroWalkState::stanceController(
+    const smk::Point& foot_pos,
+    const Command& cmd,
+    const SpotMicroNodeConfig& smnc) {
+  smk::Point new_foot_pos;
+
+  return new_foot_pos;
+}
+
+smk::Point SpotMicroWalkState::swingLegController(
+    const smk::Point& foot_pos,
+    const Command& cmd,
+    const SpotMicroNodeConfig& smnc,
+    float swing_proportion) {
+  smk::Point new_foot_pos;
+
+  return new_foot_pos;
 }

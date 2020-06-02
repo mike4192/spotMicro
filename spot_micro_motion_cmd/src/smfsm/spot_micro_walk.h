@@ -36,9 +36,6 @@ class SpotMicroWalkState : public SpotMicroState {
 
   SpotMicroNodeConfig smnc_;
   smk::BodyState cmd_state_;
-  float x_speed_cmd_;
-  float y_speed_cmd_;
-  float yaw_rate_cmd_;
 
   int ticks_;
   int phase_index_;
@@ -55,10 +52,20 @@ class SpotMicroWalkState : public SpotMicroState {
   // Steps the gait controller one timestep, sets the feet command state, and
   // possibly other command states (such as xyz position, euler angles) if
   // necessary
-  void stepGait();
+  smk::LegsFootPos stepGait(const smk::BodyState& body_state,
+                            const Command& cmd,
+                            const SpotMicroNodeConfig& smnc);
 
+  // Returns new foot position incremented by stance controller
+  smk::Point stanceController(const smk::Point& foot_pos,
+                              const Command& cmd,
+                              const SpotMicroNodeConfig& smnc);
 
-
+  // Returns new foot position incremented by swing leg controller
+  smk::Point swingLegController(const smk::Point& foot_pos,
+                                const Command& cmd,
+                                const SpotMicroNodeConfig& smnc,
+                                float swing_proportion);
 };
 
   
