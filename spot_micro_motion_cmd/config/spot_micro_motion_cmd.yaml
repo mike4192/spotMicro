@@ -9,7 +9,7 @@ body_width: 0.078
 body_length: 0.186
 
 # Stance parameters
-default_stand_height: 0.19
+default_stand_height: 0.17
 stand_front_x_offset: 0.035
 stand_back_x_offset: 0.0
 lie_down_height: 0.083
@@ -40,7 +40,7 @@ transit_angle_rl: 0.35 # rate limit in rad/s for transition angle state first or
 max_fwd_velocity: 0.4
 max_side_velocity: 0.4
 max_yaw_rate: 0.35
-z_clearance: 0.03
+z_clearance: 0.035
 alpha: 0.5
 beta: 0.5
 num_phases: 8
