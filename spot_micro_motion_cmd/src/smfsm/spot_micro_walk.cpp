@@ -44,11 +44,9 @@ void SpotMicroWalkState::handleInputCommands(const smk::BodyState& body_state,
     // Step the gait controller
     body_state_cmd->leg_feet_pos = stepGait(body_state, cmd, smnc, smmc->getNeutralStance()); 
 
-    // Set body state command values
-    //body_state_cmd->xyz_pos = cmd_state_.xyz_pos;
-
-    //body_state_cmd->leg_feet_pos = cmd_state_.leg_feet_pos;
-
+    // Step body shift controller
+    body_state_cmd->xyz_pos = stepBodyShift(body_state, cmd, smnc);
+    
     // Set servo data and publish command
     smmc->setServoCommandMessageData();
     smmc->publishServoProportionalCommand();
@@ -294,3 +292,67 @@ smk::Point SpotMicroWalkState::swingLegController(
   
 }
 
+smk::Point SpotMicroWalkState::stepBodyShift(
+    const smk::BodyState& body_state,
+    const Command& cmd,
+    const SpotMicroNodeConfig& smnc) {
+
+  // Convenience variables
+  float dt = smnc.dt;
+
+  int shift_phase = smnc.body_shift_phases[phase_index_];
+  float shift_proportion = (float)subphase_ticks_ / (float)smnc.swing_ticks;
+  float time_left = dt * smnc.swing_ticks * (1.0f - shift_proportion);
+  float end_x_pos;
+  float end_z_pos;
+  smk::Point return_point;
+  return_point.y = smnc.default_stand_height;  
+
+  if (shift_phase == 2) { // Hold front left shift pos
+    return_point.x = smnc.fwd_body_balance_shift;
+    return_point.z = -smnc.side_body_balance_shift;
+
+  } else if (shift_phase == 4) { // Hold back left shift pos
+    return_point.x = -smnc.fwd_body_balance_shift;
+    return_point.z = -smnc.side_body_balance_shift;
+
+  } else if (shift_phase == 6) { // Hold front right shift pos
+    return_point.x = smnc.fwd_body_balance_shift;
+    return_point.z = smnc.side_body_balance_shift;
+
+  } else if (shift_phase == 8) { // Hold back right shift pos
+    return_point.x = -smnc.fwd_body_balance_shift;
+    return_point.z = smnc.side_body_balance_shift;
+
+  } else { 
+    // Shift body to front left
+    if (shift_phase == 1) {
+      end_x_pos = smnc.fwd_body_balance_shift;
+      end_z_pos = -smnc.side_body_balance_shift;
+
+    // Shift body to back left
+    } else if (shift_phase == 3) {
+      end_x_pos = -smnc.fwd_body_balance_shift;
+      end_z_pos = -smnc.side_body_balance_shift;
+      
+    // Shift body to front right
+    } else if (shift_phase == 5) {
+      end_x_pos = smnc.fwd_body_balance_shift;
+      end_z_pos = smnc.side_body_balance_shift;
+
+    // Shift body to back right
+    } else {
+      end_x_pos = -smnc.fwd_body_balance_shift;
+      end_z_pos = smnc.side_body_balance_shift;
+    }
+
+    float delta_x = ((end_x_pos - body_state.xyz_pos.x) / time_left) * dt;
+    float delta_z = ((end_z_pos - body_state.xyz_pos.z) / time_left) * dt;
+
+    return_point.x = body_state.xyz_pos.x + delta_x;
+    return_point.z = body_state.xyz_pos.z + delta_z;
+  }
+
+  return return_point;
+
+}

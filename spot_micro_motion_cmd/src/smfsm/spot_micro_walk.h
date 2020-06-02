@@ -68,6 +68,12 @@ class SpotMicroWalkState : public SpotMicroState {
                                 const SpotMicroNodeConfig& smnc,
                                 float swing_proportion,
                                 const smk::Point& default_stance_foot_pos);
+
+  // Steps the body shift controller that shifts the body xyz position 
+  // to maintain balance during the gait cycle
+  smk::Point stepBodyShift(const smk::BodyState& body_state,
+                           const Command& cmd,
+                           const SpotMicroNodeConfig& smnc);
 };
 
   
