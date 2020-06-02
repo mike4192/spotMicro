@@ -187,6 +187,7 @@ void SpotMicroMotionCmd::readInConfigParameters() {
   pnh_.getParam("foot_height_time_constant", smnc_.foot_height_time_constant);
   pnh_.getParam("body_shift_phases", smnc_.body_shift_phases);
   pnh_.getParam("fwd_body_balance_shift", smnc_.fwd_body_balance_shift);
+  pnh_.getParam("back_body_balance_shift", smnc_.back_body_balance_shift);
   pnh_.getParam("side_body_balance_shift", smnc_.side_body_balance_shift);
   
 

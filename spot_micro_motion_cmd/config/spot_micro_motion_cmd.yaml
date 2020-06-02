@@ -52,8 +52,9 @@ overlap_time: 0.0
 swing_time: 0.6
 foot_height_time_constant: 0.02
 body_shift_phases: [1, 2, 3, 4, 5, 6, 7, 8]
-fwd_body_balance_shift: 0.025
-side_body_balance_shift: 0.015
+fwd_body_balance_shift: 0.040
+back_body_balance_shift: 0.005
+side_body_balance_shift: 0.020
 
 # Node parameters
 dt: 0.02 #50 hz

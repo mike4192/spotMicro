@@ -54,6 +54,7 @@ struct SpotMicroNodeConfig {
   std::vector<int> body_shift_phases;
   float fwd_body_balance_shift;
   float side_body_balance_shift;
+  float back_body_balance_shift;
 };
 
 

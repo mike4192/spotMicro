@@ -313,7 +313,7 @@ smk::Point SpotMicroWalkState::stepBodyShift(
     return_point.z = -smnc.side_body_balance_shift;
 
   } else if (shift_phase == 4) { // Hold back left shift pos
-    return_point.x = -smnc.fwd_body_balance_shift;
+    return_point.x = -smnc.back_body_balance_shift;
     return_point.z = -smnc.side_body_balance_shift;
 
   } else if (shift_phase == 6) { // Hold front right shift pos
@@ -321,7 +321,7 @@ smk::Point SpotMicroWalkState::stepBodyShift(
     return_point.z = smnc.side_body_balance_shift;
 
   } else if (shift_phase == 8) { // Hold back right shift pos
-    return_point.x = -smnc.fwd_body_balance_shift;
+    return_point.x = -smnc.back_body_balance_shift;
     return_point.z = smnc.side_body_balance_shift;
 
   } else { 
@@ -332,7 +332,7 @@ smk::Point SpotMicroWalkState::stepBodyShift(
 
     // Shift body to back left
     } else if (shift_phase == 3) {
-      end_x_pos = -smnc.fwd_body_balance_shift;
+      end_x_pos = -smnc.back_body_balance_shift;
       end_z_pos = -smnc.side_body_balance_shift;
       
     // Shift body to front right
@@ -342,7 +342,7 @@ smk::Point SpotMicroWalkState::stepBodyShift(
 
     // Shift body to back right
     } else {
-      end_x_pos = -smnc.fwd_body_balance_shift;
+      end_x_pos = -smnc.back_body_balance_shift;
       end_z_pos = smnc.side_body_balance_shift;
     }
 
