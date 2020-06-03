@@ -49,7 +49,7 @@ class SpotMicroLcd():
 		''' Runs the lcd driver and prints data'''
 
 		# Define the loop rate in Hz
-        rate = rospy.Rate(1)
+		rate = rospy.Rate(1)
 
 		while not rospy.is_shutdown():
 
