@@ -60,7 +60,7 @@ def update_lines(num, x, lines):
     theta = msg.data[16]
     psi = msg.data[17]
 
-    print(foot_data)
+    # print(foot_data)
     sm.set_absolute_foot_coordinates(foot_data)
     temp_rot = transformations.rotxyz(phi, psi, theta)
     temp_pose = np.identity(4)

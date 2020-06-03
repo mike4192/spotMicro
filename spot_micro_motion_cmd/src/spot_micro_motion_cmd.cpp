@@ -195,7 +195,7 @@ void SpotMicroMotionCmd::readInConfigParameters() {
   // Round result of division of floats
   smnc_.overlap_ticks = round(smnc_.overlap_time / smnc_.dt);
   smnc_.swing_ticks = round(smnc_.swing_time / smnc_.dt);
-  smnc_.stance_ticks = 2 * smnc_.swing_ticks;
+  smnc_.stance_ticks = 7 * smnc_.swing_ticks;
   smnc_.overlap_ticks = round(smnc_.overlap_time / smnc_.dt);
   smnc_.phase_ticks = std::vector<int>
       {smnc_.swing_ticks, smnc_.swing_ticks, smnc_.swing_ticks, smnc_.swing_ticks,
