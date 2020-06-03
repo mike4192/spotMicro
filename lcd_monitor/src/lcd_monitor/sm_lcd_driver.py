@@ -47,8 +47,17 @@ class SpotMicroLcd():
 
 	def run(self):
 		''' Runs the lcd driver and prints data'''
-		self._mylcd.lcd_display_string('State: %s'%(self._state_str),1)
-		# mylcd.lcd_display_string("%2i:%2i:%2i"%(hour,minute,second), 2)
+
+		# Define the loop rate in Hz
+        rate = rospy.Rate(1)
+
+		while not rospy.is_shutdown():
+
+			self._mylcd.lcd_display_string('State: %s'%(self._state_str),1)
+			# mylcd.lcd_display_string("%2i:%2i:%2i"%(hour,minute,second), 2)
+
+			# Sleep till next loop
+            rate.sleep()
 
 
 
