@@ -116,6 +116,21 @@ class SpotMicroKeyboardControl():
         self.ros_pub_y_speed_cmd.publish(self._y_speed_cmd_msg)
         self.ros_pub_yaw_rate_cmd.publish(self._yaw_rate_cmd_msg)
 
+        self._speed_cmd_msg.x = 0
+        self._speed_cmd_msg.y = 0
+        self._speed_cmd_msg.z = 0
+
+        self.ros_pub_speed_cmd.publish(self._speed_cmd_msg)
+
+    def reset_all_angle_commands_to_zero(self):
+        '''Reset angle cmd states to zero and publish them'''
+
+        self._angle_cmd_msg.x = 0
+        self._speed_cmd_msg.y = 0
+        self._speed_cmd_msg.z = 0
+
+        self.ros_pub_angle_cmd.publish(self._angle_cmd_msg)
+
     def getKey(self):
         tty.setraw(sys.stdin.fileno())
         select.select([sys.stdin], [], [], 0)
@@ -149,6 +164,9 @@ class SpotMicroKeyboardControl():
                     self.ros_pub_idle_cmd.publish(self._idle_event_cmd_msg)
 
                 elif userInput == 'angle_cmd':
+                    # Reset all angle commands
+                    self.reset_all_angle_commands_to_zero()
+                    
                     # Enter loop to act on user command
                     print('Enter command, u to go back to command select: ')
 

@@ -68,7 +68,14 @@ class Command {
     return psi_cmd_;
   }
 
-
+  void resetAllCommands() {
+    x_vel_cmd_mps_ = 0;
+    y_vel_cmd_mps_ = 0;
+    yaw_rate_cmd_rps_ = 0;
+    phi_cmd_ = 0;
+    theta_cmd_ = 0;
+    psi_cmd_ = 0;
+  }
  
   void resetEventCmds() {
     // Reset all event commands to false

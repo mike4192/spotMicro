@@ -353,6 +353,9 @@ void SpotMicroMotionCmd::changeState(std::unique_ptr<SpotMicroState> sms) {
 
   // Call init method of new state
   state_->init(sm_.getBodyState(), smnc_, cmd_, this);
+
+  // Reset all command values
+  cmd_.resetAllCommands();
 }
 
 void SpotMicroMotionCmd::publishBodyState() {
