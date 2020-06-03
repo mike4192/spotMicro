@@ -26,8 +26,8 @@ class SpotMicroLcd():
 		rospy.init_node('lcd_monitor_node')
 
 		rospy.Subscriber('sm_speed_cmd',Vector3,self.update_speed_cmd)
-        	rospy.Subscriber('sm_angle_cmd',Vector3,self.update_angle_cmd)
-        	rospy.Subscriber('sm_state',String,self.update_state_string)
+		rospy.Subscriber('sm_angle_cmd',Vector3,self.update_angle_cmd)
+		rospy.Subscriber('sm_state',String,self.update_state_string)
 
 	def update_speed_cmd(self, msg):
 		''' Updates speed command attributes'''

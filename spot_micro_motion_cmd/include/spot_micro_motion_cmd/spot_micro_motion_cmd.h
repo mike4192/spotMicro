@@ -5,6 +5,7 @@
 #define SPOT_MICRO_MOTION_CMD
 #include <ros/ros.h>
 #include "std_msgs/Bool.h"
+#include "std_msgs/String.h"
 #include "geometry_msgs/Vector3.h"
 #include "std_msgs/Float32MultiArray.h"
 #include "i2cpwm_board/Servo.h"
@@ -146,10 +147,18 @@ class SpotMicroMotionCmd
   ros::Publisher servos_absolute_pub_;
   ros::Publisher servos_proportional_pub_;
   ros::Publisher body_state_pub_;
+  ros::Publisher sm_speed_cmd_pub_;
+  ros::Publisher sm_angle_cmd_pub_;
+  ros::Publisher sm_state_pub_;
   ros::ServiceClient servos_config_client_;
 
   // Body state cmd message
   std_msgs::Float32MultiArray body_state_msg_;
+
+  // State string message, speed and angle command messages
+  std_msgs::String state_string_msg_;
+  geometry_msgs::Vector3 speed_cmd_msg_;
+  geometry_msgs::Vector3 angle_cmd_msg_;
 
   // Callback method for stand command
   void standCommandCallback(const std_msgs::Bool::ConstPtr& msg);
@@ -178,6 +187,9 @@ class SpotMicroMotionCmd
 
   // Publishes body state as a float array for plotting by another node
   void publishBodyState();
+
+  // Publish LCD monitor messages
+  void publishLcdMonitorData();
 
 };
 #endif  

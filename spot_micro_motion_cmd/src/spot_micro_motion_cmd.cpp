@@ -1,5 +1,6 @@
 #include "std_msgs/Float32.h"
 #include "std_msgs/Bool.h"
+#include "std_msgs/String.h"
 #include "std_msgs/Float32MultiArray.h"
 #include "geometry_msgs/Vector3.h"
 
@@ -125,6 +126,26 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
 
   // Body state publisher for plotting
   body_state_pub_ = nh.advertise<std_msgs::Float32MultiArray>("body_state",1);
+
+  // State string publisher for lcd monitor
+  sm_state_pub_ = nh.advertise<std_msgs::String>("sm_state",1);
+
+  // Speed command state publisher for lcd monitor
+  sm_speed_cmd_pub_ = nh.advertise<geometry_msgs::Vector3>("sm_speed_cmd",1);
+
+  // Angle command state publisher for lcd monitor
+  sm_angle_cmd_pub_ = nh.advertise<geometry_msgs::Vector3>("sm_angle_cmd",1);
+
+  // Initialize lcd monitor messages
+  state_string_msg_.data = "Idle";
+
+  speed_cmd_msg_.x = 0.0f;
+  speed_cmd_msg_.y = 0.0f;
+  speed_cmd_msg_.z = 0.0f;
+  
+  angle_cmd_msg_.x = 0.0f;
+  angle_cmd_msg_.y = 0.0f;
+  angle_cmd_msg_.z = 0.0f;
  
 
   // Only do if plot mode
@@ -338,6 +359,9 @@ void SpotMicroMotionCmd::runOnce() {
   if (smnc_.plot_mode) {
     publishBodyState();
   }
+
+  // Publish lcd monitor data
+  publishLcdMonitorData();
 }
 
 
@@ -439,4 +463,21 @@ void SpotMicroMotionCmd::commandIdle() {
 
 std::string SpotMicroMotionCmd::getCurrentStateName() {
   return state_->getCurrentStateName();
+}
+
+
+void SpotMicroMotionCmd::publishLcdMonitorData() {
+  state_string_msg_.data = getCurrentStateName();
+
+  speed_cmd_msg_.x = cmd_.getXSpeedCmd();
+  speed_cmd_msg_.y = cmd_.getYSpeedCmd();
+  speed_cmd_msg_.z = cmd_.getYawRateCmd();
+  
+  angle_cmd_msg_.x = cmd_.getPhiCmd();
+  angle_cmd_msg_.x = cmd_.getThetaCmd();
+  angle_cmd_msg_.x = cmd_.getPsiCmd();  
+
+  sm_state_pub_.publish(state_string_msg_);
+  sm_speed_cmd_pub_.publish(speed_cmd_msg_);
+  sm_angle_cmd_pub_.publish(angle_cmd_msg_);
 }
