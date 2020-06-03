@@ -43,23 +43,23 @@ max_yaw_rate: 0.35
 z_clearance: 0.045
 alpha: 0.5
 beta: 0.5
-num_phases: 8
-rb_contact_phases: [1, 0, 1, 1, 1, 1, 1, 1]
-rf_contact_phases: [1, 1, 1, 0, 1, 1, 1, 1]
-lf_contact_phases: [1, 1, 1, 1, 1, 1, 1, 0]
-lb_contact_phases: [1, 1, 1, 1, 1, 0, 1, 1]
-overlap_time: 0.0
-swing_time: 0.20
+num_phases: 4
+rb_contact_phases: [1, 0, 1, 1]
+rf_contact_phases: [1, 1, 1, 0]
+lf_contact_phases: [1, 0, 1, 1]
+lb_contact_phases: [1, 1, 1, 0]
+overlap_time: 0.3
+swing_time: 0.30
 foot_height_time_constant: 0.02
-body_shift_phases: [1, 2, 3, 4, 5, 6, 7, 8]
-fwd_body_balance_shift: 0.025
-back_body_balance_shift: 0.005
-side_body_balance_shift: 0.015
+body_shift_phases: [0, 0, 0, 0]
+fwd_body_balance_shift: 0.00
+back_body_balance_shift: 0.00
+side_body_balance_shift: 0.0
 
 # Node parameters
 dt: 0.02 #50 hz
 
 # Debug mode
-debug_mode: false
+debug_mode: true
 plot_mode: true
 
