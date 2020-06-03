@@ -474,8 +474,8 @@ void SpotMicroMotionCmd::publishLcdMonitorData() {
   speed_cmd_msg_.z = cmd_.getYawRateCmd();
   
   angle_cmd_msg_.x = cmd_.getPhiCmd();
-  angle_cmd_msg_.x = cmd_.getThetaCmd();
-  angle_cmd_msg_.x = cmd_.getPsiCmd();  
+  angle_cmd_msg_.y = cmd_.getThetaCmd();
+  angle_cmd_msg_.z = cmd_.getPsiCmd();  
 
   sm_state_pub_.publish(state_string_msg_);
   sm_speed_cmd_pub_.publish(speed_cmd_msg_);
