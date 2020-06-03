@@ -57,7 +57,7 @@ class SpotMicroLcd():
 			# mylcd.lcd_display_string("%2i:%2i:%2i"%(hour,minute,second), 2)
 
 			# Sleep till next loop
-            rate.sleep()
+			rate.sleep()
 
 
 
