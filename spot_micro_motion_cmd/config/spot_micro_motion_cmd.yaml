@@ -9,9 +9,9 @@ body_width: 0.078
 body_length: 0.186
 
 # Stance parameters
-default_stand_height: 0.155
-stand_front_x_offset: 0.015
-stand_back_x_offset: 0.0
+default_stand_height: 0.17
+stand_front_x_offset: -0.020
+stand_back_x_offset: -0.02
 lie_down_height: 0.083
 lie_down_foot_x_offset: 0.065 
 
@@ -48,8 +48,8 @@ rb_contact_phases: [1, 0, 1, 1]
 rf_contact_phases: [1, 1, 1, 0]
 lf_contact_phases: [1, 0, 1, 1]
 lb_contact_phases: [1, 1, 1, 0]
-overlap_time: 0.3
-swing_time: 0.30
+overlap_time: 0.2
+swing_time: 0.20
 foot_height_time_constant: 0.02
 body_shift_phases: [0, 0, 0, 0]
 fwd_body_balance_shift: 0.00
@@ -60,6 +60,6 @@ side_body_balance_shift: 0.0
 dt: 0.02 #50 hz
 
 # Debug mode
-debug_mode: true
+debug_mode: false
 plot_mode: true
 
