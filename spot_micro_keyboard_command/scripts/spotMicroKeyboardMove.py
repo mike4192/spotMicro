@@ -47,7 +47,7 @@ CTRL-C to quit
 valid_cmds = ('quit','Quit','walk','stand','idle', 'angle_cmd')
 
 # Global body motion increment values
-speed_inc = 0.01
+speed_inc = 0.02
 yaw_rate_inc = 2*pi/180
 angle_inc = 2.5*pi/180
 
@@ -232,7 +232,7 @@ class SpotMicroKeyboardControl():
                             self.ros_pub_stand_cmd.publish(self._stand_event_cmd_msg)
                             break
 
-                        elif userInput not in ('w','a','s','d','q','e','u'):
+                        elif userInput not in ('w','a','s','d','q','e','u','f'):
                             print('Key not in valid key commands, try again')
                         else:
                             if userInput == 'w':
@@ -276,6 +276,18 @@ class SpotMicroKeyboardControl():
 
                                 self._speed_cmd_msg.z = self._speed_cmd_msg.z + yaw_rate_inc
                                 self.ros_pub_speed_cmd.publish(self._speed_cmd_msg)
+
+                            elif userInput == 'f':
+                                self._speed_cmd_msg.x = 0
+                                self._speed_cmd_msg.y = 0
+                                self._speed_cmd_msg.z = 0
+                                self._x_speed_cmd_msg.data = 0
+                                self._y_speed_cmd_msg.data = 0
+                                self._yaw_rate_cmd_msg.data = 0
+
+                                self.ros_pub_speed_cmd.publish(self._speed_cmd_msg)
+
+                                
 
 
 
