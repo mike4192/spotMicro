@@ -10,6 +10,9 @@ Video of robot: https://www.youtube.com/watch?v=S-uzWG9Z-5E
 * [Future Work](#future-work)
 * [External Links](#external-links)
 
+## Alternate Gait Branch
+This branch implements an alternative 4 phase gait, which is shown in the animation above. The gait is a trot where the two diagonal legs moves simultaneously. This gait is not as steady as the default 8 phase gait on master as it requires a well positioned center of mass centered roughly at the centroid of the four leg contact points.
+
 ## Overview
 This project is the source code for a Spot Micro quadruped, a 4 legged open source robot. This code is capable of keyboard control of a spot micro robot with sit, stand, angle command, and walk capability. The software is implemented on a Raspberry Pi 3B computer running Ubuntu 16.04.
 
