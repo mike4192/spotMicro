@@ -7,14 +7,13 @@ Video of robot: https://www.youtube.com/watch?v=S-uzWG9Z-5E
 * [Overview](#Overview)
 * [General Instructions](#general-instructions)
 * [Description of ROS Nodes](#description-of-ros-nodes)
+* [Future Work](#future-work)
+* [External Links](#external-links)
 
 ## Overview
 This project is the source code for a Spot Micro quadruped, a 4 legged open source robot. This code is capable of keyboard control of a spot micro robot with sit, stand, angle command, and walk capability. The software is implemented on a Raspberry Pi 3B computer running Ubuntu 16.04.
 
 The software is composed ot C++ and python nodes in a ROS framework.
-
-## General Instructions
-This section is not a comprehensive set of instructions to run this code, but enough to get started if desired.
 
 ### Hardware:
 The frame utilized is the ThingVerse Spot Micro frame developed by KDY0523. See  the thingverse page below for additional details for assembly hardware. The files for cls6336hv were printed which also fit the hv5523mg I used.
@@ -71,6 +70,9 @@ Compile spot_micro_motion_cmd and i2cpwm_board nodes via catkin tools. The comma
 Or just build entire project:
 `catkin build`
 
+## General Instructions
+This section attemps to be a full set of instructions to get a spot micro robot calibrated and running with this code.
+
 #### Servo Configuration
 
 Comprehensive instructions for servo installation, calibration, and configuration can be found in [servo_calibration](servo_calibration.md) markdown document.
@@ -116,6 +118,16 @@ A yaml confguration file is used for holding various software configuration sett
 
 * **servo_move_keyboard**: A python node that can be used in conjuction with the i2cpwm_board node to manually command an individual servo via keyboard controls. Can be used for servo calibration to build the servo configuration dictionary.
 
+
+## Future Work
+The current software supports basic state machine operation of the spot micro robot, orientation control at rest, and rate command in forward, sideways, and yaw directions, completely through external command messages.
+
+My desired future goals for this project, in order of preference, are to:
+1. Incorporate a lidar (particularly the Slamtec RPLIDAR A1) to achieve simple 2D mapping of a room via SLAM. This may require the addition of an IMU for robot orientation sensing (for example, an Adafruit 9-DOF IMU BNO055).
+2. Develop an autonomous motion planning module to guide the robot to execute a simple task around a sensed 2D environment. For example, navigate the perimeter of a room, and dynamically avoid introduced obstacles.
+3. Incorporate a camera or webcam and create a software module to conduct basic image classification. For example, perceive a closed fist or open palm, and have the robot react in specific ways to each.
+
+By the way, I am currently looking for a job in robotics or autonomy. I am based in the Boston area, and if this project impressed you and you are looking for someone to join your team, do please reach out :).
 
 ## External Links
 Spot Micro AI community: https://gitlab.com/custom_robots/spotmicroai
