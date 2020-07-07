@@ -20,24 +20,18 @@ stand: Stand robot up
 
 Keyboard commands for body motion 
 ---------------------------
-   q   w   e    r   t   y    u
-   a   s   d    f   g   h   
+   q   w   e            u
+   a   s   d    
             
 
   u: Quit body motion command mode and go back to rest mode
-  w: Increment forward speed command by 0.02 m/s
-  a: Increment left speed command by 0.02 m/s
-  s: Increment backward speed command by 0.02 m/s
-  d: Increment right speed command by 0.02 m/s
-  q: Increment body yaw rate command by -2 deg/s (negative left, positive right) 
-  e: Increment body yaw rate command by +2 deg/s (negative left, positive right) 
-  t: Increment body pitch angle negative
-  g: Increment body pitch angle positive
-  f: Increment roll angle negative
-  h: Increment roll angle positive
-  r: Increment yaw angle negative
-  y: Increment yaw angle positive
-
+  w: Increment forward speed command / decrease pitch angle
+  a: Increment left speed command / left roll angle
+  s: Increment backward speed command / increase pitch angle
+  d: Increment right speed command / right roll angle
+  q: Increment body yaw rate command / left yaw angle (negative left, positive right) 
+  e: Increment body yaw rate command / right yaw angle (negative left, positive right) 
+  f: In walk mode, zero out all rate commands.
 
   anything else : Prompt again for command
 
@@ -47,7 +41,7 @@ CTRL-C to quit
 valid_cmds = ('quit','Quit','walk','stand','idle', 'angle_cmd')
 
 # Global body motion increment values
-speed_inc = 0.01
+speed_inc = 0.02
 yaw_rate_inc = 2*pi/180
 angle_inc = 2.5*pi/180
 
@@ -180,30 +174,30 @@ class SpotMicroKeyboardControl():
                             # Break out of angle command mode 
                             break
 
-                        elif userInput not in ('u','t','r','y','f','g','h'):
+                        elif userInput not in ('w','a','s','d','q','e','u'):
                             print('Key not in valid key commands, try again')
                         else:
-                            if userInput == 't':
+                            if userInput == 'w':
                                 self._angle_cmd_msg.y = self._angle_cmd_msg.y - angle_inc
                                 self.ros_pub_angle_cmd.publish(self._angle_cmd_msg)
                             
-                            elif userInput == 'g':
+                            elif userInput == 's':
                                 self._angle_cmd_msg.y = self._angle_cmd_msg.y + angle_inc
                                 self.ros_pub_angle_cmd.publish(self._angle_cmd_msg)
 
-                            elif userInput == 'r':
+                            elif userInput == 'q':
                                 self._angle_cmd_msg.z = self._angle_cmd_msg.z + angle_inc
                                 self.ros_pub_angle_cmd.publish(self._angle_cmd_msg)
 
-                            elif userInput == 'y':
+                            elif userInput == 'e':
                                 self._angle_cmd_msg.z = self._angle_cmd_msg.z - angle_inc
                                 self.ros_pub_angle_cmd.publish(self._angle_cmd_msg)
 
-                            elif userInput == 'f':
+                            elif userInput == 'a':
                                 self._angle_cmd_msg.x = self._angle_cmd_msg.x - angle_inc
                                 self.ros_pub_angle_cmd.publish(self._angle_cmd_msg)
 
-                            elif userInput == 'h':
+                            elif userInput == 'd':
                                 self._angle_cmd_msg.x = self._angle_cmd_msg.x + angle_inc
                                 self.ros_pub_angle_cmd.publish(self._angle_cmd_msg)
 
@@ -217,7 +211,7 @@ class SpotMicroKeyboardControl():
 
                     # Enter loop to act on user command
 
-                    print('Enter command, q to go back to rest mode: ')
+                    print('Enter command, u to go back to stand mode: ')
 
                     while (1):
                         print('Cmd Values: x speed: %1.3f m/s, y speed: %1.3f m/s, yaw rate: %1.3f deg/s '\
@@ -232,7 +226,7 @@ class SpotMicroKeyboardControl():
                             self.ros_pub_stand_cmd.publish(self._stand_event_cmd_msg)
                             break
 
-                        elif userInput not in ('w','a','s','d','q','e','u'):
+                        elif userInput not in ('w','a','s','d','q','e','u','f'):
                             print('Key not in valid key commands, try again')
                         else:
                             if userInput == 'w':
@@ -276,6 +270,18 @@ class SpotMicroKeyboardControl():
 
                                 self._speed_cmd_msg.z = self._speed_cmd_msg.z + yaw_rate_inc
                                 self.ros_pub_speed_cmd.publish(self._speed_cmd_msg)
+
+                            elif userInput == 'f':
+                                self._speed_cmd_msg.x = 0
+                                self._speed_cmd_msg.y = 0
+                                self._speed_cmd_msg.z = 0
+                                self._x_speed_cmd_msg.data = 0
+                                self._y_speed_cmd_msg.data = 0
+                                self._yaw_rate_cmd_msg.data = 0
+
+                                self.ros_pub_speed_cmd.publish(self._speed_cmd_msg)
+
+                                
 
 
 
