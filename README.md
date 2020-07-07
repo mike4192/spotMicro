@@ -21,7 +21,7 @@ The frame utilized is the ThingVerse Spot Micro frame developed by KDY0523. See 
 https://www.thingiverse.com/thing:3445283
 
 Components:
-* Computer: Raspberry Pi 3B
+* Computer: Raspberry Pi 3B 
 * Servo control board: PCA9685, controlled via i2c
 * Servos: 12 x PDI-HV5523MG
 * LCD Panel: 16x2 i2c LCD panel
@@ -44,6 +44,8 @@ Servos should be connected in the following order to the PCA 9685 control board:
 
 #### Software:
 This repo is structured as a catkin workspace in a ROS Kinetic envivornment on linux. Raspberry pi images preloaded with a ROS Kinetic installation can be found via ubiquity robotics. See webpage for download, setup, and wifi setup instructions: https://downloads.ubiquityrobotics.com/. It is suggested to also install ROS Kinetic on a Ubuntu 16.04 linux installation/dual boot/virtual machine on a PC for development and for running control nodes.
+
+**NOTE** It is likely required to add a SWAP partition of about 1 GB on the RPI's sd card to increase the virtual memory available beyond the hardware RAM on a RPI. In my experience the catkin compilation process would use all the onboard RAM and would not complete without adding a SWAP partition. Example instructions for how to do this can be found here: https://nebl.io/neblio-university/enabling-increasing-raspberry-pi-swap/ 
 
 The provided ROS Catkin make build system can be utilized, but I used catkin tools instead (https://catkin-tools.readthedocs.io/en/latest/). Compilation commands below will be given assuming catkin tools.
 
@@ -68,6 +70,10 @@ Compile spot_micro_motion_cmd and i2cpwm_board nodes via catkin tools. The comma
 
 Or just build entire project:
 `catkin build`
+
+#### Servo Configuration
+
+Comprehensive instructions for servo installation, calibration, and configuration can be found in [servo_calibration](servo_calibration.md) markdown document.
 
 #### Running:
 Open at least 3 ssh sessions to the raspberry pi (e.g. via tmux for convenience). Start at least the the following 3 nodes, some are optional as noted:
