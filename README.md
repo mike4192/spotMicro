@@ -130,8 +130,6 @@ My desired future goals for this project, in order of preference, are to:
 2. Develop an autonomous motion planning module to guide the robot to execute a simple task around a sensed 2D environment. For example, navigate the perimeter of a room, and dynamically avoid introduced obstacles.
 3. Incorporate a camera or webcam and create a software module to conduct basic image classification. For example, perceive a closed fist or open palm, and have the robot react in specific ways to each.
 
-By the way, I am currently looking for a job in robotics or autonomy. I am based in the Boston area, and if this project impressed you and you are looking for someone to join your team, do please reach out :).
-
 ## External Links
 Spot Micro AI community: https://gitlab.com/custom_robots/spotmicroai
 
