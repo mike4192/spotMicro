@@ -13,21 +13,21 @@ Video of robot: https://www.youtube.com/watch?v=S-uzWG9Z-5E
 ## Overview
 This project is the source code for a Spot Micro quadruped, a 4 legged open source robot. This code is capable of keyboard control of a spot micro robot with sit, stand, angle command, and walk capability. The software is implemented on a Raspberry Pi 3B computer running Ubuntu 16.04.
 
-The software is composed ot C++ and python nodes in a ROS framework.
+The software is composed of C++ and python nodes in a ROS framework.
 
 ### Hardware:
-The frame utilized is the ThingVerse Spot Micro frame developed by KDY0523. See  the thingverse page below for additional details for assembly hardware. The files for cls6336hv were printed which also fit the hv5523mg I used.
+The frame utilized is the Thingverse Spot Micro frame developed by KDY0523. See the thingverse page below for additional details for assembly hardware. The files for cls6336hv servos were printed which also fit the hv5523mg servos I used.
 https://www.thingiverse.com/thing:3445283
 
-Components:
+Component List:
 * Computer: Raspberry Pi 3B 
 * Servo control board: PCA9685, controlled via i2c
 * Servos: 12 x PDI-HV5523MG
 * LCD Panel: 16x2 i2c LCD panel
-* Battery: 2s 4000 mAh Lipo, direct connection to power servos
+* Battery: 2s 4000 mAh Lipo, direct connection to servo board for servo power
 * UBEC: HKU5 5V/5A ubec, used as 5v voltage regulator to power raspberry pi, lcd panel, pca9685 control board.
 
-Servos should be connected in the following order to the PCA 9685 control board:
+Servos are connected in the following order to the PCA 9685 control board:
 1. Right front knee
 2. Right front shoulder
 3. Right front hip
@@ -41,10 +41,12 @@ Servos should be connected in the following order to the PCA 9685 control board:
 11. Left front shoulder
 12. left front hip
 
+A custom shoulder assembly was created that utilizes an additional piece to provide more reinforcement to the shoulder axis. The modified shoulder assembly parts can be found [at this thingverse page.](https://www.thingiverse.com/thing:4591999) Additionally, a plain center mounting platform and two convenience platforms for the RPI 3 and PCA9685 boards can be found [at this thingverse page](https://www.thingiverse.com/thing:4596267). These are affixed to the main platform by double sided foam tape.
+
 #### Software:
 This repo is structured as a catkin workspace in a ROS Kinetic envivornment on linux. Raspberry pi images preloaded with a ROS Kinetic installation can be found via ubiquity robotics. See webpage for download, setup, and wifi setup instructions: https://downloads.ubiquityrobotics.com/. It is suggested to also install ROS Kinetic on a Ubuntu 16.04 linux installation/dual boot/virtual machine on a PC for development and for running control nodes.
 
-**NOTE** It is likely required to add a SWAP partition of about 1 GB on the RPI's sd card to increase the virtual memory available beyond the hardware RAM on a RPI. In my experience the catkin compilation process would use all the onboard RAM and would not complete without adding a SWAP partition. Example instructions for how to do this can be found here: https://nebl.io/neblio-university/enabling-increasing-raspberry-pi-swap/ 
+**NOTE**  Adding a SWAP partition of about 1 GB on the RPI's sd card is necessary to increase the virtual memory available beyond the RPI's onboard RAM. In my experience the catkin compilation process uses all the onboard RAM and stalls indefinitely and does not complete without adding a SWAP partition. Example instructions forhow to do this can be found here: https://nebl.io/neblio-university/enabling-increasing-raspberry-pi-swap/ 
 
 The provided ROS Catkin make build system can be utilized, but I used catkin tools instead (https://catkin-tools.readthedocs.io/en/latest/). Compilation commands below will be given assuming catkin tools.
 
@@ -61,10 +63,10 @@ catkin_ws/
 │   └── ...
 ```
 
-Configure catkin tools so cmake Release flag is added. This speeds up code execution. Alternatively, use build type Debug so debug symbols are generated so debugging can be done through a IDE such as VSCode:
+Configure catkin tools so cmake Release flag is added. This speeds up code execution. Alternatively, if you want to debug through an IDE such as VSCode, use build type Debug so debug symbols are generated:
     `catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release`
 
-Compile spot_micro_motion_cmd and i2cpwm_board nodes via catkin tools. The command below will build i2cpwmboard as it is a dependency, e.g.: 
+Compile spot_micro_motion_cmd and i2cpwm_board nodes via catkin tools. The command below will automatically build i2cpwmboard in the process as it is a dependency. E.g.: 
 `catkin build spot_micro_motion_cmd` 
 
 Or just build entire project:
