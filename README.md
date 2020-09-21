@@ -50,7 +50,9 @@ This repo is structured as a catkin workspace in a ROS Kinetic envivornment on l
 
 The provided ROS Catkin make build system can be utilized, but I used catkin tools instead (https://catkin-tools.readthedocs.io/en/latest/). Compilation commands below will be given assuming catkin tools.
 
-This repo should be checked out to a catkin workspace on the raspberry pi so the directory structure appears as follows. If not already available, a catkin workspace can be created or transitioned from a catkin make workspace using catkin tools. Make sure to also checkout git submodules.
+##### Software Checkout and Setup:
+
+This repo should be checked out to a catkin workspace on the raspberry pi so the directory structure appears as follows. If not already available, a catkin workspace can be created or transitioned from a catkin make workspace using catkin tools.
 
 ```
 catkin_ws/
@@ -62,6 +64,19 @@ catkin_ws/
 │   │   └── ...  
 │   └── ...
 ```
+
+Note that this repo utilizes git submodules, which need additional steps to check out. After checking out the main repo, checkout the submodules via:
+
+```
+git submodule update --init --recursive
+git submodule update --recursive
+```
+
+If prermission error's are encountered, try the following suggestions via [this stackoverflow post](https://stackoverflow.com/questions/8197089/fatal-error-when-updating-submodule-using-git).
+
+Since the same repo is checked out on both a pi and a laptop/PC, you will need to install an i2c library on the laptop/pc for the software to compile correctly. The `i2cpwm_board` node is not run on the laptop/pc, but compilation will look for dependencies for this node. Install the necessary library via:
+`sudo apt-get install libi2c-dev`
+
 
 Configure catkin tools so cmake Release flag is added. This speeds up code execution. Alternatively, if you want to debug through an IDE such as VSCode, use build type Debug so debug symbols are generated:
     `catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release`
@@ -122,6 +137,8 @@ A yaml confguration file is used for holding various software configuration sett
 * **spot_micro_plot**: Displays a wireframe figure of the robot via matplotlib and received state data from spot_micro_motion_cmd. This plot node can be used in lieu of the real robot for testing motions if the debug_mode parameter in the spot_micro_motion_cmd yaml file is set true.
 
 * **servo_move_keyboard**: A python node that can be used in conjuction with the i2cpwm_board node to manually command an individual servo via keyboard controls. Can be used for servo calibration to build the servo configuration dictionary.
+
+Note that the servo control node `i2cpwm_board` should only be commanded by one node at one time. Thus `spot_micro_motion_command` and `servo_move_keyboard` should be run exclusionary; only one should ever run at one time.
 
 
 ## Future Work
