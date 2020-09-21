@@ -16,21 +16,21 @@ This branch implements an alternative 4 phase gait, which is shown in the animat
 ## Overview
 This project is the source code for a Spot Micro quadruped, a 4 legged open source robot. This code is capable of keyboard control of a spot micro robot with sit, stand, angle command, and walk capability. The software is implemented on a Raspberry Pi 3B computer running Ubuntu 16.04.
 
-The software is composed ot C++ and python nodes in a ROS framework.
+The software is composed of C++ and python nodes in a ROS framework.
 
 ### Hardware:
-The frame utilized is the ThingVerse Spot Micro frame developed by KDY0523. See  the thingverse page below for additional details for assembly hardware. The files for cls6336hv were printed which also fit the hv5523mg I used.
+The frame utilized is the Thingverse Spot Micro frame developed by KDY0523. See the thingverse page below for additional details for assembly hardware. The files for cls6336hv servos were printed which also fit the hv5523mg servos I used.
 https://www.thingiverse.com/thing:3445283
 
-Components:
+Component List:
 * Computer: Raspberry Pi 3B 
 * Servo control board: PCA9685, controlled via i2c
 * Servos: 12 x PDI-HV5523MG
 * LCD Panel: 16x2 i2c LCD panel
-* Battery: 2s 4000 mAh Lipo, direct connection to power servos
+* Battery: 2s 4000 mAh Lipo, direct connection to servo board for servo power
 * UBEC: HKU5 5V/5A ubec, used as 5v voltage regulator to power raspberry pi, lcd panel, pca9685 control board.
 
-Servos should be connected in the following order to the PCA 9685 control board:
+Servos are connected in the following order to the PCA 9685 control board:
 1. Right front knee
 2. Right front shoulder
 3. Right front hip
@@ -44,14 +44,18 @@ Servos should be connected in the following order to the PCA 9685 control board:
 11. Left front shoulder
 12. left front hip
 
+A custom shoulder assembly was created that utilizes an additional piece to provide more reinforcement to the shoulder axis. The modified shoulder assembly parts can be found [at this thingverse page.](https://www.thingiverse.com/thing:4591999) Additionally, a plain center mounting platform and two convenience platforms for the RPI 3 and PCA9685 boards can be found [at this thingverse page](https://www.thingiverse.com/thing:4596267). These are affixed to the main platform by double sided foam tape.
+
 #### Software:
 This repo is structured as a catkin workspace in a ROS Kinetic envivornment on linux. Raspberry pi images preloaded with a ROS Kinetic installation can be found via ubiquity robotics. See webpage for download, setup, and wifi setup instructions: https://downloads.ubiquityrobotics.com/. It is suggested to also install ROS Kinetic on a Ubuntu 16.04 linux installation/dual boot/virtual machine on a PC for development and for running control nodes.
 
-**NOTE** It is likely required to add a SWAP partition of about 1 GB on the RPI's sd card to increase the virtual memory available beyond the hardware RAM on a RPI. In my experience the catkin compilation process would use all the onboard RAM and would not complete without adding a SWAP partition. Example instructions for how to do this can be found here: https://nebl.io/neblio-university/enabling-increasing-raspberry-pi-swap/ 
+**NOTE**  Adding a SWAP partition of about 1 GB on the RPI's sd card is necessary to increase the virtual memory available beyond the RPI's onboard RAM. In my experience the catkin compilation process uses all the onboard RAM and stalls indefinitely and does not complete without adding a SWAP partition. Example instructions forhow to do this can be found here: https://nebl.io/neblio-university/enabling-increasing-raspberry-pi-swap/ 
 
 The provided ROS Catkin make build system can be utilized, but I used catkin tools instead (https://catkin-tools.readthedocs.io/en/latest/). Compilation commands below will be given assuming catkin tools.
 
-This repo should be checked out to a catkin workspace on the raspberry pi so the directory structure appears as follows. If not already available, a catkin workspace can be created or transitioned from a catkin make workspace using catkin tools. Make sure to also checkout git submodules.
+##### Software Checkout and Setup:
+
+This repo should be checked out to a catkin workspace on the raspberry pi so the directory structure appears as follows. If not already available, a catkin workspace can be created or transitioned from a catkin make workspace using catkin tools.
 
 ```
 catkin_ws/
@@ -64,14 +68,30 @@ catkin_ws/
 │   └── ...
 ```
 
-Configure catkin tools so cmake Release flag is added. This speeds up code execution. Alternatively, use build type Debug so debug symbols are generated so debugging can be done through a IDE such as VSCode:
+Note that this repo utilizes git submodules, which need additional steps to check out. After checking out the main repo, checkout the submodules via:
+
+```
+git submodule update --init --recursive
+git submodule update --recursive
+```
+
+If prermission error's are encountered, try the following suggestions via [this stackoverflow post](https://stackoverflow.com/questions/8197089/fatal-error-when-updating-submodule-using-git).
+
+Since the same repo is checked out on both a pi and a laptop/PC, you will need to install an i2c library on the laptop/pc for the software to compile correctly. The `i2cpwm_board` node is not run on the laptop/pc, but compilation will look for dependencies for this node. Install the necessary library via:
+`sudo apt-get install libi2c-dev`
+
+
+Configure catkin tools so cmake Release flag is added. This speeds up code execution. Alternatively, if you want to debug through an IDE such as VSCode, use build type Debug so debug symbols are generated:
     `catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release`
 
-Compile spot_micro_motion_cmd and i2cpwm_board nodes via catkin tools. The command below will build i2cpwmboard as it is a dependency, e.g.: 
+Compile spot_micro_motion_cmd and i2cpwm_board nodes via catkin tools. The command below will automatically build i2cpwmboard in the process as it is a dependency. E.g.: 
 `catkin build spot_micro_motion_cmd` 
 
 Or just build entire project:
 `catkin build`
+
+#### Note on Walking Gaits
+The gait implemented on master is a 8 phase gait that incorporates body movement which helps maintain balance and stability. An alternate trot gait, where the diagonal legs move simultaneously, can achieve faster walking speeds, but is less stable and requires careful positioning of the robot's center of mass. The trot gait is the one depicted in the animation at the top of this document, and can be found on the branch to this project titled `alternate_gait`. The 8 phase gait can be observed in the linked Youtube video.
 
 ## General Instructions
 This section attemps to be a full set of instructions to get a spot micro robot calibrated and running with this code.
@@ -121,6 +141,8 @@ A yaml confguration file is used for holding various software configuration sett
 
 * **servo_move_keyboard**: A python node that can be used in conjuction with the i2cpwm_board node to manually command an individual servo via keyboard controls. Can be used for servo calibration to build the servo configuration dictionary.
 
+Note that the servo control node `i2cpwm_board` should only be commanded by one node at one time. Thus `spot_micro_motion_command` and `servo_move_keyboard` should be run exclusionary; only one should ever run at one time.
+
 
 ## Future Work
 The current software supports basic state machine operation of the spot micro robot, orientation control at rest, and rate command in forward, sideways, and yaw directions, completely through external command messages.
@@ -129,8 +151,6 @@ My desired future goals for this project, in order of preference, are to:
 1. Incorporate a lidar (particularly the Slamtec RPLIDAR A1) to achieve simple 2D mapping of a room via SLAM. This may require the addition of an IMU for robot orientation sensing (for example, an Adafruit 9-DOF IMU BNO055).
 2. Develop an autonomous motion planning module to guide the robot to execute a simple task around a sensed 2D environment. For example, navigate the perimeter of a room, and dynamically avoid introduced obstacles.
 3. Incorporate a camera or webcam and create a software module to conduct basic image classification. For example, perceive a closed fist or open palm, and have the robot react in specific ways to each.
-
-By the way, I am currently looking for a job in robotics or autonomy. I am based in the Boston area, and if this project impressed you and you are looking for someone to join your team, do please reach out :).
 
 ## External Links
 Spot Micro AI community: https://gitlab.com/custom_robots/spotmicroai
