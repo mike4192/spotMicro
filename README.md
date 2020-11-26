@@ -86,6 +86,7 @@ Compile spot_micro_motion_cmd and i2cpwm_board nodes via catkin tools. The comma
 
 Or just build entire project:
 `catkin build`
+ or `catkin_make -DCMAKE_BUILD_TYPE=Release` if you're not using catkin-tools and instead using the provided ROS Catkin Make system.
 
 If you get an error like the below, its likely you are missing the libi2c-dev, which maybe wasn't installed in the rpi image you downloaded. To fix this, you could install the library on your pi with an apt command. If you don't have internet on the pi, you could download the file as a .deb to your main computer with the right version for ubuntu 16.04 (https://ubuntu.pkgs.org/16.04/ubuntu-universe-amd64/libi2c-dev_3.1.1-1_all.deb.html ) and then you could scp the file to the pi and install it manually.
 ```
@@ -94,12 +95,11 @@ make[2]: *** [ros-i2cpwmboard/CMakeFiles/i2cpwm_board.dir/src/i2cpwm_controller.
 CMakeFiles/Makefile2:2343: recipe for target 'ros-i2cpwmboard/CMakeFiles/i2cpwm_board.dir/all' failed
 ```
 
-Scp the file, run from your main computer
+Scp the file from your main computer to the pi
 ```
 scp libi2c-dev_3.1.1-1_all.deb ubuntu@10.42.0.1:~/
 ```
-
-Installing the file on the pi
+And install the library from the file on the pi
 ```
 sudo dpkg -i libi2c-dev_3.1.1-1_all.deb
 ```
