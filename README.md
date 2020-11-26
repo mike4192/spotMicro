@@ -52,7 +52,7 @@ The provided ROS Catkin make build system can be utilized, but I used catkin too
 
 ##### Software Checkout and Setup:
 
-This repo should be checked out to a catkin workspace on the raspberry pi so the directory structure appears as follows. If not already available, a catkin workspace can be created or transitioned from a catkin make workspace using catkin tools or catkin (http://wiki.ros.org/catkin/Tutorials/create_a_workspace for catkin commands). If you don't have the pi connected to the internet you could download and intialize the repo on your main pc, then copy it through the wifi connection to the pi `scp spotMicro/* ubuntu@10.42.0.1:~/catkin_ws/src/`.
+This repo should be checked out to a catkin workspace on the raspberry pi so the directory structure appears as follows. If not already available, a catkin workspace can be created or transitioned from a catkin make workspace using catkin tools or catkin (http://wiki.ros.org/catkin/Tutorials/create_a_workspace for catkin commands). If you don't have the pi connected to the internet you could use the catkin commands to create the workspace, then you could download and intialize the repo on your main pc, then copy the files within through the wifi connection to the pi and the src folder `scp spotMicro/* ubuntu@10.42.0.1:~/catkin_ws/src/`.
 
 ```
 catkin_ws/
