@@ -48,7 +48,7 @@ This repo is structured as a catkin workspace in a ROS Kinetic envivornment on l
 
 **NOTE**  Adding a SWAP partition of about 1 GB on the RPI's sd card is necessary to increase the virtual memory available beyond the RPI's onboard RAM. In my experience the catkin compilation process uses all the onboard RAM and stalls indefinitely and does not complete without adding a SWAP partition. Example instructions forhow to do this can be found here: https://nebl.io/neblio-university/enabling-increasing-raspberry-pi-swap/ 
 
-The provided ROS Catkin make build system can be utilized, but I used catkin tools instead (https://catkin-tools.readthedocs.io/en/latest/). Compilation commands below will be given assuming catkin tools. If you don't want to install catkin tools on the raspberry pi, once you've cloned the repo you can use this command: catkin_make -DCMAKE_BUILD_TYPE=Release from the home of the catkin workspace.
+The provided ROS Catkin make build system can be utilized, but I used catkin tools instead (https://catkin-tools.readthedocs.io/en/latest/). Compilation commands below will be given assuming catkin tools. If you don't want to install catkin tools on the raspberry pi, once you've cloned the repo you can use this command: `catkin_make -DCMAKE_BUILD_TYPE=Release` from the home of the catkin workspace.
 
 ##### Software Checkout and Setup:
 
