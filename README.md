@@ -93,7 +93,6 @@ make[2]: *** [ros-i2cpwmboard/CMakeFiles/i2cpwm_board.dir/src/i2cpwm_controller.
 CMakeFiles/Makefile2:2343: recipe for target 'ros-i2cpwmboard/CMakeFiles/i2cpwm_board.dir/all' failed
 ```
 
-
 #### Note on Walking Gaits
 The gait implemented on master is a 8 phase gait that incorporates body movement which helps maintain balance and stability. An alternate trot gait, where the diagonal legs move simultaneously, can achieve faster walking speeds, but is less stable and requires careful positioning of the robot's center of mass. The trot gait is the one depicted in the animation at the top of this document, and can be found on the branch to this project titled `alternate_gait`. The 8 phase gait can be observed in the linked Youtube video.
 
