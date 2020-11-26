@@ -52,7 +52,7 @@ The provided ROS Catkin make build system can be utilized, but I used catkin too
 
 ##### Software Checkout and Setup:
 
-This repo should be checked out to a catkin workspace on the raspberry pi so the directory structure appears as follows. If not already available, a catkin workspace can be created or transitioned from a catkin make workspace using catkin tools.
+This repo should be checked out to a catkin workspace on the raspberry pi so the directory structure appears as follows. If not already available, a catkin workspace can be created or transitioned from a catkin make workspace using catkin tools or catkin (http://wiki.ros.org/catkin/Tutorials/create_a_workspace for catkin commands). If you don't have the pi connected to the internet you could download and intialize the repo on your main pc, then copy it through the wifi connection to the pi `scp spotMicro/* ubuntu@10.42.0.1:~/catkin_ws/src/`.
 
 ```
 catkin_ws/
@@ -72,11 +72,10 @@ git submodule update --init --recursive
 git submodule update --recursive
 ```
 
-If prermission error's are encountered, try the following suggestions via [this stackoverflow post](https://stackoverflow.com/questions/8197089/fatal-error-when-updating-submodule-using-git).
+If permission errors are encountered, try the following suggestions via [this stackoverflow post](https://stackoverflow.com/questions/8197089/fatal-error-when-updating-submodule-using-git).
 
 Since the same repo is checked out on both a pi and a laptop/PC, you will need to install an i2c library on the laptop/pc for the software to compile correctly. The `i2cpwm_board` node is not run on the laptop/pc, but compilation will look for dependencies for this node. Install the necessary library via:
 `sudo apt-get install libi2c-dev`
-
 
 Configure catkin tools so cmake Release flag is added. This speeds up code execution. Alternatively, if you want to debug through an IDE such as VSCode, use build type Debug so debug symbols are generated:
     `catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release`
@@ -86,23 +85,14 @@ Compile spot_micro_motion_cmd and i2cpwm_board nodes via catkin tools. The comma
 
 Or just build entire project:
 `catkin build`
- or `catkin_make -DCMAKE_BUILD_TYPE=Release` if you're not using catkin-tools and instead using the provided ROS Catkin Make system.
 
-If you get an error like the below, its likely you are missing the libi2c-dev, which maybe wasn't installed in the rpi image you downloaded. To fix this, you could install the library on your pi with an apt command. If you don't have internet on the pi, you could download the file as a .deb to your main computer with the right version for ubuntu 16.04 (https://ubuntu.pkgs.org/16.04/ubuntu-universe-amd64/libi2c-dev_3.1.1-1_all.deb.html ) and then you could scp the file to the pi and install it manually.
+If you get an error like the below when running on the pi its likely you are missing the libi2c-dev, which maybe wasn't installed in the rpi image you downloaded. To fix this, you could install the library on your pi with an apt command. If you don't have internet on the pi, you could download the file as a .deb to your main computer with the right version for ubuntu 16.04 (https://ubuntu.pkgs.org/16.04/ubuntu-universe-amd64/libi2c-dev_3.1.1-1_all.deb.html ) and then you could scp the file to the pi `scp libi2c-dev_3.1.1-1_all.deb ubuntu@10.42.0.1:~/` and and install it manually `sudo dpkg -i libi2c-dev_3.1.1-1_all.deb`
 ```
 ros-i2cpwmboard/CMakeFiles/i2cpwm_board.dir/build.make:62: recipe for target 'ros-i2cpwmboard/CMakeFiles/i2cpwm_board.dir/src/i2cpwm_controller.cpp.o' failed
 make[2]: *** [ros-i2cpwmboard/CMakeFiles/i2cpwm_board.dir/src/i2cpwm_controller.cpp.o] Error 1
 CMakeFiles/Makefile2:2343: recipe for target 'ros-i2cpwmboard/CMakeFiles/i2cpwm_board.dir/all' failed
 ```
 
-Scp the file from your main computer to the pi
-```
-scp libi2c-dev_3.1.1-1_all.deb ubuntu@10.42.0.1:~/
-```
-And install the library from the file on the pi
-```
-sudo dpkg -i libi2c-dev_3.1.1-1_all.deb
-```
 
 #### Note on Walking Gaits
 The gait implemented on master is a 8 phase gait that incorporates body movement which helps maintain balance and stability. An alternate trot gait, where the diagonal legs move simultaneously, can achieve faster walking speeds, but is less stable and requires careful positioning of the robot's center of mass. The trot gait is the one depicted in the animation at the top of this document, and can be found on the branch to this project titled `alternate_gait`. The 8 phase gait can be observed in the linked Youtube video.
