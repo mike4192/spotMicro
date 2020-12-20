@@ -51,6 +51,7 @@ Individual servo's can be commanded via the servo_move_keyboard ROS node for the
 4. Select the servo to command by entering the integer number cooresponding to the PCA9685 port to command, for example, `2`. After a servo is selected, all other servos are commanded to idle (or freewheel) such that they can be moved by hand. The following prompt will appear:
 
 ![Servo move prompt](assets/servo_move_prompt.png) 
+
 5. Use the key `y` to command the default center value of the selected servo (pwm = 306). Use the keys `g` and `j` to decrease or increase the servo pwm command value by 1, respectively. This moves the servo in fine increments. The current pwm value is printed in the terminal. Use the `f` and `k` keys to move the servo in coarser increments. 
     * Key's `z` and `x` can be used to quickly command the servo to it's min and max values, respectively (by default 83 and 520, but these can be updated per servo by the keys specified in the instrucitonal prompt). Be careful commanding min/max, and ensure your servos can physically move to those positions and won't get stuck.  
 6. After commanding a servo to desired calibration positions and noting down values in the calibration spreadsheet, exit the one servo control mode by pressing `q`  
