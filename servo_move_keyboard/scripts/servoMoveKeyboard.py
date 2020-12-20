@@ -22,14 +22,14 @@ allServos: Move all servo's manually together
 
 Keyboard commands for One Servo Control 
 ---------------------------
-   q            t   y   u
+   q                y    
             f   g       j   k
-                b   n   m
+    z x         b   n   m
 
   q: Quit current command mode and go back to Option Select
-  t: Command servo min value
+  z: Command servo min value
   y: Command servo center value
-  u: Command servo max value
+  x: Command servo max value
   f: Manually decrease servo command value by 10
   g: Manually decrease servo command value by 1
   j: Manually increase servo command value by 1
@@ -47,9 +47,9 @@ CTRL-C to quit
 # Dictionary with anonomous helper functions to execute key commands
 keyDict = {
     'q': None,
-    't': lambda x: x.set_value(x._min),
+    'z': lambda x: x.set_value(x._min),
     'y': lambda x: x.set_value(x._center),
-    'u': lambda x: x.set_value(x._max),
+    'x': lambda x: x.set_value(x._max),
     'f': lambda x: x.set_value(x.value-10),
     'g': lambda x: x.set_value(x.value-1),
     'j': lambda x: x.set_value(x.value+1),

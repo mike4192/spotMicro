@@ -52,7 +52,7 @@ Individual servo's can be commanded via the servo_move_keyboard ROS node for the
 
 ![Servo move prompt](assets/servo_move_prompt.png)
 5. Use the key `y` to command the default center value of the selected servo (pwm = 306). Use the keys `g` and `j` to decrease or increase the servo pwm command value by 1, respectively. This moves the servo in fine increments. The current pwm value is printed in the terminal. Use the `f` and `k` keys to move the servo in coarser increments. 
-    * Key's `t` and `u` can be used to quickly command the servo to it's min and max values, respectively (by default 83 and 520, but these can be updated per servo by the keys specified in the instrucitonal prompt).
+    * Key's `z` and `x` can be used to quickly command the servo to it's min and max values, respectively (by default 83 and 520, but these can be updated per servo by the keys specified in the instrucitonal prompt).
 6. After commanding a servo to desired calibration positions and noting down values in the calibration spreadsheet, exit the one servo control mode by pressing `q`
 7. Go back to step 3 to repeat the process for another servo.
 
@@ -121,4 +121,4 @@ Start with the right legs, and command link 1 to 0 and -45 degrees, and record t
 ![Left leg link 1 step 1](assets/16_left_link1_config_step_1.png)
 ![Left leg link 1 step 2](assets/17_left_link1_config_step_2.png)
 
-This complets the leg servo calibration process. Take the **bold** values from the servo calibration spreadsheet and copy them to the servo configuration dictionaries in the `spot_micro_motion_cmd.yaml` config file.
+This complets the leg servo calibration process. Take the **bold** values from the servo calibration spreadsheet and copy them to the servo configuration dictionaries in the `spot_micro_motion_cmd.yaml` config file. This file is located in your catkin worksapce in the following subfolders ```src/spot_micro_motion_cmd/config/spot_micro_motion_cmd.yaml```.
