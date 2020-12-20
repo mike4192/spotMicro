@@ -1,6 +1,6 @@
 [submodule "spot_micro_motion_cmd/libs/spot_micro_kinematics_cpp"]
 	path = spot_micro_motion_cmd/libs/spot_micro_kinematics_cpp
-	url = git@github.com:mike4192/spot_micro_kinematics_cpp.git
+	url = https://github.com/mike4192/spot_micro_kinematics_cpp.git
 [submodule "spot_micro_plot/scripts/spot_micro_kinematics_python"]
 	path = spot_micro_plot/scripts/spot_micro_kinematics_python
-	url = git@github.com:mike4192/spot_micro_kinematics_python.git
+	url = https://github.com/mike4192/spot_micro_kinematics_python.git
