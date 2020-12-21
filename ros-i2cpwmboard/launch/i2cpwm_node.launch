@@ -1,4 +1,0 @@
-<launch>
-  <node pkg="i2cpwm_board" name="i2cpwm_board_node" type="i2cpwm_board" output="screen" >
-  </node>
-</launch>
