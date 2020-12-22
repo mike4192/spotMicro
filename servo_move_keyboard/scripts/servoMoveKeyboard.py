@@ -24,7 +24,7 @@ Keyboard commands for One Servo Control
 ---------------------------
    q                y    
             f   g       j   k
-    z  x        b   n   m
+    z   x       b   n   m
 
   q: Quit current command mode and go back to Option Select
   z: Command servo min value
