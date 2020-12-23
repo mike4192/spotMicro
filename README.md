@@ -48,11 +48,11 @@ This repo is structured as a catkin workspace in a ROS Kinetic envivornment on l
 
 **NOTE**  Adding a SWAP partition of about 1 GB on the RPI's sd card is necessary to increase the virtual memory available beyond the RPI's onboard RAM. In my experience the catkin compilation process uses all the onboard RAM and stalls indefinitely and does not complete without adding a SWAP partition. Example instructions forhow to do this can be found here: https://nebl.io/neblio-university/enabling-increasing-raspberry-pi-swap/ 
 
-The provided ROS Catkin make build system can be utilized, but I used catkin tools instead (https://catkin-tools.readthedocs.io/en/latest/). Compilation commands below will be given assuming catkin tools. If you don't want to install catkin tools on the raspberry pi, once you've cloned the repo you can use this command: `catkin_make -DCMAKE_BUILD_TYPE=Release` from the home of the catkin workspace.
+The provided ROS Catkin make build system can be utilized, but I used `catkin tools` instead (https://catkin-tools.readthedocs.io/en/latest/). Compilation commands below will be given assuming `catkin tools`. If you don't want to install catkin tools on the raspberry pi, once you've cloned the repo you can use this command: `catkin_make -DCMAKE_BUILD_TYPE=Release` from the home of the catkin workspace.
 
 ##### Software Checkout and Setup:
 
-This repo should be checked out to a catkin workspace on the raspberry pi so the directory structure appears as follows. If not already available, a catkin workspace can be created or transitioned from a catkin make workspace using catkin tools or catkin (http://wiki.ros.org/catkin/Tutorials/create_a_workspace for catkin commands). If you don't have the pi connected to the internet you could use the catkin commands to create the workspace, then you could download and intialize the repo on your main pc, then copy the files within through the wifi connection to the pi and the src folder `scp spotMicro/* ubuntu@10.42.0.1:~/catkin_ws/src/`.
+This repo should be checked out to a catkin workspace on the raspberry pi so the directory structure appears as follows. If not already available, a catkin workspace can be created or transitioned from a catkin make workspace using catkin tools or catkin (http://wiki.ros.org/catkin/Tutorials/create_a_workspace for catkin commands). If you don't have the pi connected to the internet you could use the catkin commands to create the workspace on another conputer, then copy the files to a RPi over wifi via scp. For example: `scp spotMicro/* ubuntu@10.42.0.1:~/catkin_ws/src/`.
 
 ```
 catkin_ws/
@@ -65,7 +65,7 @@ catkin_ws/
 │   └── ...
 ```
 
-Note that this repo utilizes git submodules, which need additional steps to check out. After checking out the main repo, checkout the submodules via:
+Note that this repo utilizes two git submodules, which require additional steps to check out. After checking out the main repo, checkout the submodules via:
 
 ```
 git submodule update --init --recursive
@@ -86,7 +86,7 @@ Compile spot_micro_motion_cmd and i2cpwm_board nodes via catkin tools. The comma
 Or just build entire project:
 `catkin build`
 
-If you get an error like the below when running on the pi its likely you are missing the libi2c-dev, which maybe wasn't installed in the rpi image you downloaded. To fix this, you could install the library on your pi with an apt command. If you don't have internet on the pi, you could download the file as a .deb to your main computer with the right version for ubuntu 16.04 (https://ubuntu.pkgs.org/16.04/ubuntu-universe-amd64/libi2c-dev_3.1.1-1_all.deb.html ) and then you could scp the file to the pi `scp libi2c-dev_3.1.1-1_all.deb ubuntu@10.42.0.1:~/` and and install it manually `sudo dpkg -i libi2c-dev_3.1.1-1_all.deb`
+If you get an error like the below when running on the pi its likely you are missing the libi2c-dev, which may not be installed in the rpi image you download. To fix this, you could install the library on your pi with an `apt-get` command. If you don't have internet on the pi, you can download the file as a debian `.deb` package to your main computer with the right version for ubuntu 16.04 (https://ubuntu.pkgs.org/16.04/ubuntu-universe-amd64/libi2c-dev_3.1.1-1_all.deb.html) and then copy the file via `scp` to the pi (`scp libi2c-dev_3.1.1-1_all.deb ubuntu@10.42.0.1:~/`) and and install it manually (`sudo dpkg -i libi2c-dev_3.1.1-1_all.deb`)s
 ```
 ros-i2cpwmboard/CMakeFiles/i2cpwm_board.dir/build.make:62: recipe for target 'ros-i2cpwmboard/CMakeFiles/i2cpwm_board.dir/src/i2cpwm_controller.cpp.o' failed
 make[2]: *** [ros-i2cpwmboard/CMakeFiles/i2cpwm_board.dir/src/i2cpwm_controller.cpp.o] Error 1
@@ -101,11 +101,11 @@ This section attemps to be a full set of instructions to get a spot micro robot 
 
 #### Servo Configuration
 
-Comprehensive instructions for servo installation, calibration, and configuration can be found in [servo_calibration](servo_calibration.md) markdown document.
+Comprehensive instructions for servo installation, calibration, and configuration can be found in [servo_calibration](servo_calibration.md) document.
 
 #### Running:
 Open at least 3 ssh sessions to the raspberry pi (e.g. via tmux for convenience). Start at least the the following 3 nodes, some are optional as noted:
-* `rosrun i2cpwm_board i2cpwm_board`: Runs the i2c pwm servo control board node, must be run first as it is sent a servo configuration message by the spot_micro_motion_cmd node.
+* `rosrun i2cpwm_board i2cpwm_board`: Runs the i2c pwm servo control board node. Must be run first as it is sent a servo configuration message by the spot_micro_motion_cmd node.
 * `roslaunch spot_micro_motion_cmd spot_micro_motion_cmd.launch`: Launches the compiled spot micro motion cmd binary. It first sends a servo configuration message to the i2cpwm board node, then starts a state machine and enters idle mode
 * `rosrun spot_micro_keyboard_command spotMicroKeyboardMove.py` : Runs the keyboard control node for issuing keyboard commands to the spot micro robot
 * (OPTIONAL) `rosrun lcd_monitor sm_lcd_node.py`: Runs the lcd monitor node to display some basic state and command data on the lcd panel. Must be run on the raspberry pi
@@ -155,7 +155,7 @@ My desired future goals for this project, in order of preference, are to:
 2. Develop an autonomous motion planning module to guide the robot to execute a simple task around a sensed 2D environment. For example, navigate the perimeter of a room, and dynamically avoid introduced obstacles.
 3. Incorporate a camera or webcam and create a software module to conduct basic image classification. For example, perceive a closed fist or open palm, and have the robot react in specific ways to each.
 
-## External Links
+## External Links and References
 Spot Micro AI community: https://gitlab.com/custom_robots/spotmicroai
 
 Research paper used for inverse kinematics: 
@@ -165,4 +165,9 @@ International Journal of Scientific & Technology Research. 6.`
 
 Stanford robotics for inspiration for gait code: https://github.com/stanfordroboticsclub/StanfordQuadruped
 
+List of submodules utilized:
+* ros-i2cpwmboard by bradanlane for PCA9685 support
+    * https://gitlab.com/bradanlane/ros-i2cpwmboard
+* spot_micro_kinematics_python by me :) for python spot micro kinematic calculations:
+    * https://github.com/mike4192/spot_micro_kinematics_python 
 

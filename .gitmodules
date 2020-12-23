@@ -4,3 +4,6 @@
 [submodule "spot_micro_plot/scripts/spot_micro_kinematics_python"]
 	path = spot_micro_plot/scripts/spot_micro_kinematics_python
 	url = https://github.com/mike4192/spot_micro_kinematics_python.git
+[submodule "ros-i2cpwmboard"]
+	path = ros-i2cpwmboard
+	url = https://gitlab.com/bradanlane/ros-i2cpwmboard.git
