@@ -109,7 +109,7 @@ Open at least 3 ssh sessions to the raspberry pi (e.g. via tmux for convenience)
 * `roslaunch spot_micro_motion_cmd spot_micro_motion_cmd.launch`: Launches the compiled spot micro motion cmd binary. It first sends a servo configuration message to the i2cpwm board node, then starts a state machine and enters idle mode
 * `rosrun spot_micro_keyboard_command spotMicroKeyboardMove.py` : Runs the keyboard control node for issuing keyboard commands to the spot micro robot
 * (OPTIONAL) `rosrun lcd_monitor sm_lcd_node.py`: Runs the lcd monitor node to display some basic state and command data on the lcd panel. Must be run on the raspberry pi
-* (OPTIONAL) `rosrun spot_micro_plot spotMicroPlot.py`: Runs a real time plotting node that shows the wireframe state of the robot. Must be run on a PC that can see the raspberry pi as a ROS master node, as it displays a figure the screen. Requires updated matplot lib python library.
+* (OPTIONAL) `rosrun spot_micro_plot spotMicroPlot.py`: Runs a real time plotting node that shows the wireframe state of the robot. Must be run on a PC that can see the raspberry pi as a ROS master node, as it displays a figure the screen. Requires updated matplot lib python library (matplotlib==2.2.5) and updated numpy library (numpy==1.16.6).
 
 
 #### Control instructions:

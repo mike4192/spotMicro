@@ -50,12 +50,13 @@ Individual servo's can be commanded via the servo_move_keyboard ROS node for the
 3. After the descriptive prompt appears, type `oneServo` to enter the one servo command node.
 4. Select the servo to command by entering the integer number cooresponding to the PCA9685 port to command, for example, `2`. After a servo is selected, all other servos are commanded to idle (or freewheel) such that they can be moved by hand. The following prompt will appear:
 
-![Servo move prompt](assets/servo_move_prompt.png)
-5. Use the key `y` to command the default center value of the selected servo (pwm = 306). Use the keys `g` and `j` to decrease or increase the servo pwm command value by 1, respectively. This moves the servo in fine increments. The current pwm value is printed in the terminal. Use the `f` and `k` keys to move the servo in coarser increments. 
-    * Key's `t` and `u` can be used to quickly command the servo to it's min and max values, respectively (by default 83 and 520, but these can be updated per servo by the keys specified in the instrucitonal prompt).
-6. After commanding a servo to desired calibration positions and noting down values in the calibration spreadsheet, exit the one servo control mode by pressing `q`
-7. Go back to step 3 to repeat the process for another servo.
+![Servo move prompt](assets/servo_move_prompt.png) 
 
+5. Use the key `y` to command the default center value of the selected servo (pwm = 306). Use the keys `g` and `j` to decrease or increase the servo pwm command value by 1, respectively. This moves the servo in fine increments. The current pwm value is printed in the terminal. Use the `f` and `k` keys to move the servo in coarser increments. 
+    * Key's `z` and `x` can be used to quickly command the servo to it's min and max values, respectively (by default 83 and 520, but these can be updated per servo by the keys specified in the instrucitonal prompt). Be careful commanding min/max, and ensure your servos can physically move to those positions and won't get stuck.  
+6. After commanding a servo to desired calibration positions and noting down values in the calibration spreadsheet, exit the one servo control mode by pressing `q`  
+7. Go back to step 3 to repeat the process for another servo.  
+    
 ### Guide to Creating Servo Calibration Values
 Adequate kinematic performance can be achieved through calibration of links by eye, as depicted in the diagrams below. However, I also used a smartphone inclinometer app as an aid to measure angles of 45 deg for the link 1 calibration. It is reccomended to prop up the robot on a box or similar test stand so the legs can hang freely for calibration.
 
@@ -121,4 +122,4 @@ Start with the right legs, and command link 1 to 0 and -45 degrees, and record t
 ![Left leg link 1 step 1](assets/16_left_link1_config_step_1.png)
 ![Left leg link 1 step 2](assets/17_left_link1_config_step_2.png)
 
-This complets the leg servo calibration process. Take the **bold** values from the servo calibration spreadsheet and copy them to the servo configuration dictionaries in the `spot_micro_motion_cmd.yaml` config file.
+This complets the leg servo calibration process. Take the **bold** values from the servo calibration spreadsheet and copy them to the servo configuration dictionaries in the `spot_micro_motion_cmd.yaml` config file. This file is located in your catkin worksapce in the following subfolders ```src/spot_micro_motion_cmd/config/spot_micro_motion_cmd.yaml```.
