@@ -101,7 +101,7 @@ This section attemps to be a full set of instructions to get a spot micro robot 
 
 #### Servo Configuration
 
-Comprehensive instructions for servo installation, calibration, and configuration can be found in [servo_calibration](servo_calibration.md) document.
+Comprehensive instructions for servo installation, calibration, and configuration can be found in [servo_calibration](docs/servo_calibration.md) document.
 
 #### Running:
 Open at least 3 ssh sessions to the raspberry pi (e.g. via tmux for convenience). Start at least the the following 3 nodes, some are optional as noted:

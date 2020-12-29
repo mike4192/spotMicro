@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Launch plotting node standalone -->
+
+<launch>
+    <!-- Defining the node and executable and publishing the output on terminal-->
+    <node name="spot_micro_plot_node" pkg="spot_micro_plot" type="spotMicroPlot.py" output="screen">
+    </node>
+</launch>

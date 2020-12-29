@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Launch plotting node standalone -->
+
+<launch>
+    <!-- Defining the node and executable and publishing the output on terminal-->
+    <node name="lcd_monitor_node" pkg="lcd_monitor" type="sm_lcd_node.py" output="screen">
+    </node>
+</launch>
