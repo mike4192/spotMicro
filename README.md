@@ -7,6 +7,7 @@ Video of robot: https://www.youtube.com/watch?v=S-uzWG9Z-5E
 * [Overview](#Overview)
 * [General Instructions](#general-instructions)
 * [Description of ROS Nodes](#description-of-ros-nodes)
+* [Additional Project Components](#additional-project-components)
 * [Future Work](#future-work)
 * [External Links](#external-links)
 
@@ -159,7 +160,14 @@ A yaml confguration file is used for holding various software configuration sett
 
 * **servo_move_keyboard**: A python node that can be used in conjuction with the i2cpwm_board node to manually command an individual servo via keyboard controls. Can be used for servo calibration to build the servo configuration dictionary.
 
+* **spot_micro_rviz**: **WORK IN PROGRESS**. A node to launch RVIZ and show a visualization of the spot micro model, as well as mapping and navigational elements in the future. The `show_and_move_model` launch file can be launched standalone to show a manually moveable spot micro model via GUI sliders. 
+
 Note that the servo control node `i2cpwm_board` should only be commanded by one node at one time. Thus `spot_micro_motion_command` and `servo_move_keyboard` should be run exclusionary; only one should ever run at one time.
+
+## Additional Project Components
+#### URDF Model
+The project contains a URDF model of the spot micro platform, along with a custom set of stl files (from Florian Wilk's repo noted at the end of this README) for visualization. Currently this urdf file is **only** used for RVIZ visualization of the spot micro model. This URDF model should not be treated as perfectly accurate representation of the robot's geometry, nor should the STL files for visualization be used for 3d printing. Use the noted Thingverse files instead. 
+
 
 
 ## Future Work
