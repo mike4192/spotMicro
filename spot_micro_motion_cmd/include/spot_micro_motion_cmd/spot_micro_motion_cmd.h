@@ -7,6 +7,7 @@
 #include "std_msgs/Bool.h"
 #include "std_msgs/String.h"
 #include "geometry_msgs/Vector3.h"
+#include "geometry_msgs/Twist.h"
 #include "std_msgs/Float32MultiArray.h"
 #include "i2cpwm_board/Servo.h"
 #include "i2cpwm_board/ServoArray.h"
@@ -33,7 +34,7 @@ struct SpotMicroNodeConfig {
   float transit_angle_rl;
   bool debug_mode;
   bool plot_mode;
-  float max_fwd_velocity;
+  float max_fwd_Coocity;
   float max_side_velocity;
   float max_yaw_rate;
   float z_clearance;
@@ -179,6 +180,11 @@ class SpotMicroMotionCmd
 
   // Callback method for angle command
   void angleCommandCallback(const geometry_msgs::Vector3ConstPtr& msg);
+
+  // Callback method for velocity command
+  // Currently, the only supported commands from this message are 
+  // x and y axis linear velocity, and z axis angular rate 
+  void velCommandCallback(const geometry_msgs::TwistConstPtr& msg);
 
   // Resets all events if they were true
   void resetEventCommands();

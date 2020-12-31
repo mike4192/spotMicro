@@ -3,6 +3,7 @@
 #include "std_msgs/String.h"
 #include "std_msgs/Float32MultiArray.h"
 #include "geometry_msgs/Vector3.h"
+#include "geometry_msgs/Twist.h"
 
 #include "spot_micro_motion_cmd.h"
 #include "spot_micro_kinematics/spot_micro_kinematics.h"
@@ -68,11 +69,14 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
   // walk cmd event subscriber
   walk_sub_ = nh.subscribe("/walk_cmd", 1, &SpotMicroMotionCmd::walkCommandCallback, this);
  
-  // speed command subscriber
-  speed_cmd_sub_ = nh.subscribe("/speed_cmd", 1, &SpotMicroMotionCmd::speedCommandCallback, this);  
+  // // speed command subscriber
+  // speed_cmd_sub_ = nh.subscribe("/speed_cmd", 1, &SpotMicroMotionCmd::speedCommandCallback, this);  
 
   // body angle command subscriber
   body_angle_cmd_sub_ = nh.subscribe("/angle_cmd", 1, &SpotMicroMotionCmd::angleCommandCallback, this);  
+
+  // velocity command subscriber 
+  body_angle_cmd_sub_ = nh.subscribe("/cmd_vel", 1, &SpotMicroMotionCmd::velCommandCallback, this);  
 
   // servos_absolute publisher
   servos_absolute_pub_ = nh.advertise<i2cpwm_board::ServoArray>("servos_absolute", 1);
@@ -94,6 +98,8 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
 
   // Angle command state publisher for lcd monitor
   sm_angle_cmd_pub_ = nh.advertise<geometry_msgs::Vector3>("sm_angle_cmd",1);
+
+
 
   // Initialize lcd monitor messages
   state_string_msg_.data = "Idle";
@@ -404,6 +410,14 @@ void SpotMicroMotionCmd::angleCommandCallback(
   cmd_.phi_cmd_ = msg->x;
   cmd_.theta_cmd_ = msg->y;
   cmd_.psi_cmd_ = msg->z;
+}
+
+
+void SpotMicroMotionCmd::velCommandCallback(
+    const geometry_msgs::TwistConstPtr& msg) {
+  cmd_.x_vel_cmd_mps_ = msg->linear.x;
+  cmd_.y_vel_cmd_mps_ = msg->linear.y;
+  cmd_.yaw_rate_cmd_rps_ = msg->angular.z;
 }
 
 
