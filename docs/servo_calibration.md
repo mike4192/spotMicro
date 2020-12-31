@@ -1,15 +1,15 @@
 # Servo Calibration Guide
 
-This document provides a comprehensive guide to calibrate servos on a spot micro frame and create a cooresponding servo configuration ditionary the ROS control software requires. A spreadhseet named `servo_calibration_spreadsheet.ods` is included in this repo as an aid for calculating the servo configuration values.
+This document provides a comprehensive guide to calibrate servos on a spot micro frame and create a cooresponding servo configuration ditionary the ROS control software requires. A spreadhseet named `servo_calibration_spreadsheet.ods` is included in this repo in the `docs` directory as an aid for calculating the servo configuration values.
 
 The servo configuration dictionary is contained within the configuration file `spot_micro_motion_cmd.yaml` and holds servo configuration values as shown below:
 ```yaml
 num_servos: 12
 servo_max_angle_deg: 82.5
-RF_3: {num: 1,  center: 306,range: 385,direction:  1, center_angle_deg:  84.0}
-RF_2: {num: 2,  center: 306,range: 385,direction:  1, center_angle_deg: -27.9}
-RF_1: {num: 3,  center: 306,range: 396,direction: -1, center_angle_deg:  -5.4}
-RB_3: {num: 4,  center: 306,range: 394,direction:  1, center_angle_deg:  90.4}
+RF_3: {num: 1, center: 306, range: 385, direction:  1, center_angle_deg:  84.0}
+RF_2: {num: 2, center: 306, range: 385, direction:  1, center_angle_deg: -27.9}
+RF_1: {num: 3, center: 306, range: 396, direction: -1, center_angle_deg:  -5.4}
+RB_3: {num: 4, center: 306, range: 394, direction:  1, center_angle_deg:  90.4}
 .
 .
 .
@@ -36,8 +36,8 @@ Servo's are defined by a abbreviation and number referring to their location and
 ### Servo Installation
 It is reccomended to install servos in the spot micro frame when they are powered and commanded to their center position. The joint which a servo is installed in should be approximately positioned at it's "nuetral" stance, the position about which most leg motion will occur. This ensures maximum servo travel will be available around the typical joint command angles. The two figures below roughly depict the joint orientations for which servo's should be installed when at their center position. 
 
-![Side View Neutral Positions](assets/1_robot_right_links.png)
-![Back View Neutral Positions](assets/12_robot_back_overview.png)
+![Side View Neutral Positions](../assets/1_robot_right_links.png)
+![Back View Neutral Positions](../assets/12_robot_back_overview.png)
 
 
 ### Commanding Individual Servos for Calibration
@@ -50,12 +50,13 @@ Individual servo's can be commanded via the servo_move_keyboard ROS node for the
 3. After the descriptive prompt appears, type `oneServo` to enter the one servo command node.
 4. Select the servo to command by entering the integer number cooresponding to the PCA9685 port to command, for example, `2`. After a servo is selected, all other servos are commanded to idle (or freewheel) such that they can be moved by hand. The following prompt will appear:
 
-![Servo move prompt](assets/servo_move_prompt.png)
-5. Use the key `y` to command the default center value of the selected servo (pwm = 306). Use the keys `g` and `j` to decrease or increase the servo pwm command value by 1, respectively. This moves the servo in fine increments. The current pwm value is printed in the terminal. Use the `f` and `k` keys to move the servo in coarser increments. 
-    * Key's `t` and `u` can be used to quickly command the servo to it's min and max values, respectively (by default 83 and 520, but these can be updated per servo by the keys specified in the instrucitonal prompt).
-6. After commanding a servo to desired calibration positions and noting down values in the calibration spreadsheet, exit the one servo control mode by pressing `q`
-7. Go back to step 3 to repeat the process for another servo.
+![Servo move prompt](../assets/servo_move_prompt.png) 
 
+5. Use the key `y` to command the default center value of the selected servo (pwm = 306). Use the keys `g` and `j` to decrease or increase the servo pwm command value by 1, respectively. This moves the servo in fine increments. The current pwm value is printed in the terminal. Use the `f` and `k` keys to move the servo in coarser increments. 
+    * Key's `z` and `x` can be used to quickly command the servo to it's min and max values, respectively (by default 83 and 520, but these can be updated per servo by the keys specified in the instrucitonal prompt). Be careful commanding min/max, and ensure your servos can physically move to those positions and won't get stuck.  
+6. After commanding a servo to desired calibration positions and noting down values in the calibration spreadsheet, exit the one servo control mode by pressing `q`  
+7. Go back to step 3 to repeat the process for another servo.  
+    
 ### Guide to Creating Servo Calibration Values
 Adequate kinematic performance can be achieved through calibration of links by eye, as depicted in the diagrams below. However, I also used a smartphone inclinometer app as an aid to measure angles of 45 deg for the link 1 calibration. It is reccomended to prop up the robot on a box or similar test stand so the legs can hang freely for calibration.
 
@@ -63,7 +64,7 @@ Adequate kinematic performance can be achieved through calibration of links by e
 
 The servo calibration can be built up with aid of the servo_calibration_spreadsheet, shown in the figure below. Generally the procedure is the position each link to two reference positions (angles) and note down the cooresponding pwm values for those positions. I used gross angles of 0 and 90 deg for ease of placement by eye. While the slope value is not used, it is useful to keep an eye on it as all servos should have similar calculated slopes. Large discrepencies in this value could be indicative of errors.
 
-![Servo Calibration Spreadsheet](assets/servo_calibration_spreadsheet.png)
+![Servo Calibration Spreadsheet](../assets/servo_calibration_spreadsheet.png)
 
 #### Right Side Legs Links 2 and 3 Calibration
 
@@ -71,37 +72,37 @@ The servo calibration can be built up with aid of the servo_calibration_spreadsh
 
 Start with calibrating links 2 and 3 for all legs, starting with the right side of the robot. The figure below depicts the coordinate systems of the links of the right side legs positioned at 0 degrees, and defines the positive and negative angle directions.
 
-![Right side zero degree positions](assets/2_right_straight_links.png)
+![Right side zero degree positions](../assets/2_right_straight_links.png)
 
 Note that link 3's angles are relative to link 2, as exemplified by the figure below:
-![Example right side link 3 angles ](assets/3_right_link_angles_example.png)
+![Example right side link 3 angles ](../assets/3_right_link_angles_example.png)
 
 Starting with link 2 (ignoring the orientation of link 3), command link 2 to positions of 0 and -90 degrees, and note the cooresponding PWM values in the spreadsheet. These two positions are shown in the following two figures.
 
-![Right side link 2 step 1 ](assets/4_right_link2_config_step_1.png)
-![Right side link 2 step 2 ](assets/4_right_link2_config_step_2.png)
+![Right side link 2 step 1 ](../assets/4_right_link2_config_step_1.png)
+![Right side link 2 step 2 ](../assets/4_right_link2_config_step_2.png)
 
 Next, move onto link 3. For ease of visualizing reference orientation, manually position link 2 in a vertical orientation. Command link 3 to 0 and +90 degree positions and record the cooresponding pwm values. The two positions of link 3 are shown in the following two figures.
 
-![Right side link 3 step 1 ](assets/5_right_link3_config_step_1.png)
-![Right side link 3 step 2 ](assets/6_right_link3_config_step_2.png)
+![Right side link 3 step 1 ](../assets/5_right_link3_config_step_1.png)
+![Right side link 3 step 2 ](../assets/6_right_link3_config_step_2.png)
 
 Repeat this process for the other right side leg.
 
 #### Left Side Legs Links 2 and 3 Calibration
 Next repeat this process for the legs on the left side of the robot. **Note that** the coordinate systems for the left legs have different directions for positive and negative angles. These are depicted in the figure below for completeness.
 
-![Left side overview ](assets/7_robot_left_overview.png)
+![Left side overview ](../assets/7_robot_left_overview.png)
 
 Repeat the calibration process for link 2 on the left side legs. Position link 2 to 0 and +90 degree positions, and record the PWM values in the spreadsheet. The two positions are shown in the following two figures.
 
-![Left side link 2 step 1 ](assets/8_left_link2_config_step_1.png)
-![Left side link 2 step 2 ](assets/9_left_link2_config_step_2.png)
+![Left side link 2 step 1 ](../assets/8_left_link2_config_step_1.png)
+![Left side link 2 step 2 ](../assets/9_left_link2_config_step_2.png)
 
 Repeat the calibration process for link 3 on the left side legs. Manually position link 2 vertically, then position link 3 at 0 and -90 degrees and record the cooresponding pwm values in the spreadsheet. The two positions are shown below.
 
-![Left side link 3 step 1 ](assets/10_left_link3_config_step_1.png)
-![Left side link 3 step 2 ](assets/11_left_link3_config_step_2.png)
+![Left side link 3 step 1 ](../assets/10_left_link3_config_step_1.png)
+![Left side link 3 step 2 ](../assets/11_left_link3_config_step_2.png)
 
 Repeat the process for both left side legs.
 
@@ -109,16 +110,16 @@ Repeat the process for both left side legs.
 
 Finally, calibrate link 1 for the left and right legs in a similar pattern. The coordinate systems for link 1 of the left and right legs is shown in the figures below.
 
-![Back view Coordinate Systems link 1 ](assets/12_robot_back_overview.png)
-![Back view Coordinate Systems link 1 ](assets/13_robot_back_angle_directions.png)
+![Back view Coordinate Systems link 1 ](../assets/12_robot_back_overview.png)
+![Back view Coordinate Systems link 1 ](../assets/13_robot_back_angle_directions.png)
 
 Start with the right legs, and command link 1 to 0 and -45 degrees, and record the cooresponding PWM values in the spreadsheet. A reference value of 45 degrees is used instead of 90 due to mechanical limits. Repeat the process for the left legs. These positions are shown in the four figures below. 
 
 
-![Right leg link 1 step 1](assets/14_right_link1_config_step_1.png)
-![Right leg link 1 step 2](assets/15_right_link1_config_step_2.png)
+![Right leg link 1 step 1](../assets/14_right_link1_config_step_1.png)
+![Right leg link 1 step 2](../assets/15_right_link1_config_step_2.png)
 
-![Left leg link 1 step 1](assets/16_left_link1_config_step_1.png)
-![Left leg link 1 step 2](assets/17_left_link1_config_step_2.png)
+![Left leg link 1 step 1](../assets/16_left_link1_config_step_1.png)
+![Left leg link 1 step 2](../assets/17_left_link1_config_step_2.png)
 
-This complets the leg servo calibration process. Take the **bold** values from the servo calibration spreadsheet and copy them to the servo configuration dictionaries in the `spot_micro_motion_cmd.yaml` config file.
+This complets the leg servo calibration process. Take the **bold** values from the servo calibration spreadsheet and copy them to the servo configuration dictionaries in the `spot_micro_motion_cmd.yaml` config file. This file is located in your catkin worksapce in the following subfolders ```src/spot_micro_motion_cmd/config/spot_micro_motion_cmd.yaml```.
