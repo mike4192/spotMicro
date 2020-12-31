@@ -64,9 +64,14 @@ class SpotMicroMotionCmd
 {
 
  public:
-  SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh); //constructor method
-  ~SpotMicroMotionCmd(); // distructor method
-  void runOnce(); // runOnce method to control the flow of program
+  // Constructor
+  SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh); 
+  
+  // Destructor
+  ~SpotMicroMotionCmd(); 
+  
+  // Main loop runner, called periodically at the loop rate
+  void runOnce();
 
   // Publish a servo configuration message
   bool publishServoConfiguration();
