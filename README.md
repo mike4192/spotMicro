@@ -166,7 +166,9 @@ Note that the servo control node `i2cpwm_board` should only be commanded by one 
 
 ## Additional Project Components
 #### URDF Model
-The project contains a URDF model of the spot micro platform, along with a custom set of stl files (from Florian Wilk's repo noted at the end of this README) for visualization. Currently this urdf file is **only** used for RVIZ visualization of the spot micro model. This URDF model should not be treated as perfectly accurate representation of the robot's geometry, nor should the STL files for visualization be used for 3d printing. Use the noted Thingverse files instead. 
+The project contains a URDF model of the spot micro platform, along with a custom set of stl files  for visualization. The URDF file was pulled from Florian Wilk's repo, noted at the end of this README, and modified to change the coordinate system orientation, and the dimensions to match dimensions of my spot micro robot. Currently this urdf file is **only** used for RVIZ visualization of the spot micro model. This URDF model should not be treated as perfectly accurate representation of the robot's geometry, nor should the STL files for visualization be used for 3d printing. Use the noted Thingverse files instead. 
+
+The URDF model is defined as a `xacro` file, which is a way to define urdf file using macros to automate certain generative actions. The xacro file is located in the `spot_micro_rviz/urdf` directory. A urdf file can be generated from the `.xacro` file for inspection or use, if needed, via running `xacro` after sourcing a ROS development environment. 
 
 
 
