@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Launch keyboard command node and, optionally, other nodes via command line arguments -->
+
+<launch>
+    <!-- Optional command line argument to additionally run python plotting node  -->
+    <!-- Useful for running or debugging program on a PC instead of a rpi -->
+    <arg name="run_plot" default="false"/>
+
+    <!-- Optional command line argument to also run lcd monitor node on rpi --> -->
+    <arg name="run_rviz" default="false"/>
+
+
+    <!-- Run the keyboard command node-->
+    <node name="spot_micro_keyboard_command_node" pkg="spot_micro_keyboard_command" type="spotMicroKeyboardMove.py" output="screen">
+    </node>
+
+    <!-- If run_plot is true, run the plotting node by including it's launch file -->
+    <group if="$(arg run_plot)">
+        <include file="$(find spot_micro_plot)/launch/start_plotting.launch" />
+    </group>
+
+    <!-- If run_rviz is true, run the rviz node by including it's launch file -->
+    <group if="$(arg run_plot)">
+        <include file="$(find spot_micro_rviz)/launch/show_model.launch" />
+    </group>
+    
+</launch>

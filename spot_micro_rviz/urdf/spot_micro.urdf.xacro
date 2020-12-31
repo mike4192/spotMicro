@@ -1,0 +1,341 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="spot_micro_rviz">
+
+  <material name="yellow">
+    <color rgba="0.92 0.83 0.0 1"/>
+  </material>
+  <material name="black">
+    <color rgba="0.1 0.1 0.1 1"/>
+  </material>
+  <material name="grey">
+    <color rgba="0.6 0.6 0.6 1"/>
+  </material>
+
+  <!-- Params -->
+
+  <xacro:property name="body_length" value="0.140" />
+  <xacro:property name="body_width" value="0.110" />
+  <xacro:property name="body_height" value="0.070" />
+
+  <xacro:property name="lidar_length" value="0.0985" />
+  <xacro:property name="lidar_width" value="0.0577" />
+  <xacro:property name="lidar_height" value="0.070" />
+
+
+  <xacro:property name="front_length" value="0.058" />
+  <xacro:property name="rear_length" value="0.040" />
+
+  <xacro:property name="shoulder_length" value="0.044" />
+  <xacro:property name="shoulder_width" value="0.038" />
+
+  <xacro:property name="leg_length" value="0.1075" />
+  <xacro:property name="foot_length" value="0.130" />
+
+  <xacro:property name="toe_radius" value="0.020" />
+  <!--  <xacro:property name="toe_radius" value="0.014" /> -->
+  <xacro:property name="toe_width" value="0.020" />
+  <xacro:property name="shift" value="0.055" />
+  <xacro:property name="shiftx" value="0.093" />
+  <xacro:property name="shifty" value="0.039" />
+
+  <!-- Macros -->
+
+  <xacro:macro name="gen_shoulder" params="name left">
+    <link name="${name}">
+      <visual>
+        <xacro:if value="${left}">
+        <geometry>
+          <mesh filename="package://spot_micro_rviz/urdf/stl/lshoulder.stl" scale="0.001 0.001 0.001"/>
+        </geometry>
+        <origin rpy="0 0 3.14159" xyz="0.135 0.015 -0.01"/>
+        </xacro:if>
+        <xacro:unless value="${left}">
+        <geometry>
+          <mesh filename="package://spot_micro_rviz/urdf/stl/rshoulder.stl" scale="0.001 0.001 0.001"/>
+        </geometry>
+        <origin rpy="0 0 3.14159" xyz="0.135 0.095 -0.01"/>
+        </xacro:unless>
+        <material name="black"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="${shoulder_length} ${shoulder_width} ${body_height}"/>
+        </geometry>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+      </collision>
+      <inertial>
+        <mass value="0.10"/>
+        <inertia ixx="100" ixy="0" ixz="0" iyy="100" iyz="0" izz="100" />
+      </inertial>
+    </link>
+  </xacro:macro>
+
+  <xacro:macro name="gen_shoulder_joint" params="pos shiftx shifty">
+    <joint name="${pos}_shoulder" type="revolute">
+      <parent link="base_link"/>
+      <child link="${pos}_shoulder_link"/>
+      <axis xyz="1 0 0"/>
+      <origin rpy="0 0 0" xyz="${shiftx} ${shifty} 0"/>
+      <limit effort="1000.0" lower="-0.548" upper="0.548" velocity="0.7"/>
+      <dynamics damping="0.0" friction="0.5"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:macro name="gen_leg" params="name left">
+    <link name="${name}_cover">
+      <visual>
+        <xacro:if value="${left}">
+        <geometry>
+          <mesh filename="package://spot_micro_rviz/urdf/stl/larm_cover.stl" scale="0.001 0.001 0.001"/>
+        </geometry>
+        <origin rpy="0 -0.139 3.14159" xyz="0.130 -0.040 -0.025"/>
+        </xacro:if>
+        <xacro:unless value="${left}">
+        <geometry>
+          <mesh filename="package://spot_micro_rviz/urdf/stl/rarm_cover.stl" scale="0.001 0.001 0.001"/>
+        </geometry>
+        <origin rpy="0 -0.139 3.14159" xyz="0.130 0.15 -0.025"/>
+        </xacro:unless>
+        <material name="yellow"/>
+      </visual>
+    </link>
+    <link name="${name}">
+      <visual>
+        <xacro:if value="${left}">
+        <geometry>
+          <mesh filename="package://spot_micro_rviz/urdf/stl/larm.stl" scale="0.001 0.001 0.001"/>
+        </geometry>
+        <origin rpy="0 -0.139 3.14159" xyz="0.130 -0.040 -0.025"/>
+        </xacro:if>
+        <xacro:unless value="${left}">
+        <geometry>
+          <mesh filename="package://spot_micro_rviz/urdf/stl/rarm.stl" scale="0.001 0.001 0.001"/>
+        </geometry>
+        <origin rpy="0 -0.139 3.14159" xyz="0.130 0.15 -0.025"/>
+        </xacro:unless>
+        <material name="black"/>
+<!--        <geometry>
+          <box size="0.028 0.036 ${leg_length}"/>
+        </geometry>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.050"/>
+        <material name="yellow"/>-->
+      </visual>
+      <collision>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.050"/>
+        <geometry>
+          <box size="0.028 0.036 ${leg_length}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="0.15"/>
+        <inertia ixx="1000" ixy="0" ixz="0" iyy="1000" iyz="0" izz="1000" />
+      </inertial>
+    </link>
+  </xacro:macro>
+
+  <xacro:macro name="gen_leg_joint" params="pos shift">
+    <joint name="${pos}_leg" type="revolute">
+      <parent link="${pos}_shoulder_link"/>
+      <child link="${pos}_leg_link"/>
+      <axis xyz="0 1 0"/>
+      <origin rpy="0 0 0" xyz="0 ${shift} 0"/>
+      <limit effort="1000.0" lower="-2.666" upper="1.548" velocity="0.5"/>
+      <dynamics damping="0.0" friction="0.0"/>
+    </joint>
+
+    <joint name="${pos}_leg_cover_joint" type="fixed">
+    <parent link="${pos}_leg_link"/>
+    <child link="${pos}_leg_link_cover"/>
+        <origin xyz="0 0 0"/>
+  </joint>  
+  </xacro:macro>
+
+  <xacro:macro name="gen_foot" params="name left">
+    <link name="${name}">
+      <visual>
+        <xacro:if value="${left}">
+        <geometry>
+          <mesh filename="package://spot_micro_rviz/urdf/stl/lfoot.stl" scale="0.001 0.001 0.001"/>
+        </geometry>
+        <origin rpy="0 0 3.14159" xyz="0.120 -0.04 0.1"/>
+        </xacro:if>
+        <xacro:unless value="${left}">
+        <geometry>
+          <mesh filename="package://spot_micro_rviz/urdf/stl/rfoot.stl" scale="0.001 0.001 0.001"/>
+        </geometry>
+        <origin rpy="0 0 3.14159" xyz="0.120 0.15 0.1"/>
+        </xacro:unless>
+        <material name="black"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="0.026 0.020 ${foot_length}"/>
+        </geometry>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.050"/>
+      </collision>
+      <inertial>
+        <mass value="0.1"/>
+        <inertia ixx="1000" ixy="0" ixz="0" iyy="1000" iyz="0" izz="1000" />
+      </inertial>
+    </link>
+  </xacro:macro>
+
+  <xacro:macro name="gen_foot_joint" params="pos">
+    <joint name="${pos}_foot" type="revolute">
+      <parent link="${pos}_leg_link"/>
+      <child link="${pos}_foot_link"/>
+      <axis xyz="0 1 0"/>
+      <origin rpy="0 0 0" xyz="0 0 -${leg_length}"/>
+      <limit effort="1000.0" lower="-2.6" upper="0.1" velocity="0.5"/>
+      <dynamics damping="0.0" friction="0.5"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:macro name="gen_toe" params="name">
+    <link name="${name}">
+      <visual>
+        <geometry>
+        <mesh filename="package://spot_micro_rviz/urdf/stl/foot.stl" scale="0.001 0.001 0.001"/>
+        </geometry>
+        <origin rpy="0 -0.40010 3.14159" xyz="0.00 0.01 0.015"/>
+        <material name="grey"/>
+      </visual>
+      <collision>
+        <geometry>
+          <sphere radius="${toe_radius}" />
+        </geometry>
+        <origin rpy="0 0 0" xyz="0 0 ${toe_radius}"/>
+        <contact_coefficients mu="1.1" />
+      </collision>
+      <inertial>
+        <mass value="0.05"/>
+        <inertia ixx="1000" ixy="0" ixz="0" iyy="1000" iyz="0" izz="1000" />
+      </inertial>
+    </link>
+  </xacro:macro>
+
+ <xacro:macro name="gen_toe_joint" params="pos">
+    <joint name="${pos}_toe" type="fixed">
+      <parent link="${pos}_foot_link"/>
+      <child link="${pos}_toe_link"/>
+      <origin xyz="0 0 -${foot_length}"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:macro name="gen_full_leg_joint" params="pos shiftx shifty shift left">
+    <xacro:gen_shoulder name="${pos}_shoulder_link" left="${left}"/>
+    <xacro:gen_leg name="${pos}_leg_link" left="${left}"/>
+    <xacro:gen_foot name="${pos}_foot_link" left="${left}"/>
+    <xacro:gen_toe name="${pos}_toe_link"/>
+
+    <xacro:gen_shoulder_joint pos="${pos}" shiftx="${shiftx}" shifty="${shifty}"/>
+    <xacro:gen_leg_joint pos="${pos}" shift="${shift}"/>
+    <xacro:gen_foot_joint pos="${pos}"/>
+    <xacro:gen_toe_joint pos="${pos}"/>
+  </xacro:macro>
+
+  <!-- Robot Body -->
+
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://spot_micro_rviz/urdf/stl/mainbody.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="black"/> 
+      <origin rpy="0 0 0" xyz="-0.042 -0.055 -0.010"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="${body_length} ${body_width} ${body_height}"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+    </collision>
+    <inertial>
+      <mass value="2.80"/>
+      <inertia ixx="100" ixy="0" ixz="0" iyy="100" iyz="0" izz="100" />
+    </inertial>
+  </link>
+
+  <!-- Lidar Backpack -->
+
+   <link name="lidar_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://spot_micro_rviz/urdf/stl/rplidar_main.STL" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="black"/> 
+      <origin rpy="1.57075 0 0" xyz="${-lidar_length/2+0.015} ${lidar_width/2+0.007} 0"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="${lidar_length} ${lidar_width} ${lidar_height}"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+    </collision>
+    <inertial>
+      <mass value="0.50"/>
+      <inertia ixx="100" ixy="0" ixz="0" iyy="100" iyz="0" izz="100" />
+    </inertial>
+  </link>
+  <joint name="base_lidar" type="fixed">
+    <parent link="base_link"/>
+    <child link="lidar_link"/>
+        <origin xyz="0 0 ${body_height/2}"/>
+  </joint>  
+
+  <link name="rear_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://spot_micro_rviz/urdf/stl/backpart.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <origin rpy="0 0 3.14159" xyz="0.04 0.055 -0.010"/>
+      <material name="yellow"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="${rear_length} ${body_width} ${body_height}"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.135 0 0"/>
+    </collision>
+    <inertial>
+      <mass value="0.20"/>
+      <inertia ixx="100" ixy="0" ixz="0" iyy="100" iyz="0" izz="100" />
+    </inertial>
+  </link>
+  <joint name="base_rear" type="fixed">
+    <parent link="base_link"/>
+    <child link="rear_link"/>
+  </joint>
+
+  <link name="front_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://spot_micro_rviz/urdf/stl/frontpart.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <origin rpy="0 0 3.14159" xyz="0.040 0.055 -0.010"/>
+      <material name="yellow"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="${front_length} ${body_width} ${body_height}"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="-0.145 0 0"/>
+    </collision>
+    <inertial>
+      <mass value="0.20"/>
+      <inertia ixx="100" ixy="0" ixz="0" iyy="100" iyz="0" izz="100" />
+    </inertial>
+  </link>
+  <joint name="base_front" type="fixed">
+    <parent link="base_link"/>
+    <child link="front_link"/>
+  </joint>
+
+  <!-- create Legs -->
+
+  <xacro:gen_full_leg_joint pos="front_left" shiftx="${shiftx}" shifty="${shifty}" shift="${shift}" left="true"/>
+  <xacro:gen_full_leg_joint pos="front_right" shiftx="${shiftx}" shifty="-${shifty}" shift="-${shift}" left="false"/>
+  <xacro:gen_full_leg_joint pos="rear_left" shiftx="-${shiftx}" shifty="${shifty}" shift="${shift}" left="true"/>
+  <xacro:gen_full_leg_joint pos="rear_right" shiftx="-${shiftx}" shifty="-${shifty}" shift="-${shift}" left="false"/>
+
+</robot>
