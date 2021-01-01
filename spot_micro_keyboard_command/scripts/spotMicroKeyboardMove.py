@@ -154,7 +154,7 @@ class SpotMicroKeyboardControl():
                 elif userInput == 'angle_cmd':
                     # Reset all angle commands
                     self.reset_all_angle_commands_to_zero()
-                    rospy.longinfo('Entering keyboard angle command mode.')
+                    rospy.loginfo('Entering keyboard angle command mode.')
                     
                     # Enter loop to act on user command
                     print('Enter command, u to go back to command select: ')
