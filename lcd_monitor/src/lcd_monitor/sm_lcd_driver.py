@@ -5,6 +5,7 @@ import time
 import rospy
 from math import pi
 from geometry_msgs.msg import Vector3
+from geometry_msgs.msg import Twist
 from std_msgs.msg import String
 
 class SpotMicroLcd():
@@ -27,15 +28,15 @@ class SpotMicroLcd():
 
 		rospy.init_node('lcd_monitor_node')
 
-		rospy.Subscriber('sm_speed_cmd',Vector3,self.update_speed_cmd)
-		rospy.Subscriber('sm_angle_cmd',Vector3,self.update_angle_cmd)
-		rospy.Subscriber('sm_state',String,self.update_state_string)
+		rospy.Subscriber('lcd_vel_cmd',Twist,self.update_speed_cmd)
+		rospy.Subscriber('lcd_angle_cmd',Vector3,self.update_angle_cmd)
+		rospy.Subscriber('lcd_state',String,self.update_state_string)
 
 	def update_speed_cmd(self, msg):
 		''' Updates speed command attributes'''
-		self._fwd_speed_cmd = msg.x*100.0
-		self._side_speed_cmd = msg.y*100.0
-		self._yaw_rate_cmd = msg.z*180.0/pi
+		self._fwd_speed_cmd = msg.linear.x*100.0
+		self._side_speed_cmd = msg.linear.y*100.0
+		self._yaw_rate_cmd = msg.angular.z*180.0/pi
 
 	def update_angle_cmd(self, msg):
 		''' Updates angle command attributes'''
@@ -75,11 +76,6 @@ class SpotMicroLcd():
 				self._mylcd.lcd_display_string('                ',2)
 			# Sleep till next loop
 			rate.sleep()
-
-
-
-
-
 
 
 def main():

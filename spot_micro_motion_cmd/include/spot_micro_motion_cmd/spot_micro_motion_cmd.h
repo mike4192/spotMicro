@@ -7,6 +7,7 @@
 #include "std_msgs/Bool.h"
 #include "std_msgs/String.h"
 #include "geometry_msgs/Vector3.h"
+#include "geometry_msgs/Twist.h"
 #include "std_msgs/Float32MultiArray.h"
 #include "i2cpwm_board/Servo.h"
 #include "i2cpwm_board/ServoArray.h"
@@ -62,11 +63,15 @@ struct SpotMicroNodeConfig {
 /* defining the class */
 class SpotMicroMotionCmd
 {
-
  public:
-  SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh); //constructor method
-  ~SpotMicroMotionCmd(); // distructor method
-  void runOnce(); // runOnce method to control the flow of program
+  // Constructor
+  SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh); 
+  
+  // Destructor
+  ~SpotMicroMotionCmd(); 
+  
+  // Main loop runner, called periodically at the loop rate
+  void runOnce();
 
   // Publish a servo configuration message
   bool publishServoConfiguration();
@@ -136,29 +141,30 @@ class SpotMicroMotionCmd
   i2cpwm_board::ServoArray servo_array_absolute_;
 
 
-  // Ros publisher and subscriber handles
+  // ROS publisher and subscriber handles
   ros::NodeHandle nh_; // Defining the ros NodeHandle variable for registrating the same with the master
   ros::NodeHandle pnh_; // Private version of node handle
   ros::Subscriber stand_sub_; // ros subscriber handle for stand_cmd topic
   ros::Subscriber idle_sub_; // ros subscriber handle for idle_cmd topic
   ros::Subscriber walk_sub_;
-  ros::Subscriber speed_cmd_sub_; // includes body yaw rate as the z component
+  ros::Subscriber vel_cmd_sub_;
   ros::Subscriber body_angle_cmd_sub_;
   ros::Publisher servos_absolute_pub_;
   ros::Publisher servos_proportional_pub_;
   ros::Publisher body_state_pub_;
-  ros::Publisher sm_speed_cmd_pub_;
-  ros::Publisher sm_angle_cmd_pub_;
-  ros::Publisher sm_state_pub_;
+  ros::Publisher lcd_vel_cmd_pub_;
+  ros::Publisher lcd_angle_cmd_pub_;
+  ros::Publisher lcd_state_pub_;
   ros::ServiceClient servos_config_client_;
 
-  // Body state cmd message
+  // Message for encapsulating robot body state
   std_msgs::Float32MultiArray body_state_msg_;
 
-  // State string message, speed and angle command messages
-  std_msgs::String state_string_msg_;
-  geometry_msgs::Vector3 speed_cmd_msg_;
-  geometry_msgs::Vector3 angle_cmd_msg_;
+  // Messages to hold robot state information for displaying on LCD monitor
+  // and for any other monitoring purposes.
+  std_msgs::String lcd_state_string_msg_;
+  geometry_msgs::Twist lcd_vel_cmd_msg_;
+  geometry_msgs::Vector3 lcd_angle_cmd_msg_;
 
   // Callback method for stand command
   void standCommandCallback(const std_msgs::Bool::ConstPtr& msg);
@@ -169,11 +175,13 @@ class SpotMicroMotionCmd
   // Callback method for walk command
   void walkCommandCallback(const std_msgs::Bool::ConstPtr& msg);
 
-  // Callback method for speed command
-  void speedCommandCallback(const geometry_msgs::Vector3ConstPtr& msg);
-
   // Callback method for angle command
   void angleCommandCallback(const geometry_msgs::Vector3ConstPtr& msg);
+
+  // Callback method for velocity command
+  // Currently, the only supported commands from this message are 
+  // x and y axis linear velocity, and z axis angular rate 
+  void velCommandCallback(const geometry_msgs::TwistConstPtr& msg);
 
   // Resets all events if they were true
   void resetEventCommands();
