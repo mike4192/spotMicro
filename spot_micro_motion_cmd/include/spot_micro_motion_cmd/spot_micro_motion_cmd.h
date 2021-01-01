@@ -34,7 +34,7 @@ struct SpotMicroNodeConfig {
   float transit_angle_rl;
   bool debug_mode;
   bool plot_mode;
-  float max_fwd_Coocity;
+  float max_fwd_velocity;
   float max_side_velocity;
   float max_yaw_rate;
   float z_clearance;
@@ -63,7 +63,6 @@ struct SpotMicroNodeConfig {
 /* defining the class */
 class SpotMicroMotionCmd
 {
-
  public:
   // Constructor
   SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh); 
@@ -142,29 +141,30 @@ class SpotMicroMotionCmd
   i2cpwm_board::ServoArray servo_array_absolute_;
 
 
-  // Ros publisher and subscriber handles
+  // ROS publisher and subscriber handles
   ros::NodeHandle nh_; // Defining the ros NodeHandle variable for registrating the same with the master
   ros::NodeHandle pnh_; // Private version of node handle
   ros::Subscriber stand_sub_; // ros subscriber handle for stand_cmd topic
   ros::Subscriber idle_sub_; // ros subscriber handle for idle_cmd topic
   ros::Subscriber walk_sub_;
-  ros::Subscriber speed_cmd_sub_; // includes body yaw rate as the z component
+  ros::Subscriber vel_cmd_sub_;
   ros::Subscriber body_angle_cmd_sub_;
   ros::Publisher servos_absolute_pub_;
   ros::Publisher servos_proportional_pub_;
   ros::Publisher body_state_pub_;
-  ros::Publisher sm_speed_cmd_pub_;
-  ros::Publisher sm_angle_cmd_pub_;
-  ros::Publisher sm_state_pub_;
+  ros::Publisher lcd_vel_cmd_pub_;
+  ros::Publisher lcd_angle_cmd_pub_;
+  ros::Publisher lcd_state_pub_;
   ros::ServiceClient servos_config_client_;
 
-  // Body state cmd message
+  // Message for encapsulating robot body state
   std_msgs::Float32MultiArray body_state_msg_;
 
-  // State string message, speed and angle command messages
-  std_msgs::String state_string_msg_;
-  geometry_msgs::Vector3 speed_cmd_msg_;
-  geometry_msgs::Vector3 angle_cmd_msg_;
+  // Messages to hold robot state information for displaying on LCD monitor
+  // and for any other monitoring purposes.
+  std_msgs::String lcd_state_string_msg_;
+  geometry_msgs::Twist lcd_vel_cmd_msg_;
+  geometry_msgs::Vector3 lcd_angle_cmd_msg_;
 
   // Callback method for stand command
   void standCommandCallback(const std_msgs::Bool::ConstPtr& msg);
@@ -174,9 +174,6 @@ class SpotMicroMotionCmd
 
   // Callback method for walk command
   void walkCommandCallback(const std_msgs::Bool::ConstPtr& msg);
-
-  // Callback method for speed command
-  void speedCommandCallback(const geometry_msgs::Vector3ConstPtr& msg);
 
   // Callback method for angle command
   void angleCommandCallback(const geometry_msgs::Vector3ConstPtr& msg);

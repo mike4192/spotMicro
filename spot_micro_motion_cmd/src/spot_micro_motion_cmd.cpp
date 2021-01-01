@@ -68,15 +68,12 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
 
   // walk cmd event subscriber
   walk_sub_ = nh.subscribe("/walk_cmd", 1, &SpotMicroMotionCmd::walkCommandCallback, this);
- 
-  // // speed command subscriber
-  // speed_cmd_sub_ = nh.subscribe("/speed_cmd", 1, &SpotMicroMotionCmd::speedCommandCallback, this);  
 
   // body angle command subscriber
   body_angle_cmd_sub_ = nh.subscribe("/angle_cmd", 1, &SpotMicroMotionCmd::angleCommandCallback, this);  
 
   // velocity command subscriber 
-  body_angle_cmd_sub_ = nh.subscribe("/cmd_vel", 1, &SpotMicroMotionCmd::velCommandCallback, this);  
+  vel_cmd_sub_ = nh.subscribe("/cmd_vel", 1, &SpotMicroMotionCmd::velCommandCallback, this);  
 
   // servos_absolute publisher
   servos_absolute_pub_ = nh.advertise<i2cpwm_board::ServoArray>("servos_absolute", 1);
@@ -91,26 +88,29 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
   body_state_pub_ = nh.advertise<std_msgs::Float32MultiArray>("body_state",1);
 
   // State string publisher for lcd monitor
-  sm_state_pub_ = nh.advertise<std_msgs::String>("sm_state",1);
+  lcd_state_pub_ = nh.advertise<std_msgs::String>("lcd_state",1);
 
-  // Speed command state publisher for lcd monitor
-  sm_speed_cmd_pub_ = nh.advertise<geometry_msgs::Vector3>("sm_speed_cmd",1);
+  // Velocity command state publisher for lcd monitor
+  lcd_vel_cmd_pub_ = nh.advertise<geometry_msgs::Twist>("lcd_vel_cmd",1);
 
   // Angle command state publisher for lcd monitor
-  sm_angle_cmd_pub_ = nh.advertise<geometry_msgs::Vector3>("sm_angle_cmd",1);
+  lcd_angle_cmd_pub_ = nh.advertise<geometry_msgs::Vector3>("lcd_angle_cmd",1);
 
 
 
   // Initialize lcd monitor messages
-  state_string_msg_.data = "Idle";
+  lcd_state_string_msg_.data = "Idle";
 
-  speed_cmd_msg_.x = 0.0f;
-  speed_cmd_msg_.y = 0.0f;
-  speed_cmd_msg_.z = 0.0f;
+  lcd_vel_cmd_msg_.linear.x = 0.0f;
+  lcd_vel_cmd_msg_.linear.y = 0.0f;
+  lcd_vel_cmd_msg_.linear.z = 0.0f;
+  lcd_vel_cmd_msg_.angular.x = 0.0f;
+  lcd_vel_cmd_msg_.angular.y = 0.0f;
+  lcd_vel_cmd_msg_.angular.z = 0.0f;
   
-  angle_cmd_msg_.x = 0.0f;
-  angle_cmd_msg_.y = 0.0f;
-  angle_cmd_msg_.z = 0.0f;
+  lcd_angle_cmd_msg_.x = 0.0f;
+  lcd_angle_cmd_msg_.y = 0.0f;
+  lcd_angle_cmd_msg_.z = 0.0f;
  
 
   // Only do if plot mode
@@ -397,14 +397,6 @@ void SpotMicroMotionCmd::walkCommandCallback(
 }
 
 
-void SpotMicroMotionCmd::speedCommandCallback(
-    const geometry_msgs::Vector3ConstPtr& msg) {
-  cmd_.x_vel_cmd_mps_ = msg->x;
-  cmd_.y_vel_cmd_mps_ = msg->y;
-  cmd_.yaw_rate_cmd_rps_ = msg->z;
-}
-
-
 void SpotMicroMotionCmd::angleCommandCallback(
     const geometry_msgs::Vector3ConstPtr& msg) {
   cmd_.phi_cmd_ = msg->x;
@@ -483,17 +475,17 @@ void SpotMicroMotionCmd::publishBodyState() {
 
 
 void SpotMicroMotionCmd::publishLcdMonitorData() {
-  state_string_msg_.data = getCurrentStateName();
+  lcd_state_string_msg_.data = getCurrentStateName();
 
-  speed_cmd_msg_.x = cmd_.getXSpeedCmd();
-  speed_cmd_msg_.y = cmd_.getYSpeedCmd();
-  speed_cmd_msg_.z = cmd_.getYawRateCmd();
+  lcd_vel_cmd_msg_.linear.x = cmd_.getXSpeedCmd();
+  lcd_vel_cmd_msg_.linear.y = cmd_.getYSpeedCmd();
+  lcd_vel_cmd_msg_.angular.z = cmd_.getYawRateCmd();
   
-  angle_cmd_msg_.x = cmd_.getPhiCmd();
-  angle_cmd_msg_.y = cmd_.getThetaCmd();
-  angle_cmd_msg_.z = cmd_.getPsiCmd();  
+  lcd_angle_cmd_msg_.x = cmd_.getPhiCmd();
+  lcd_angle_cmd_msg_.y = cmd_.getThetaCmd();
+  lcd_angle_cmd_msg_.z = cmd_.getPsiCmd();  
 
-  sm_state_pub_.publish(state_string_msg_);
-  sm_speed_cmd_pub_.publish(speed_cmd_msg_);
-  sm_angle_cmd_pub_.publish(angle_cmd_msg_);
+  lcd_state_pub_.publish(lcd_state_string_msg_);
+  lcd_vel_cmd_pub_.publish(lcd_vel_cmd_msg_);
+  lcd_angle_cmd_pub_.publish(lcd_angle_cmd_msg_);
 }
