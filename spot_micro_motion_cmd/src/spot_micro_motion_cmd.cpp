@@ -491,3 +491,21 @@ void SpotMicroMotionCmd::publishLcdMonitorData() {
   lcd_vel_cmd_pub_.publish(lcd_vel_cmd_msg_);
   lcd_angle_cmd_pub_.publish(lcd_angle_cmd_msg_);
 }
+
+
+void SpotMicroMotionCmd::publishDynamicTransforms() {
+
+  // Get robot transformation struct
+  AllRobotRelativeTransforms transforms = sm_.getRobotTransforms();
+
+  // Publish base_link transform
+  geometry_msgs::TransformStamped transform_stamped;
+
+  transform_stamped.header.stamp = ros::Time::now();
+  transform_stamped.header.frame_id = "world";
+  transform_stamped.child_frame_id = "base_link";
+  
+  
+
+
+}
