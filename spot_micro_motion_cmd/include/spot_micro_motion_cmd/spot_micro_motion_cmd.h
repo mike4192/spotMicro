@@ -5,6 +5,7 @@
 #define SPOT_MICRO_MOTION_CMD
 #include <ros/ros.h>
 #include <tf2_ros/transform_broadcaster.h>
+#include <tf2_ros/static_transform_broadcaster.h>
 #include "std_msgs/Bool.h"
 #include "std_msgs/String.h"
 #include "geometry_msgs/Vector3.h"
@@ -158,6 +159,7 @@ class SpotMicroMotionCmd
   ros::Publisher lcd_state_pub_;
   ros::ServiceClient servos_config_client_;
   tf2_ros::TransformBroadcaster transform_br_;
+  tf2_ros::StaticTransformBroadcaster static_transform_br_;
 
   // Message for encapsulating robot body state
   std_msgs::Float32MultiArray body_state_msg_;
@@ -204,7 +206,7 @@ class SpotMicroMotionCmd
   // Broadcast static tf2 coordinate frame transformation to /tf_static
   // Should only be called once at initalization, as it's only for static
   // transformations of the robot model that do not change over time
-
+  void publishStaticTransforms();
 
   // Broadcast dynamic tf2 coordinate frame transformations to /tf
   // Will broadcast dynamic robot and leg joint transformations

@@ -1,3 +1,5 @@
+#include <eigen3/Eigen/Geometry>
+
 #include "std_msgs/Float32.h"
 #include "std_msgs/Bool.h"
 #include "std_msgs/String.h"
@@ -18,6 +20,7 @@
 
 
 using namespace smk;
+using namespace Eigen;
 
 // Constructor
 SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh) {
@@ -124,6 +127,9 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
       body_state_msg_.data.push_back(0.0f); 
     }
   }
+
+  // Publish static transforms
+  publishStaticTransforms();
 }
 
 
@@ -156,6 +162,10 @@ void SpotMicroMotionCmd::runOnce() {
 
   // Publish lcd monitor data
   publishLcdMonitorData();
+
+  // Broadcast dynamic transforms
+  publishDynamicTransforms();
+
 }
 
 
@@ -493,6 +503,25 @@ void SpotMicroMotionCmd::publishLcdMonitorData() {
 }
 
 
+void SpotMicroMotionCmd::publishStaticTransforms() {
+  geometry_msgs::TransformStamped transform_stamped;
+
+  transform_stamped.header.stamp = ros::Time::now();
+  transform_stamped.header.frame_id = "world";
+  transform_stamped.child_frame_id = "odom";
+
+  transform_stamped.transform.translation.x = 0.0;
+  transform_stamped.transform.translation.y = 0.0;
+  transform_stamped.transform.translation.z = 0.0;
+  transform_stamped.transform.rotation.x = 0.0;
+  transform_stamped.transform.rotation.y = 0.0;
+  transform_stamped.transform.rotation.z = 0.0;
+  transform_stamped.transform.rotation.w = 1.0;
+
+  static_transform_br_.sendTransform(transform_stamped);
+}
+
+
 void SpotMicroMotionCmd::publishDynamicTransforms() {
 
   // Get robot transformation struct
@@ -501,10 +530,34 @@ void SpotMicroMotionCmd::publishDynamicTransforms() {
   // Publish base_link transform
   geometry_msgs::TransformStamped transform_stamped;
 
+  // Need to convert a Eigen Matrix4F to an Affine3d by first casting
+  // float to double (to a Matrix4d), then calling the constructor for Affine3d
+  // with the Matrix4d
+  Affine3d body_center = Affine3d(transforms.bodyCenter.cast<double>());
+
+  // Rotate body center transform to desired coordinate system
+  // Original coordinate frame: x forward, y up, z right
+  // Desired orientation: x forward, y left, z up
+  // First need to rotate the robot frame +90 deg about the global +X axis 
+  // (pre-multiply), then rotate the local coordinate system by -90 (post multiply)
+  body_center = AngleAxisd(M_PI/2.0, Vector3d::UnitX()) *
+                body_center * 
+                AngleAxisd(-M_PI/2.0, Vector3d::UnitX());
+
+
+  transform_stamped = tf2::eigenToTransform(body_center);
+
   transform_stamped.header.stamp = ros::Time::now();
-  transform_stamped.header.frame_id = "world";
+  transform_stamped.header.frame_id = "odom";
   transform_stamped.child_frame_id = "base_link";
+
+  transform_br_.sendTransform(transform_stamped);
   
+  // Matrix4d md(mf.cast());
+  // Eigen::Affine3d affine(md);
+  // tf::Transform transform;
+  // tf::TransformEigenToTF(affine, transform);
+
   
 
 
