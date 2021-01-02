@@ -199,5 +199,19 @@ class SpotMicroMotionCmd
   // Publish LCD monitor messages
   void publishLcdMonitorData();
 
+  // Broadcast static tf2 coordinate frame transformation to /tf_static
+  // Should only be called once at initalization, as it's only for static
+  // transformations of the robot model that do not change over time
+
+
+  // Broadcast dynamic tf2 coordinate frame transformations to /tf
+  // Will broadcast dynamic robot and leg joint transformations
+
+
+  // Calculates the robot odometry coordinate frame by integrating
+  // velocity commands over time. The robot doesn't actually have any
+  // sensed odometry, but an open loop estimate derived from velocity
+  // commands should still be useful
+
 };
 #endif  
