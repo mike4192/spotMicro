@@ -125,6 +125,11 @@ class SpotMicroMotionCmd
   // angles
   smk::BodyState body_state_cmd_; 
 
+  // Odometry of the robot position and orientation based on integrated rate
+  // commands. Only x and y position, and yaw angle, will be integrated from
+  // rate commands
+  smk::BodyState robot_odometry_;
+
   // Map to hold servo command values in radians
   std::map<std::string, float> servo_cmds_rad_ = { {"RF_3", 0.0f}, {"RF_2", 0.0f}, {"RF_1", 0.0f},
                                                    {"RB_3", 0.0f}, {"RB_2", 0.0f}, {"RB_1", 0.0f},
@@ -211,11 +216,13 @@ class SpotMicroMotionCmd
   // Will broadcast dynamic robot and leg joint transformations
   void publishDynamicTransforms();
 
-
-  // Calculates the robot odometry coordinate frame by integrating
-  // velocity commands over time. The robot doesn't actually have any
+  // Integrate robot odometry. The robot doesn't actually have any
   // sensed odometry, but an open loop estimate derived from velocity
   // commands should still be useful
+  void integrateOdometry();
+
+  // Calculates the robot odometry coordinate frame
+  Eigen::Affine3d getOdometryTransform();
 
 };
 #endif  

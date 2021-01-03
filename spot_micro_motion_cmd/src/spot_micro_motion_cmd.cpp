@@ -55,6 +55,9 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
   // Set the spot micro kinematics object to this initial command
   sm_.setBodyState(body_state_cmd_);
 
+  // Set initial odometry state to zero
+  robot_odometry_.euler_angs = {.phi = 0.0f, .theta = 0.0f, .psi = 0.0f};
+  robot_odometry_.xyz_pos = {.x = 0.0f, .y = 0.0f, .z = 0.0f};
 
   // Initialize servo array message with 12 servo objects
   for (int i = 1; i <= smnc_.num_servos; i++) {
@@ -170,6 +173,8 @@ void SpotMicroMotionCmd::runOnce() {
   // Broadcast dynamic transforms
   publishDynamicTransforms();
 
+  // Integrate robot odometry
+  integrateOdometry();
 }
 
 
@@ -586,9 +591,19 @@ void SpotMicroMotionCmd::publishDynamicTransforms() {
   // Desired orientation: x forward, y left, z up
   // First need to rotate the robot frame +90 deg about the global +X axis 
   // (pre-multiply), then rotate the local coordinate system by -90 (post multiply)
-  temp_trans = AngleAxisd(M_PI/2.0, Vector3d::UnitX()) *
+  // temp_trans = AngleAxisd(M_PI/2.0, Vector3d::UnitX()) *
+  //               temp_trans * 
+  //               AngleAxisd(-M_PI/2.0, Vector3d::UnitX())*
+  //               getOdometryTransform(); // translation and rotation by odometry
+
+  temp_trans =  getOdometryTransform() * 
+                AngleAxisd(M_PI/2.0, Vector3d::UnitX()) *
                 temp_trans * 
                 AngleAxisd(-M_PI/2.0, Vector3d::UnitX());
+                // getOdometryTransform(); // translation and rotation by odometry
+
+  // std::cout << getOdometryTransform().rotation() << std::endl;
+  // std::cout << getOdometryTransform().translation() << std::endl;
 
   // Create transform stamped and broadcast it
   transform_stamped = eigAndFramesToTrans(temp_trans, "odom", "base_link");
@@ -681,4 +696,36 @@ void SpotMicroMotionCmd::publishDynamicTransforms() {
                                       0.0, 0.0, -smnc_.smc.upper_leg_link_length,
                                       0.0, joint_angs.left_back.ang3, 0.0);                         
   transform_br_.sendTransform(transform_stamped);
+}
+
+
+void SpotMicroMotionCmd::integrateOdometry() {
+  // Get speed command and loop time information
+  float dt = smnc_.dt;
+  float psi = robot_odometry_.euler_angs.psi;
+
+  float x_spd = cmd_.getXSpeedCmd();
+  float y_spd = -cmd_.getYSpeedCmd();
+  float yaw_rate = -cmd_.getYawRateCmd();
+
+  // This is the odometry coordinate frame (not robot) 
+  float x_dot = x_spd*cos(psi) - y_spd*sin(psi);
+  float y_dot = x_spd*sin(psi) + y_spd*cos(psi);
+  float yaw_dot = yaw_rate;
+
+  // Integrate x and y position, and yaw angle, from commanded values
+  // y speed and yaw rate are reversed due to mismatch between command 
+  // coordinate frame and world coordinate frame
+  robot_odometry_.xyz_pos.x += x_dot*dt;
+  robot_odometry_.xyz_pos.y += y_dot*dt;
+  robot_odometry_.euler_angs.psi += yaw_dot*dt;
+} 
+
+
+Affine3d SpotMicroMotionCmd::getOdometryTransform() {
+  Translation3d translation(robot_odometry_.xyz_pos.x, robot_odometry_.xyz_pos.y, 0.0);
+
+  AngleAxisd rotation(robot_odometry_.euler_angs.psi, Vector3d::UnitZ());
+
+  return (translation * rotation);
 }
