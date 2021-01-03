@@ -1,8 +1,7 @@
-// Declaration file 
-
 #pragma once //designed to include the current source file only once in a single compilation.
 #ifndef SPOT_MICRO_MOTION_CMD //usd for conditional compiling.
 #define SPOT_MICRO_MOTION_CMD
+
 #include <ros/ros.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/static_transform_broadcaster.h>

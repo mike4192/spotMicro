@@ -1,11 +1,13 @@
-#include <eigen3/Eigen/Geometry>
+#include "spot_micro_motion_cmd.h"
 
+#include <eigen3/Eigen/Geometry>
 #include "std_msgs/Float32.h"
 #include "std_msgs/Bool.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Float32MultiArray.h"
 #include "geometry_msgs/Vector3.h"
 #include "geometry_msgs/Twist.h"
+#include "tf2/LinearMath/Quaternion.h"
 #include "tf2_eigen/tf2_eigen.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
@@ -15,12 +17,14 @@
 #include "i2cpwm_board/ServoArray.h"
 #include "i2cpwm_board/ServoConfig.h"
 #include "i2cpwm_board/ServosConfig.h"
-
 #include "spot_micro_idle.h"
+#include "utils.h"
 
 
 using namespace smk;
 using namespace Eigen;
+using namespace geometry_msgs;
+typedef std::vector<std::pair<std::string,std::string>> VectorStringPairs;
 
 // Constructor
 SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh) {
@@ -504,61 +508,177 @@ void SpotMicroMotionCmd::publishLcdMonitorData() {
 
 
 void SpotMicroMotionCmd::publishStaticTransforms() {
-  geometry_msgs::TransformStamped transform_stamped;
 
-  transform_stamped.header.stamp = ros::Time::now();
-  transform_stamped.header.frame_id = "world";
-  transform_stamped.child_frame_id = "odom";
+  TransformStamped tr_stamped;
 
-  transform_stamped.transform.translation.x = 0.0;
-  transform_stamped.transform.translation.y = 0.0;
-  transform_stamped.transform.translation.z = 0.0;
-  transform_stamped.transform.rotation.x = 0.0;
-  transform_stamped.transform.rotation.y = 0.0;
-  transform_stamped.transform.rotation.z = 0.0;
-  transform_stamped.transform.rotation.w = 1.0;
+  // World to odom frame transform
+  tr_stamped = createTransform("world", "odom",
+                               0.0, 0.0, 0.0,
+                               0.0, 0.0, 0.0);
+  static_transform_br_.sendTransform(tr_stamped);
 
-  static_transform_br_.sendTransform(transform_stamped);
+  // base_link to front_link transform
+  tr_stamped = createTransform("base_link", "front_link",
+                               0.0, 0.0, 0.0,
+                               0.0, 0.0, 0.0);
+  static_transform_br_.sendTransform(tr_stamped);
+
+  // base_link to rear_link transform
+  tr_stamped = createTransform("base_link", "rear_link",
+                               0.0, 0.0, 0.0,
+                               0.0, 0.0, 0.0);
+  static_transform_br_.sendTransform(tr_stamped);
+
+  // base_link to lidar_link transform
+  tr_stamped = createTransform("base_link", "lidar_link",
+                               0.0, 0.0, 0.035, // TODO: Change to a parameter
+                               0.0, 0.0, 0.0);
+  static_transform_br_.sendTransform(tr_stamped);
+
+  // legs to leg cover transforms
+  const VectorStringPairs leg_cover_pairs { 
+      { "front_left_leg_link",  "front_left_leg_link_cover" },
+      { "front_right_leg_link", "front_right_leg_link_cover"},
+      { "rear_right_leg_link",  "rear_right_leg_link_cover" },
+      { "rear_left_leg_link",   "rear_left_leg_link_cover" }};
+  
+  // Loop over all leg to leg cover name pairs, publish a 0 dist/rot transform 
+  for (auto it = leg_cover_pairs.begin(); it != leg_cover_pairs.end(); it++) {
+    tr_stamped = createTransform(it->first, it->second,
+                               0.0, 0.0, 0.0,
+                               0.0, 0.0, 0.0);
+    static_transform_br_.sendTransform(tr_stamped); 
+  }
+
+  // foot to toe link transforms
+  const VectorStringPairs foot_toe_pairs { 
+      { "front_left_foot_link",  "front_left_toe_link" },
+      { "front_right_foot_link", "front_right_toe_link"},
+      { "rear_right_foot_link",  "rear_right_toe_link" },
+      { "rear_left_foot_link",   "rear_left_toe_link" }};
+  
+  // Loop over all name pairs, publish the same transform
+  for (auto it = foot_toe_pairs.begin(); it != foot_toe_pairs.end(); it++) {
+    tr_stamped = createTransform(it->first, it->second,
+                               0.0, 0.0, -0.13, // TODO: Change to a parameter
+                               0.0, 0.0, 0.0);
+    static_transform_br_.sendTransform(tr_stamped); 
+  }
 }
 
 
 void SpotMicroMotionCmd::publishDynamicTransforms() {
 
-  // Get robot transformation struct
-  AllRobotRelativeTransforms transforms = sm_.getRobotTransforms();
+  // Get joint angles
+  LegsJointAngles joint_angs = sm_.getLegsJointAngles();
 
-  // Publish base_link transform
-  geometry_msgs::TransformStamped transform_stamped;
-
-  // Need to convert a Eigen Matrix4F to an Affine3d by first casting
-  // float to double (to a Matrix4d), then calling the constructor for Affine3d
-  // with the Matrix4d
-  Affine3d body_center = Affine3d(transforms.bodyCenter.cast<double>());
+  // Declare utility variables
+  TransformStamped transform_stamped;
+  Affine3d temp_trans;
+  
+  /////////////////
+  // BODY CENTER //
+  /////////////////
+  temp_trans = matrix4fToAffine3d(sm_.getBodyHt());
 
   // Rotate body center transform to desired coordinate system
   // Original coordinate frame: x forward, y up, z right
   // Desired orientation: x forward, y left, z up
   // First need to rotate the robot frame +90 deg about the global +X axis 
   // (pre-multiply), then rotate the local coordinate system by -90 (post multiply)
-  body_center = AngleAxisd(M_PI/2.0, Vector3d::UnitX()) *
-                body_center * 
+  temp_trans = AngleAxisd(M_PI/2.0, Vector3d::UnitX()) *
+                temp_trans * 
                 AngleAxisd(-M_PI/2.0, Vector3d::UnitX());
 
+  // Create transform stamped and broadcast it
+  transform_stamped = eigAndFramesToTrans(temp_trans, "odom", "base_link");
+  transform_br_.sendTransform(transform_stamped);
 
-  transform_stamped = tf2::eigenToTransform(body_center);
 
-  transform_stamped.header.stamp = ros::Time::now();
-  transform_stamped.header.frame_id = "odom";
-  transform_stamped.child_frame_id = "base_link";
+  /////////////////////
+  // FRONT RIGHT LEG //
+  /////////////////////
+  // Shoulder
+  transform_stamped = createTransform("base_link", "front_right_shoulder_link",
+                                      smnc_.smc.body_length/2.0, -smnc_.smc.body_width/2.0, 0.0,
+                                      joint_angs.right_front.ang1, 0.0, 0.0);      
+  transform_br_.sendTransform(transform_stamped);
 
+  // leg
+  transform_stamped = createTransform("front_right_shoulder_link","front_right_leg_link",
+                                      0.0, -smnc_.smc.hip_link_length, 0.0,
+                                      0.0, -joint_angs.right_front.ang2, 0.0);                         
+  transform_br_.sendTransform(transform_stamped);
+
+  // foot
+  transform_stamped = createTransform("front_right_leg_link","front_right_foot_link",
+                                      0.0, 0.0, -smnc_.smc.upper_leg_link_length,
+                                      0.0, -joint_angs.right_front.ang3, 0.0);                         
+  transform_br_.sendTransform(transform_stamped);
+
+
+  ////////////////////
+  // REAR RIGHT LEG //
+  ////////////////////
+  // shoulder
+  transform_stamped = createTransform("base_link", "rear_right_shoulder_link",
+                                      -smnc_.smc.body_length/2.0, -smnc_.smc.body_width/2.0, 0.0,
+                                      joint_angs.right_back.ang1, 0.0, 0.0);      
   transform_br_.sendTransform(transform_stamped);
   
-  // Matrix4d md(mf.cast());
-  // Eigen::Affine3d affine(md);
-  // tf::Transform transform;
-  // tf::TransformEigenToTF(affine, transform);
+  // leg
+  transform_stamped = createTransform("rear_right_shoulder_link","rear_right_leg_link",
+                                      0.0, -smnc_.smc.hip_link_length, 0.0,
+                                      0.0, -joint_angs.right_back.ang2, 0.0);                         
+  transform_br_.sendTransform(transform_stamped);
 
-  
+  // foot
+  transform_stamped = createTransform("rear_right_leg_link","rear_right_foot_link",
+                                      0.0, 0.0, -smnc_.smc.upper_leg_link_length,
+                                      0.0, -joint_angs.right_back.ang3, 0.0);                         
+  transform_br_.sendTransform(transform_stamped);
 
 
+  ////////////////////
+  // FRONT LEFT LEG //
+  ////////////////////
+  // Shoulder
+  transform_stamped = createTransform("base_link", "front_left_shoulder_link",
+                                      smnc_.smc.body_length/2.0, smnc_.smc.body_width/2.0, 0.0,
+                                      -joint_angs.left_front.ang1, 0.0, 0.0);      
+  transform_br_.sendTransform(transform_stamped);
+
+  // leg
+  transform_stamped = createTransform("front_left_shoulder_link","front_left_leg_link",
+                                      0.0, smnc_.smc.hip_link_length, 0.0,
+                                      0.0, joint_angs.left_front.ang2, 0.0);                         
+  transform_br_.sendTransform(transform_stamped);
+
+  // foot
+  transform_stamped = createTransform("front_left_leg_link","front_left_foot_link",
+                                      0.0, 0.0, -smnc_.smc.upper_leg_link_length,
+                                      0.0, joint_angs.left_front.ang3, 0.0);                         
+  transform_br_.sendTransform(transform_stamped);
+
+
+  ///////////////////
+  // REAR LEFT LEG //
+  ///////////////////
+  // shoulder
+  transform_stamped = createTransform("base_link", "rear_left_shoulder_link",
+                                      -smnc_.smc.body_length/2.0, smnc_.smc.body_width/2.0, 0.0,
+                                      -joint_angs.left_back.ang1, 0.0, 0.0);      
+  transform_br_.sendTransform(transform_stamped);
+
+  // leg
+  transform_stamped = createTransform("rear_left_shoulder_link","rear_left_leg_link",
+                                      0.0, smnc_.smc.hip_link_length, 0.0,
+                                      0.0, joint_angs.left_back.ang2, 0.0);                         
+  transform_br_.sendTransform(transform_stamped);
+
+  // foot
+  transform_stamped = createTransform("rear_left_leg_link","rear_left_foot_link",
+                                      0.0, 0.0, -smnc_.smc.upper_leg_link_length,
+                                      0.0, joint_angs.left_back.ang3, 0.0);                         
+  transform_br_.sendTransform(transform_stamped);
 }
