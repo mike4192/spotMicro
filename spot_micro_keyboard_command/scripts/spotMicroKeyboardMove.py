@@ -7,6 +7,7 @@ import rospy
 import sys, select, termios, tty # For terminal keyboard key press reading
 from std_msgs.msg import Float32, Bool 
 from geometry_msgs.msg import Vector3
+from geometry_msgs.msg import Twist
 from math import pi
 
 msg = """
@@ -48,16 +49,6 @@ angle_inc = 2.5*pi/180
 class SpotMicroKeyboardControl():
     def __init__(self):
 
-        # Create messages for body motion commands, and initialize to zero 
-        self._x_speed_cmd_msg = Float32()
-        self._x_speed_cmd_msg.data = 0
-
-        self._y_speed_cmd_msg = Float32()
-        self._y_speed_cmd_msg.data = 0
-
-        self._yaw_rate_cmd_msg = Float32()
-        self._yaw_rate_cmd_msg.data = 0
-
         self._angle_cmd_msg = Vector3()
         self._angle_cmd_msg.x = 0
         self._angle_cmd_msg.y = 0
@@ -68,6 +59,14 @@ class SpotMicroKeyboardControl():
         self._speed_cmd_msg.y = 0
         self._speed_cmd_msg.z = 0
 
+        self._vel_cmd_msg = Twist()
+        self._vel_cmd_msg.linear.x = 0
+        self._vel_cmd_msg.linear.y = 0
+        self._vel_cmd_msg.linear.z = 0
+        self._vel_cmd_msg.angular.x = 0
+        self._vel_cmd_msg.angular.y = 0
+        self._vel_cmd_msg.angular.z = 0
+        
         self._walk_event_cmd_msg = Bool()
         self._walk_event_cmd_msg.data = True # Mostly acts as an event driven action on receipt of a true message
 
@@ -82,48 +81,40 @@ class SpotMicroKeyboardControl():
         # Set up and title the ros node for this code
         rospy.init_node('spot_micro_keyboard_control')
 
-        # Create publishers for x,y speed command, body rate command, and state command
-        self.ros_pub_x_speed_cmd    = rospy.Publisher('x_speed_cmd',Float32,queue_size=1)
-        self.ros_pub_y_speed_cmd    = rospy.Publisher('/y_speed_cmd',Float32,queue_size=1)
-        self.ros_pub_yaw_rate_cmd   = rospy.Publisher('/yaw_rate_cmd',Float32,queue_size=1)
-        self.ros_pub_speed_cmd      = rospy.Publisher('/speed_cmd',Vector3,queue_size=1)
-        self.ros_pub_angle_cmd      = rospy.Publisher('/angle_cmd',Vector3,queue_size=1)
-        self.ros_pub_state_cmd      = rospy.Publisher('/state_cmd',Bool,queue_size=1)
-        self.ros_pub_walk_cmd       = rospy.Publisher('/walk_cmd',Bool, queue_size=1)
-        self.ros_pub_stand_cmd      = rospy.Publisher('/stand_cmd',Bool,queue_size=1)
-        self.ros_pub_idle_cmd       = rospy.Publisher('/idle_cmd',Bool,queue_size=1)
+        # Create publishers for commanding velocity, angle, and robot states
+        self._ros_pub_angle_cmd      = rospy.Publisher('/angle_cmd',Vector3,queue_size=1)
+        self._ros_pub_vel_cmd        = rospy.Publisher('/cmd_vel',Twist,queue_size=1)
+        self._ros_pub_walk_cmd       = rospy.Publisher('/walk_cmd',Bool, queue_size=1)
+        self._ros_pub_stand_cmd      = rospy.Publisher('/stand_cmd',Bool,queue_size=1)
+        self._ros_pub_idle_cmd       = rospy.Publisher('/idle_cmd',Bool,queue_size=1)
 
-        rospy.loginfo("> Publishers corrrectly initialized")
-
-        rospy.loginfo("Initialization complete")
+        rospy.loginfo("Keyboard control node publishers corrrectly initialized")
 
         # Setup terminal input reading, taken from teleop_twist_keyboard
         self.settings = termios.tcgetattr(sys.stdin)
 
+        rospy.loginfo("Keyboard control node initialization complete")
+
     def reset_all_motion_commands_to_zero(self):
         '''Reset body motion cmd states to zero and publish zero value body motion commands'''
-        self._x_speed_cmd_msg.data = 0
-        self._y_speed_cmd_msg.data = 0
-        self._yaw_rate_cmd_msg.data = 0
+        
+        self._vel_cmd_msg.linear.x = 0
+        self._vel_cmd_msg.linear.y = 0
+        self._vel_cmd_msg.linear.z = 0
+        self._vel_cmd_msg.angular.x = 0
+        self._vel_cmd_msg.angular.y = 0
+        self._vel_cmd_msg.angular.z = 0
 
-        self.ros_pub_x_speed_cmd.publish(self._x_speed_cmd_msg)
-        self.ros_pub_y_speed_cmd.publish(self._y_speed_cmd_msg)
-        self.ros_pub_yaw_rate_cmd.publish(self._yaw_rate_cmd_msg)
-
-        self._speed_cmd_msg.x = 0
-        self._speed_cmd_msg.y = 0
-        self._speed_cmd_msg.z = 0
-
-        self.ros_pub_speed_cmd.publish(self._speed_cmd_msg)
+        self._ros_pub_vel_cmd.publish(self._vel_cmd_msg)
 
     def reset_all_angle_commands_to_zero(self):
         '''Reset angle cmd states to zero and publish them'''
 
         self._angle_cmd_msg.x = 0
-        self._speed_cmd_msg.y = 0
-        self._speed_cmd_msg.z = 0
+        self._angle_cmd_msg.y = 0
+        self._angle_cmd_msg.z = 0
 
-        self.ros_pub_angle_cmd.publish(self._angle_cmd_msg)
+        self._ros_pub_angle_cmd.publish(self._angle_cmd_msg)
 
     def getKey(self):
         tty.setraw(sys.stdin.fileno())
@@ -135,31 +126,35 @@ class SpotMicroKeyboardControl():
     def run(self):
         # Publish all body motion commands to 0
         self.reset_all_motion_commands_to_zero()
+        rospy.loginfo('Main keyboard control loop started.')
 
-        # Prompt user with keyboard command information
-        
+        # Main loop
         while not rospy.is_shutdown():
+            # Prompt user with keyboard command information, and wait for input keystroke
             print(msg)
             userInput = raw_input("Command?: ")
 
             if userInput not in valid_cmds:
-                print('Valid command not entered, try again...')
+                rospy.logwarn('Invalid keyboard command entered: %s', userInput)
             else:
                 if userInput == 'quit':
-                    print("Ending program...")
+                    rospy.loginfo("Exiting keyboard control node...")
                     break
                 
                 elif userInput == 'stand':
                     #Publish stand command event
-                    self.ros_pub_stand_cmd.publish(self._stand_event_cmd_msg)
+                    self._ros_pub_stand_cmd.publish(self._stand_event_cmd_msg)
+                    rospy.loginfo('Stand command issued from keyboard.')
                 
                 elif userInput == 'idle':
                     #Publish idle command event
-                    self.ros_pub_idle_cmd.publish(self._idle_event_cmd_msg)
+                    self._ros_pub_idle_cmd.publish(self._idle_event_cmd_msg)
+                    rospy.loginfo('Idle command issued from keyboard.')
 
                 elif userInput == 'angle_cmd':
                     # Reset all angle commands
                     self.reset_all_angle_commands_to_zero()
+                    rospy.loginfo('Entering keyboard angle command mode.')
                     
                     # Enter loop to act on user command
                     print('Enter command, u to go back to command select: ')
@@ -175,116 +170,92 @@ class SpotMicroKeyboardControl():
                             break
 
                         elif userInput not in ('w','a','s','d','q','e','u'):
-                            print('Key not in valid key commands, try again')
+                            rospy.logwarn('Invalid keyboard command issued in angle command mode: %s', userInput)
                         else:
                             if userInput == 'w':
                                 self._angle_cmd_msg.y = self._angle_cmd_msg.y - angle_inc
-                                self.ros_pub_angle_cmd.publish(self._angle_cmd_msg)
+                                self._ros_pub_angle_cmd.publish(self._angle_cmd_msg)
                             
                             elif userInput == 's':
                                 self._angle_cmd_msg.y = self._angle_cmd_msg.y + angle_inc
-                                self.ros_pub_angle_cmd.publish(self._angle_cmd_msg)
+                                self._ros_pub_angle_cmd.publish(self._angle_cmd_msg)
 
                             elif userInput == 'q':
                                 self._angle_cmd_msg.z = self._angle_cmd_msg.z + angle_inc
-                                self.ros_pub_angle_cmd.publish(self._angle_cmd_msg)
+                                self._ros_pub_angle_cmd.publish(self._angle_cmd_msg)
 
                             elif userInput == 'e':
                                 self._angle_cmd_msg.z = self._angle_cmd_msg.z - angle_inc
-                                self.ros_pub_angle_cmd.publish(self._angle_cmd_msg)
+                                self._ros_pub_angle_cmd.publish(self._angle_cmd_msg)
 
                             elif userInput == 'a':
                                 self._angle_cmd_msg.x = self._angle_cmd_msg.x - angle_inc
-                                self.ros_pub_angle_cmd.publish(self._angle_cmd_msg)
+                                self._ros_pub_angle_cmd.publish(self._angle_cmd_msg)
 
                             elif userInput == 'd':
                                 self._angle_cmd_msg.x = self._angle_cmd_msg.x + angle_inc
-                                self.ros_pub_angle_cmd.publish(self._angle_cmd_msg)
+                                self._ros_pub_angle_cmd.publish(self._angle_cmd_msg)
 
                 elif userInput == 'walk':
                     # Reset all body motion commands to zero
                     self.reset_all_motion_commands_to_zero()
 
                     # Publish walk event
-                    self.ros_pub_state_cmd.publish(self._walk_event_cmd_msg)
-                    self.ros_pub_walk_cmd.publish(self._walk_event_cmd_msg)
+                    self._ros_pub_walk_cmd.publish(self._walk_event_cmd_msg)
+                    rospy.loginfo('Idle command issued from keyboard.')
 
-                    # Enter loop to act on user command
-
+                    # Prompt user with info and enter loop to act on user command
                     print('Enter command, u to go back to stand mode: ')
 
                     while (1):
                         print('Cmd Values: x speed: %1.3f m/s, y speed: %1.3f m/s, yaw rate: %1.3f deg/s '\
-                                %(self._x_speed_cmd_msg.data,self._y_speed_cmd_msg.data,self._yaw_rate_cmd_msg.data*180/pi))
+                                %(self._vel_cmd_msg.linear.x,self._vel_cmd_msg.linear.y,self._vel_cmd_msg.angular.z*180/pi))
                        
                         userInput = self.getKey()
 
                         if userInput == 'u':
-                            # Send walk event message, this will take robot back to rest mode
-                            self.ros_pub_state_cmd.publish(self._walk_event_cmd_msg)
-
-                            self.ros_pub_stand_cmd.publish(self._stand_event_cmd_msg)
+                            # Send stand event message, this will take robot back to standing mode
+                            self._ros_pub_stand_cmd.publish(self._stand_event_cmd_msg)
+                            rospy.loginfo('Stand command issued from keyboard.')
                             break
 
                         elif userInput not in ('w','a','s','d','q','e','u','f'):
                             print('Key not in valid key commands, try again')
+                            rospy.logwarn('Invalid keyboard command issued in walk mode: %s', userInput)
                         else:
                             if userInput == 'w':
-                                self._x_speed_cmd_msg.data = self._x_speed_cmd_msg.data + speed_inc
-                                self.ros_pub_x_speed_cmd.publish(self._x_speed_cmd_msg)
-
-                                self._speed_cmd_msg.x = self._speed_cmd_msg.x + speed_inc
-                                self.ros_pub_speed_cmd.publish(self._speed_cmd_msg)
+                                self._vel_cmd_msg.linear.x = self._vel_cmd_msg.linear.x + speed_inc
+                                self._ros_pub_vel_cmd.publish(self._vel_cmd_msg)
                             
                             elif userInput == 's':
-                                self._x_speed_cmd_msg.data = self._x_speed_cmd_msg.data - speed_inc
-                                self.ros_pub_x_speed_cmd.publish(self._x_speed_cmd_msg)
-
-                                self._speed_cmd_msg.x = self._speed_cmd_msg.x - speed_inc
-                                self.ros_pub_speed_cmd.publish(self._speed_cmd_msg)
+                                self._vel_cmd_msg.linear.x = self._vel_cmd_msg.linear.x - speed_inc
+                                self._ros_pub_vel_cmd.publish(self._vel_cmd_msg)
 
                             elif userInput == 'a':
-                                self._y_speed_cmd_msg.data = self._y_speed_cmd_msg.data + speed_inc
-                                self.ros_pub_y_speed_cmd.publish(self._y_speed_cmd_msg)
-
-                                self._speed_cmd_msg.y = self._speed_cmd_msg.y - speed_inc
-                                self.ros_pub_speed_cmd.publish(self._speed_cmd_msg)
+                                self._vel_cmd_msg.linear.y = self._vel_cmd_msg.linear.y - speed_inc
+                                self._ros_pub_vel_cmd.publish(self._vel_cmd_msg)
                             
                             elif userInput == 'd':
-                                self._y_speed_cmd_msg.data = self._y_speed_cmd_msg.data - speed_inc
-                                self.ros_pub_y_speed_cmd.publish(self._y_speed_cmd_msg)
-
-                                self._speed_cmd_msg.y = self._speed_cmd_msg.y + speed_inc
-                                self.ros_pub_speed_cmd.publish(self._speed_cmd_msg)
+                                self._vel_cmd_msg.linear.y = self._vel_cmd_msg.linear.y + speed_inc
+                                self._ros_pub_vel_cmd.publish(self._vel_cmd_msg)
 
                             elif userInput == 'q':
-                                self._yaw_rate_cmd_msg.data = self._yaw_rate_cmd_msg.data + yaw_rate_inc
-                                self.ros_pub_yaw_rate_cmd.publish(self._yaw_rate_cmd_msg)
-
-                                self._speed_cmd_msg.z = self._speed_cmd_msg.z - yaw_rate_inc
-                                self.ros_pub_speed_cmd.publish(self._speed_cmd_msg)
+                                self._vel_cmd_msg.angular.z = self._vel_cmd_msg.angular.z - yaw_rate_inc
+                                self._ros_pub_vel_cmd.publish(self._vel_cmd_msg)
 
                             elif userInput == 'e':
-                                self._yaw_rate_cmd_msg.data = self._yaw_rate_cmd_msg.data - yaw_rate_inc
-                                self.ros_pub_yaw_rate_cmd.publish(self._yaw_rate_cmd_msg)
-
-                                self._speed_cmd_msg.z = self._speed_cmd_msg.z + yaw_rate_inc
-                                self.ros_pub_speed_cmd.publish(self._speed_cmd_msg)
+                                self._vel_cmd_msg.angular.z = self._vel_cmd_msg.angular.z + yaw_rate_inc
+                                self._ros_pub_vel_cmd.publish(self._vel_cmd_msg)
 
                             elif userInput == 'f':
-                                self._speed_cmd_msg.x = 0
-                                self._speed_cmd_msg.y = 0
-                                self._speed_cmd_msg.z = 0
-                                self._x_speed_cmd_msg.data = 0
-                                self._y_speed_cmd_msg.data = 0
-                                self._yaw_rate_cmd_msg.data = 0
+                                self._vel_cmd_msg.linear.x = 0
+                                self._vel_cmd_msg.linear.y = 0
+                                self._vel_cmd_msg.angular.z = 0
 
-                                self.ros_pub_speed_cmd.publish(self._speed_cmd_msg)
+                                self._ros_pub_vel_cmd.publish(self._vel_cmd_msg)
+                                rospy.loginfo('Command issued to zero all rate commands.')
 
                                 
-
-
-
 if __name__ == "__main__":
     smkc     = SpotMicroKeyboardControl()
     smkc.run()

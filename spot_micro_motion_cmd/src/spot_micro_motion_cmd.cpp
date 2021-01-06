@@ -1,8 +1,15 @@
+#include "spot_micro_motion_cmd.h"
+
+#include <eigen3/Eigen/Geometry>
 #include "std_msgs/Float32.h"
 #include "std_msgs/Bool.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Float32MultiArray.h"
 #include "geometry_msgs/Vector3.h"
+#include "geometry_msgs/Twist.h"
+#include "tf2/LinearMath/Quaternion.h"
+#include "tf2_eigen/tf2_eigen.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
 #include "spot_micro_motion_cmd.h"
 #include "spot_micro_kinematics/spot_micro_kinematics.h"
@@ -10,52 +17,14 @@
 #include "i2cpwm_board/ServoArray.h"
 #include "i2cpwm_board/ServoConfig.h"
 #include "i2cpwm_board/ServosConfig.h"
-
 #include "spot_micro_idle.h"
+#include "utils.h"
 
 
 using namespace smk;
-
-
-void SpotMicroMotionCmd::standCommandCallback(
-    const std_msgs::Bool::ConstPtr& msg) {
-  if (msg->data == true) {cmd_.stand_cmd_ = true;}
-}
-
-
-void SpotMicroMotionCmd::idleCommandCallback(
-    const std_msgs::Bool::ConstPtr& msg) {
-  if (msg->data == true) {cmd_.idle_cmd_ = true;}
-}
-
-
-void SpotMicroMotionCmd::walkCommandCallback(
-    const std_msgs::Bool::ConstPtr& msg) {
-  if (msg->data == true) {cmd_.walk_cmd_ = true;}
-}
-
-void SpotMicroMotionCmd::speedCommandCallback(
-    const geometry_msgs::Vector3ConstPtr& msg) {
-  cmd_.x_vel_cmd_mps_ = msg->x;
-  cmd_.y_vel_cmd_mps_ = msg->y;
-  cmd_.yaw_rate_cmd_rps_ = msg->z;
-}
-
-
-void SpotMicroMotionCmd::angleCommandCallback(
-    const geometry_msgs::Vector3ConstPtr& msg) {
-  cmd_.phi_cmd_ = msg->x;
-  cmd_.theta_cmd_ = msg->y;
-  cmd_.psi_cmd_ = msg->z;
-}
-
-
-void SpotMicroMotionCmd::resetEventCommands() {
-  // Reset all event commands, setting all command states false if they were true 
-  cmd_.resetEventCmds(); 
-}
-
-
+using namespace Eigen;
+using namespace geometry_msgs;
+typedef std::vector<std::pair<std::string,std::string>> VectorStringPairs;
 
 // Constructor
 SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh) {
@@ -86,6 +55,9 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
   // Set the spot micro kinematics object to this initial command
   sm_.setBodyState(body_state_cmd_);
 
+  // Set initial odometry state to zero
+  robot_odometry_.euler_angs = {.phi = 0.0f, .theta = 0.0f, .psi = 0.0f};
+  robot_odometry_.xyz_pos = {.x = 0.0f, .y = 0.0f, .z = 0.0f};
 
   // Initialize servo array message with 12 servo objects
   for (int i = 1; i <= smnc_.num_servos; i++) {
@@ -108,12 +80,12 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
 
   // walk cmd event subscriber
   walk_sub_ = nh.subscribe("/walk_cmd", 1, &SpotMicroMotionCmd::walkCommandCallback, this);
- 
-  // speed command subscriber
-  speed_cmd_sub_ = nh.subscribe("/speed_cmd", 1, &SpotMicroMotionCmd::speedCommandCallback, this);  
 
   // body angle command subscriber
   body_angle_cmd_sub_ = nh.subscribe("/angle_cmd", 1, &SpotMicroMotionCmd::angleCommandCallback, this);  
+
+  // velocity command subscriber 
+  vel_cmd_sub_ = nh.subscribe("/cmd_vel", 1, &SpotMicroMotionCmd::velCommandCallback, this);  
 
   // servos_absolute publisher
   servos_absolute_pub_ = nh.advertise<i2cpwm_board::ServoArray>("servos_absolute", 1);
@@ -128,24 +100,29 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
   body_state_pub_ = nh.advertise<std_msgs::Float32MultiArray>("body_state",1);
 
   // State string publisher for lcd monitor
-  sm_state_pub_ = nh.advertise<std_msgs::String>("sm_state",1);
+  lcd_state_pub_ = nh.advertise<std_msgs::String>("lcd_state",1);
 
-  // Speed command state publisher for lcd monitor
-  sm_speed_cmd_pub_ = nh.advertise<geometry_msgs::Vector3>("sm_speed_cmd",1);
+  // Velocity command state publisher for lcd monitor
+  lcd_vel_cmd_pub_ = nh.advertise<geometry_msgs::Twist>("lcd_vel_cmd",1);
 
   // Angle command state publisher for lcd monitor
-  sm_angle_cmd_pub_ = nh.advertise<geometry_msgs::Vector3>("sm_angle_cmd",1);
+  lcd_angle_cmd_pub_ = nh.advertise<geometry_msgs::Vector3>("lcd_angle_cmd",1);
+
+
 
   // Initialize lcd monitor messages
-  state_string_msg_.data = "Idle";
+  lcd_state_string_msg_.data = "Idle";
 
-  speed_cmd_msg_.x = 0.0f;
-  speed_cmd_msg_.y = 0.0f;
-  speed_cmd_msg_.z = 0.0f;
+  lcd_vel_cmd_msg_.linear.x = 0.0f;
+  lcd_vel_cmd_msg_.linear.y = 0.0f;
+  lcd_vel_cmd_msg_.linear.z = 0.0f;
+  lcd_vel_cmd_msg_.angular.x = 0.0f;
+  lcd_vel_cmd_msg_.angular.y = 0.0f;
+  lcd_vel_cmd_msg_.angular.z = 0.0f;
   
-  angle_cmd_msg_.x = 0.0f;
-  angle_cmd_msg_.y = 0.0f;
-  angle_cmd_msg_.z = 0.0f;
+  lcd_angle_cmd_msg_.x = 0.0f;
+  lcd_angle_cmd_msg_.y = 0.0f;
+  lcd_angle_cmd_msg_.z = 0.0f;
  
 
   // Only do if plot mode
@@ -157,7 +134,11 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
       body_state_msg_.data.push_back(0.0f); 
     }
   }
+
+  // Publish static transforms
+  publishStaticTransforms();
 }
+
 
 // Destructor method
 SpotMicroMotionCmd::~SpotMicroMotionCmd() {
@@ -166,6 +147,183 @@ SpotMicroMotionCmd::~SpotMicroMotionCmd() {
     std::cout<<"from Destructor \n";
   }
   // Free up the memory assigned from heap
+}
+
+
+void SpotMicroMotionCmd::runOnce() {
+  if (smnc_.debug_mode) {
+    std::cout<<"from Runonce \n";
+  }
+
+  // Call method to handle input commands
+  handleInputCommands();
+
+  // Consume all event commands.
+  // This resets all event commands if they were true. Doing this enforces a rising edge detection
+  resetEventCommands();
+
+  // Only publish body state message in debug mode
+  if (smnc_.plot_mode) {
+    publishBodyState();
+  }
+
+  // Publish lcd monitor data
+  publishLcdMonitorData();
+
+  // Broadcast dynamic transforms
+  publishDynamicTransforms();
+
+  // Integrate robot odometry
+  integrateOdometry();
+}
+
+
+bool SpotMicroMotionCmd::publishServoConfiguration() {  
+  // Create a temporary servo config
+  i2cpwm_board::ServoConfig temp_servo_config;
+  i2cpwm_board::ServosConfig temp_servo_config_array;
+
+  // Loop through servo configuration dictionary in smnc_, append servo to
+  for (std::map<std::string, std::map<std::string, float>>::iterator
+       iter = smnc_.servo_config.begin();
+       iter != smnc_.servo_config.end();
+       ++iter) {
+
+    std::map<std::string, float> servo_config_params = iter->second;
+    temp_servo_config.center = servo_config_params["center"];
+    temp_servo_config.range = servo_config_params["range"];
+    temp_servo_config.servo = servo_config_params["num"];
+    temp_servo_config.direction = servo_config_params["direction"];
+
+    // Append to temp_servo_config_array
+    temp_servo_config_array.request.servos.push_back(temp_servo_config);
+  }
+
+  // call the client service, return true if succesfull, false if not
+  if (!servos_config_client_.call(temp_servo_config_array)) {
+    if (!smnc_.debug_mode) {
+      // Only error out if not in debug mode
+      ROS_ERROR("Failed to call service servo_config");
+      return false;
+    }
+  }
+
+  return true;
+}
+
+
+void SpotMicroMotionCmd::setServoCommandMessageData() {
+  // Set the state of the spot micro kinematics object by setting the foot
+  // positions, body position, and body orientation. Retrieve joint angles and
+  // set the servo cmd message data
+  sm_.setBodyState(body_state_cmd_);
+  LegsJointAngles joint_angs = sm_.getLegsJointAngles();
+
+  // Set the angles for the servo command message
+  servo_cmds_rad_["RF_1"] = joint_angs.right_front.ang1;
+  servo_cmds_rad_["RF_2"] = joint_angs.right_front.ang2;
+  servo_cmds_rad_["RF_3"] = joint_angs.right_front.ang3;
+ 
+  servo_cmds_rad_["RB_1"] = joint_angs.right_back.ang1;
+  servo_cmds_rad_["RB_2"] = joint_angs.right_back.ang2;
+  servo_cmds_rad_["RB_3"] = joint_angs.right_back.ang3;
+ 
+  servo_cmds_rad_["LF_1"] = joint_angs.left_front.ang1;
+  servo_cmds_rad_["LF_2"] = joint_angs.left_front.ang2;
+  servo_cmds_rad_["LF_3"] = joint_angs.left_front.ang3;
+ 
+  servo_cmds_rad_["LB_1"] = joint_angs.left_back.ang1;
+  servo_cmds_rad_["LB_2"] = joint_angs.left_back.ang2;
+  servo_cmds_rad_["LB_3"] = joint_angs.left_back.ang3;
+}
+
+
+void SpotMicroMotionCmd::publishServoProportionalCommand() {
+  for (std::map<std::string, std::map<std::string, float>>::iterator
+       iter = smnc_.servo_config.begin();
+       iter != smnc_.servo_config.end();
+       ++iter) {
+ 
+    std::string servo_name = iter->first;
+    std::map<std::string, float> servo_config_params = iter->second;
+    
+    int servo_num = servo_config_params["num"];
+    float cmd_ang_rad = servo_cmds_rad_[servo_name];
+    float center_ang_rad = servo_config_params["center_angle_deg"]*M_PI/180.0f;
+    float servo_proportional_cmd = (cmd_ang_rad - center_ang_rad) /
+                                   (smnc_.servo_max_angle_deg*M_PI/180.0f);
+ 
+    if (servo_proportional_cmd > 1.0f) {
+      servo_proportional_cmd = 1.0f;
+      ROS_WARN("Proportional Command above +1.0 was computed, clipped to 1.0");
+      ROS_WARN("Joint %s, Angle: %1.2f", servo_name.c_str(), cmd_ang_rad*180.0/M_PI);
+ 
+    } else if (servo_proportional_cmd < -1.0f) {
+      servo_proportional_cmd = -1.0f;
+      ROS_WARN("Proportional Command below -1.0 was computed, clipped to -1.0");
+      ROS_WARN("Joint %s, Angle: %1.2f", servo_name.c_str(), cmd_ang_rad*180.0/M_PI);
+    }
+ 
+    servo_array_.servos[servo_num-1].servo = servo_num;
+    servo_array_.servos[servo_num-1].value = servo_proportional_cmd; 
+ }
+
+ // Publish message
+ servos_proportional_pub_.publish(servo_array_);
+}
+
+
+void SpotMicroMotionCmd::publishZeroServoAbsoluteCommand() {
+  // Publish the servo absolute message
+  servos_absolute_pub_.publish(servo_array_absolute_);
+}
+
+
+SpotMicroNodeConfig SpotMicroMotionCmd::getNodeConfig() {
+  return smnc_;
+}
+
+
+LegsFootPos SpotMicroMotionCmd::getNeutralStance() {
+  float len = smnc_.smc.body_length; // body length
+  float width = smnc_.smc.body_width; // body width
+  float l1 = smnc_.smc.hip_link_length; // liength of the hip link
+  float f_offset = smnc_.stand_front_x_offset; // x offset for front feet in neutral stance
+  float b_offset = smnc_.stand_back_x_offset; // y offset for back feet in neutral stance
+
+  LegsFootPos neutral_stance;
+  neutral_stance.right_back  = {.x = -len/2 + b_offset, .y = 0.0f, .z =  width/2 + l1};
+  neutral_stance.right_front = {.x =  len/2 + f_offset, .y = 0.0f, .z =  width/2 + l1};
+  neutral_stance.left_front  = {.x =  len/2 + f_offset, .y = 0.0f, .z = -width/2 - l1};
+  neutral_stance.left_back   = {.x = -len/2 + b_offset, .y = 0.0f, .z = -width/2 - l1};
+
+  return neutral_stance;
+}
+
+
+LegsFootPos SpotMicroMotionCmd::getLieDownStance() {
+  float len = smnc_.smc.body_length; // body length
+  float width = smnc_.smc.body_width; // body width
+  float l1 = smnc_.smc.hip_link_length; // length of the hip link
+  float x_off = smnc_.lie_down_feet_x_offset;
+
+  LegsFootPos lie_down_stance;
+  lie_down_stance.right_back  = {.x = -len/2 + x_off, .y = 0.0f, .z =  width/2 + l1};
+  lie_down_stance.right_front = {.x =  len/2 + x_off, .y = 0.0f, .z =  width/2 + l1};
+  lie_down_stance.left_front  = {.x =  len/2 + x_off, .y = 0.0f, .z = -width/2 - l1};
+  lie_down_stance.left_back   = {.x = -len/2 + x_off, .y = 0.0f, .z = -width/2 - l1};
+
+  return lie_down_stance;
+}
+
+
+void SpotMicroMotionCmd::commandIdle() {
+  cmd_.idle_cmd_ = true;
+}
+
+
+std::string SpotMicroMotionCmd::getCurrentStateName() {
+  return state_->getCurrentStateName();
 }
 
 
@@ -241,126 +399,43 @@ void SpotMicroMotionCmd::readInConfigParameters() {
 }
 
 
-bool SpotMicroMotionCmd::publishServoConfiguration() {  
-  // Create a temporary servo config
-  i2cpwm_board::ServoConfig temp_servo_config;
-  i2cpwm_board::ServosConfig temp_servo_config_array;
-
-  // Loop through servo configuration dictionary in smnc_, append servo to
-  for (std::map<std::string, std::map<std::string, float>>::iterator
-       iter = smnc_.servo_config.begin();
-       iter != smnc_.servo_config.end();
-       ++iter) {
-
-    std::map<std::string, float> servo_config_params = iter->second;
-    temp_servo_config.center = servo_config_params["center"];
-    temp_servo_config.range = servo_config_params["range"];
-    temp_servo_config.servo = servo_config_params["num"];
-    temp_servo_config.direction = servo_config_params["direction"];
-
-    // Append to temp_servo_config_array
-    temp_servo_config_array.request.servos.push_back(temp_servo_config);
-  }
-
-  // call the client service, return true if succesfull, false if not
-  if (!servos_config_client_.call(temp_servo_config_array)) {
-    if (!smnc_.debug_mode) {
-      // Only error out if not in debug mode
-      ROS_ERROR("Failed to call service servo_config");
-      return false;
-    }
-  }
-
-  return true;
+void SpotMicroMotionCmd::standCommandCallback(
+    const std_msgs::Bool::ConstPtr& msg) {
+  if (msg->data == true) {cmd_.stand_cmd_ = true;}
 }
 
 
-void SpotMicroMotionCmd::setServoCommandMessageData() {
-
-  // Set the state of the spot micro kinematics object by setting the foot
-  // positions, body position, and body orientation. Retrieve joint angles and
-  // set the servo cmd message data
-  sm_.setBodyState(body_state_cmd_);
-  LegsJointAngles joint_angs = sm_.getLegsJointAngles();
-
-  // Set the angles for the servo command message
-  servo_cmds_rad_["RF_1"] = joint_angs.right_front.ang1;
-  servo_cmds_rad_["RF_2"] = joint_angs.right_front.ang2;
-  servo_cmds_rad_["RF_3"] = joint_angs.right_front.ang3;
- 
-  servo_cmds_rad_["RB_1"] = joint_angs.right_back.ang1;
-  servo_cmds_rad_["RB_2"] = joint_angs.right_back.ang2;
-  servo_cmds_rad_["RB_3"] = joint_angs.right_back.ang3;
- 
-  servo_cmds_rad_["LF_1"] = joint_angs.left_front.ang1;
-  servo_cmds_rad_["LF_2"] = joint_angs.left_front.ang2;
-  servo_cmds_rad_["LF_3"] = joint_angs.left_front.ang3;
- 
-  servo_cmds_rad_["LB_1"] = joint_angs.left_back.ang1;
-  servo_cmds_rad_["LB_2"] = joint_angs.left_back.ang2;
-  servo_cmds_rad_["LB_3"] = joint_angs.left_back.ang3;
+void SpotMicroMotionCmd::idleCommandCallback(
+    const std_msgs::Bool::ConstPtr& msg) {
+  if (msg->data == true) {cmd_.idle_cmd_ = true;}
 }
 
 
-void SpotMicroMotionCmd::publishServoProportionalCommand() {
-  for (std::map<std::string, std::map<std::string, float>>::iterator
-       iter = smnc_.servo_config.begin();
-       iter != smnc_.servo_config.end();
-       ++iter) {
- 
-    std::string servo_name = iter->first;
-    std::map<std::string, float> servo_config_params = iter->second;
-    
-    int servo_num = servo_config_params["num"];
-    float cmd_ang_rad = servo_cmds_rad_[servo_name];
-    float center_ang_rad = servo_config_params["center_angle_deg"]*M_PI/180.0f;
-    float servo_proportional_cmd = (cmd_ang_rad - center_ang_rad) /
-                                   (smnc_.servo_max_angle_deg*M_PI/180.0f);
- 
-    if (servo_proportional_cmd > 1.0f) {
-      servo_proportional_cmd = 1.0f;
-      ROS_WARN("Proportional Command above +1.0 was computed, clipped to 1.0");
-      ROS_WARN("Joint %s, Angle: %1.2f", servo_name.c_str(), cmd_ang_rad*180.0/M_PI);
- 
-    } else if (servo_proportional_cmd < -1.0f) {
-      servo_proportional_cmd = -1.0f;
-      ROS_WARN("Proportional Command below -1.0 was computed, clipped to -1.0");
-      ROS_WARN("Joint %s, Angle: %1.2f", servo_name.c_str(), cmd_ang_rad*180.0/M_PI);
-    }
- 
-    servo_array_.servos[servo_num-1].servo = servo_num;
-    servo_array_.servos[servo_num-1].value = servo_proportional_cmd; 
- }
-
- // Publish message
- servos_proportional_pub_.publish(servo_array_);
+void SpotMicroMotionCmd::walkCommandCallback(
+    const std_msgs::Bool::ConstPtr& msg) {
+  if (msg->data == true) {cmd_.walk_cmd_ = true;}
 }
 
 
-void SpotMicroMotionCmd::publishZeroServoAbsoluteCommand() {
-  // Publish the servo absolute message
-  servos_absolute_pub_.publish(servo_array_absolute_);
+void SpotMicroMotionCmd::angleCommandCallback(
+    const geometry_msgs::Vector3ConstPtr& msg) {
+  cmd_.phi_cmd_ = msg->x;
+  cmd_.theta_cmd_ = msg->y;
+  cmd_.psi_cmd_ = msg->z;
 }
 
-void SpotMicroMotionCmd::runOnce() {
-  if (smnc_.debug_mode) {
-    std::cout<<"from Runonce \n";
-  }
 
-  // Call method to handle input commands
-  handleInputCommands();
+void SpotMicroMotionCmd::velCommandCallback(
+    const geometry_msgs::TwistConstPtr& msg) {
+  cmd_.x_vel_cmd_mps_ = msg->linear.x;
+  cmd_.y_vel_cmd_mps_ = msg->linear.y;
+  cmd_.yaw_rate_cmd_rps_ = msg->angular.z;
+}
 
-  // Consume all event commands.
-  // This resets all event commands if they were true. Doing this enforces a rising edge detection
-  resetEventCommands();
 
-  // Only publish body state message in debug mode
-  if (smnc_.plot_mode) {
-    publishBodyState();
-  }
-
-  // Publish lcd monitor data
-  publishLcdMonitorData();
+void SpotMicroMotionCmd::resetEventCommands() {
+  // Reset all event commands, setting all command states false if they were true 
+  cmd_.resetEventCmds(); 
 }
 
 
@@ -380,6 +455,7 @@ void SpotMicroMotionCmd::changeState(std::unique_ptr<SpotMicroState> sms) {
   // Reset all command values
   cmd_.resetAllCommands();
 }
+
 
 void SpotMicroMotionCmd::publishBodyState() {
   // Order of the float array:
@@ -418,65 +494,237 @@ void SpotMicroMotionCmd::publishBodyState() {
 }
 
 
-SpotMicroNodeConfig SpotMicroMotionCmd::getNodeConfig() {
-  return smnc_;
-}
-
-
-
-LegsFootPos SpotMicroMotionCmd::getNeutralStance() {
-  float len = smnc_.smc.body_length; // body length
-  float width = smnc_.smc.body_width; // body width
-  float l1 = smnc_.smc.hip_link_length; // liength of the hip link
-  float f_offset = smnc_.stand_front_x_offset; // x offset for front feet in neutral stance
-  float b_offset = smnc_.stand_back_x_offset; // y offset for back feet in neutral stance
-
-  LegsFootPos neutral_stance;
-  neutral_stance.right_back  = {.x = -len/2 + b_offset, .y = 0.0f, .z =  width/2 + l1};
-  neutral_stance.right_front = {.x =  len/2 + f_offset, .y = 0.0f, .z =  width/2 + l1};
-  neutral_stance.left_front  = {.x =  len/2 + f_offset, .y = 0.0f, .z = -width/2 - l1};
-  neutral_stance.left_back   = {.x = -len/2 + b_offset, .y = 0.0f, .z = -width/2 - l1};
-
-  return neutral_stance;
-}
-
-
-LegsFootPos SpotMicroMotionCmd::getLieDownStance() {
-  float len = smnc_.smc.body_length; // body length
-  float width = smnc_.smc.body_width; // body width
-  float l1 = smnc_.smc.hip_link_length; // length of the hip link
-  float x_off = smnc_.lie_down_feet_x_offset;
-
-  LegsFootPos lie_down_stance;
-  lie_down_stance.right_back  = {.x = -len/2 + x_off, .y = 0.0f, .z =  width/2 + l1};
-  lie_down_stance.right_front = {.x =  len/2 + x_off, .y = 0.0f, .z =  width/2 + l1};
-  lie_down_stance.left_front  = {.x =  len/2 + x_off, .y = 0.0f, .z = -width/2 - l1};
-  lie_down_stance.left_back   = {.x = -len/2 + x_off, .y = 0.0f, .z = -width/2 - l1};
-
-  return lie_down_stance;
-}
-
-void SpotMicroMotionCmd::commandIdle() {
-  cmd_.idle_cmd_ = true;
-}
-
-std::string SpotMicroMotionCmd::getCurrentStateName() {
-  return state_->getCurrentStateName();
-}
-
-
 void SpotMicroMotionCmd::publishLcdMonitorData() {
-  state_string_msg_.data = getCurrentStateName();
+  lcd_state_string_msg_.data = getCurrentStateName();
 
-  speed_cmd_msg_.x = cmd_.getXSpeedCmd();
-  speed_cmd_msg_.y = cmd_.getYSpeedCmd();
-  speed_cmd_msg_.z = cmd_.getYawRateCmd();
+  lcd_vel_cmd_msg_.linear.x = cmd_.getXSpeedCmd();
+  lcd_vel_cmd_msg_.linear.y = cmd_.getYSpeedCmd();
+  lcd_vel_cmd_msg_.angular.z = cmd_.getYawRateCmd();
   
-  angle_cmd_msg_.x = cmd_.getPhiCmd();
-  angle_cmd_msg_.y = cmd_.getThetaCmd();
-  angle_cmd_msg_.z = cmd_.getPsiCmd();  
+  lcd_angle_cmd_msg_.x = cmd_.getPhiCmd();
+  lcd_angle_cmd_msg_.y = cmd_.getThetaCmd();
+  lcd_angle_cmd_msg_.z = cmd_.getPsiCmd();  
 
-  sm_state_pub_.publish(state_string_msg_);
-  sm_speed_cmd_pub_.publish(speed_cmd_msg_);
-  sm_angle_cmd_pub_.publish(angle_cmd_msg_);
+  lcd_state_pub_.publish(lcd_state_string_msg_);
+  lcd_vel_cmd_pub_.publish(lcd_vel_cmd_msg_);
+  lcd_angle_cmd_pub_.publish(lcd_angle_cmd_msg_);
+}
+
+
+void SpotMicroMotionCmd::publishStaticTransforms() {
+
+  TransformStamped tr_stamped;
+
+  // World to odom frame transform
+  tr_stamped = createTransform("world", "odom",
+                               0.0, 0.0, 0.0,
+                               0.0, 0.0, 0.0);
+  static_transform_br_.sendTransform(tr_stamped);
+
+  // base_link to front_link transform
+  tr_stamped = createTransform("base_link", "front_link",
+                               0.0, 0.0, 0.0,
+                               0.0, 0.0, 0.0);
+  static_transform_br_.sendTransform(tr_stamped);
+
+  // base_link to rear_link transform
+  tr_stamped = createTransform("base_link", "rear_link",
+                               0.0, 0.0, 0.0,
+                               0.0, 0.0, 0.0);
+  static_transform_br_.sendTransform(tr_stamped);
+
+  // base_link to lidar_link transform
+  tr_stamped = createTransform("base_link", "lidar_link",
+                               0.0, 0.0, 0.035, // TODO: Change to a parameter
+                               0.0, 0.0, 0.0);
+  static_transform_br_.sendTransform(tr_stamped);
+
+  // legs to leg cover transforms
+  const VectorStringPairs leg_cover_pairs { 
+      { "front_left_leg_link",  "front_left_leg_link_cover" },
+      { "front_right_leg_link", "front_right_leg_link_cover"},
+      { "rear_right_leg_link",  "rear_right_leg_link_cover" },
+      { "rear_left_leg_link",   "rear_left_leg_link_cover" }};
+  
+  // Loop over all leg to leg cover name pairs, publish a 0 dist/rot transform 
+  for (auto it = leg_cover_pairs.begin(); it != leg_cover_pairs.end(); it++) {
+    tr_stamped = createTransform(it->first, it->second,
+                               0.0, 0.0, 0.0,
+                               0.0, 0.0, 0.0);
+    static_transform_br_.sendTransform(tr_stamped); 
+  }
+
+  // foot to toe link transforms
+  const VectorStringPairs foot_toe_pairs { 
+      { "front_left_foot_link",  "front_left_toe_link" },
+      { "front_right_foot_link", "front_right_toe_link"},
+      { "rear_right_foot_link",  "rear_right_toe_link" },
+      { "rear_left_foot_link",   "rear_left_toe_link" }};
+  
+  // Loop over all name pairs, publish the same transform
+  for (auto it = foot_toe_pairs.begin(); it != foot_toe_pairs.end(); it++) {
+    tr_stamped = createTransform(it->first, it->second,
+                               0.0, 0.0, -0.13, // TODO: Change to a parameter
+                               0.0, 0.0, 0.0);
+    static_transform_br_.sendTransform(tr_stamped); 
+  }
+}
+
+
+void SpotMicroMotionCmd::publishDynamicTransforms() {
+
+  // Get joint angles
+  LegsJointAngles joint_angs = sm_.getLegsJointAngles();
+
+  // Declare utility variables
+  TransformStamped transform_stamped;
+  Affine3d temp_trans;
+  
+  /////////////////
+  // BODY CENTER //
+  /////////////////
+  temp_trans = matrix4fToAffine3d(sm_.getBodyHt());
+
+  // Rotate body center transform to desired coordinate system
+  // Original coordinate frame: x forward, y up, z right
+  // Desired orientation: x forward, y left, z up
+  // First need to rotate the robot frame +90 deg about the global +X axis 
+  // (pre-multiply), then rotate the local coordinate system by -90 (post multiply)
+  // temp_trans = AngleAxisd(M_PI/2.0, Vector3d::UnitX()) *
+  //               temp_trans * 
+  //               AngleAxisd(-M_PI/2.0, Vector3d::UnitX())*
+  //               getOdometryTransform(); // translation and rotation by odometry
+
+  temp_trans =  getOdometryTransform() * 
+                AngleAxisd(M_PI/2.0, Vector3d::UnitX()) *
+                temp_trans * 
+                AngleAxisd(-M_PI/2.0, Vector3d::UnitX());
+                // getOdometryTransform(); // translation and rotation by odometry
+
+  // std::cout << getOdometryTransform().rotation() << std::endl;
+  // std::cout << getOdometryTransform().translation() << std::endl;
+
+  // Create transform stamped and broadcast it
+  transform_stamped = eigAndFramesToTrans(temp_trans, "odom", "base_link");
+  transform_br_.sendTransform(transform_stamped);
+
+
+  /////////////////////
+  // FRONT RIGHT LEG //
+  /////////////////////
+  // Shoulder
+  transform_stamped = createTransform("base_link", "front_right_shoulder_link",
+                                      smnc_.smc.body_length/2.0, -smnc_.smc.body_width/2.0, 0.0,
+                                      joint_angs.right_front.ang1, 0.0, 0.0);      
+  transform_br_.sendTransform(transform_stamped);
+
+  // leg
+  transform_stamped = createTransform("front_right_shoulder_link","front_right_leg_link",
+                                      0.0, -smnc_.smc.hip_link_length, 0.0,
+                                      0.0, -joint_angs.right_front.ang2, 0.0);                         
+  transform_br_.sendTransform(transform_stamped);
+
+  // foot
+  transform_stamped = createTransform("front_right_leg_link","front_right_foot_link",
+                                      0.0, 0.0, -smnc_.smc.upper_leg_link_length,
+                                      0.0, -joint_angs.right_front.ang3, 0.0);                         
+  transform_br_.sendTransform(transform_stamped);
+
+
+  ////////////////////
+  // REAR RIGHT LEG //
+  ////////////////////
+  // shoulder
+  transform_stamped = createTransform("base_link", "rear_right_shoulder_link",
+                                      -smnc_.smc.body_length/2.0, -smnc_.smc.body_width/2.0, 0.0,
+                                      joint_angs.right_back.ang1, 0.0, 0.0);      
+  transform_br_.sendTransform(transform_stamped);
+  
+  // leg
+  transform_stamped = createTransform("rear_right_shoulder_link","rear_right_leg_link",
+                                      0.0, -smnc_.smc.hip_link_length, 0.0,
+                                      0.0, -joint_angs.right_back.ang2, 0.0);                         
+  transform_br_.sendTransform(transform_stamped);
+
+  // foot
+  transform_stamped = createTransform("rear_right_leg_link","rear_right_foot_link",
+                                      0.0, 0.0, -smnc_.smc.upper_leg_link_length,
+                                      0.0, -joint_angs.right_back.ang3, 0.0);                         
+  transform_br_.sendTransform(transform_stamped);
+
+
+  ////////////////////
+  // FRONT LEFT LEG //
+  ////////////////////
+  // Shoulder
+  transform_stamped = createTransform("base_link", "front_left_shoulder_link",
+                                      smnc_.smc.body_length/2.0, smnc_.smc.body_width/2.0, 0.0,
+                                      -joint_angs.left_front.ang1, 0.0, 0.0);      
+  transform_br_.sendTransform(transform_stamped);
+
+  // leg
+  transform_stamped = createTransform("front_left_shoulder_link","front_left_leg_link",
+                                      0.0, smnc_.smc.hip_link_length, 0.0,
+                                      0.0, joint_angs.left_front.ang2, 0.0);                         
+  transform_br_.sendTransform(transform_stamped);
+
+  // foot
+  transform_stamped = createTransform("front_left_leg_link","front_left_foot_link",
+                                      0.0, 0.0, -smnc_.smc.upper_leg_link_length,
+                                      0.0, joint_angs.left_front.ang3, 0.0);                         
+  transform_br_.sendTransform(transform_stamped);
+
+
+  ///////////////////
+  // REAR LEFT LEG //
+  ///////////////////
+  // shoulder
+  transform_stamped = createTransform("base_link", "rear_left_shoulder_link",
+                                      -smnc_.smc.body_length/2.0, smnc_.smc.body_width/2.0, 0.0,
+                                      -joint_angs.left_back.ang1, 0.0, 0.0);      
+  transform_br_.sendTransform(transform_stamped);
+
+  // leg
+  transform_stamped = createTransform("rear_left_shoulder_link","rear_left_leg_link",
+                                      0.0, smnc_.smc.hip_link_length, 0.0,
+                                      0.0, joint_angs.left_back.ang2, 0.0);                         
+  transform_br_.sendTransform(transform_stamped);
+
+  // foot
+  transform_stamped = createTransform("rear_left_leg_link","rear_left_foot_link",
+                                      0.0, 0.0, -smnc_.smc.upper_leg_link_length,
+                                      0.0, joint_angs.left_back.ang3, 0.0);                         
+  transform_br_.sendTransform(transform_stamped);
+}
+
+
+void SpotMicroMotionCmd::integrateOdometry() {
+  // Get speed command and loop time information
+  float dt = smnc_.dt;
+  float psi = robot_odometry_.euler_angs.psi;
+
+  float x_spd = cmd_.getXSpeedCmd();
+  float y_spd = -cmd_.getYSpeedCmd();
+  float yaw_rate = -cmd_.getYawRateCmd();
+
+  // This is the odometry coordinate frame (not robot) 
+  float x_dot = x_spd*cos(psi) - y_spd*sin(psi);
+  float y_dot = x_spd*sin(psi) + y_spd*cos(psi);
+  float yaw_dot = yaw_rate;
+
+  // Integrate x and y position, and yaw angle, from commanded values
+  // y speed and yaw rate are reversed due to mismatch between command 
+  // coordinate frame and world coordinate frame
+  robot_odometry_.xyz_pos.x += x_dot*dt;
+  robot_odometry_.xyz_pos.y += y_dot*dt;
+  robot_odometry_.euler_angs.psi += yaw_dot*dt;
+} 
+
+
+Affine3d SpotMicroMotionCmd::getOdometryTransform() {
+  Translation3d translation(robot_odometry_.xyz_pos.x, robot_odometry_.xyz_pos.y, 0.0);
+
+  AngleAxisd rotation(robot_odometry_.euler_angs.psi, Vector3d::UnitZ());
+
+  return (translation * rotation);
 }
