@@ -588,31 +588,32 @@ void SpotMicroMotionCmd::publishDynamicTransforms() {
   // Declare utility variables
   TransformStamped transform_stamped;
   Affine3d temp_trans;
+
+  /////////////////
+  // ODOMETRY /////
+  /////////////////
+  if (smnc_.publish_odom) {
+    transform_stamped = eigAndFramesToTrans(getOdometryTransform(), "odom", "base_footprint");
+    transform_br_.sendTransform(transform_stamped);
+  }
   
   /////////////////
   // BODY CENTER //
   /////////////////
+  
   temp_trans = matrix4fToAffine3d(sm_.getBodyHt());
 
   // Rotate body center transform to desired coordinate system
   // Original, kinematics, coordinate frame: x forward, y up, z right
   // Desired orientation: x forward, y left, z up
-  // Start with the odometry frame 
-  // Then, rotate the robot frame +90 deg about the global +X axis (pre-multiply),
+  // Rotate the robot frame +90 deg about the global +X axis (pre-multiply),
   // then rotate the local coordinate system by -90 (post multiply)
-  temp_trans =  getOdometryTransform() * 
-                AngleAxisd(M_PI/2.0, Vector3d::UnitX()) * 
+  temp_trans =  AngleAxisd(M_PI/2.0, Vector3d::UnitX()) * 
                 temp_trans * 
                 AngleAxisd(-M_PI/2.0, Vector3d::UnitX());
 
-  // Create transform stamped 
-  if (smnc_.publish_odom) {
-    transform_stamped = eigAndFramesToTrans(temp_trans, "odom", "base_link");
-  } else {
-    transform_stamped = eigAndFramesToTrans(temp_trans, "base_footprint", "base_link");
-  }
-  
-  // Broadcast it
+  // Create and broadcast the transform
+  transform_stamped = eigAndFramesToTrans(temp_trans, "base_footprint", "base_link");
   transform_br_.sendTransform(transform_stamped);
 
 

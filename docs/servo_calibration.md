@@ -1,6 +1,7 @@
 # Servo Calibration Guide
 
-This document provides a comprehensive guide to calibrate servos on a spot micro frame and create a cooresponding servo configuration ditionary the ROS control software requires. A spreadhseet named `servo_calibration_spreadsheet.ods` is included in this repo in the `docs` directory as an aid for calculating the servo configuration values.
+This document provides a comprehensive guide to install and calibrate servos on a spot micro frame, and create a cooresponding servo configuration the ROS motion command node requires. A spreadhseet named `servo_calibration_spreadsheet.ods` is included in this repo in the `docs` directory as an aid for calculating the servo configuration values.
+
 
 The servo configuration dictionary is contained within the configuration file `spot_micro_motion_cmd.yaml` and holds servo configuration values as shown below:
 ```yaml
@@ -34,6 +35,20 @@ Servo's are defined by a abbreviation and number referring to their location and
 
 
 ### Servo Installation
+Servos must be connected in the following order to the PCA 9685 control board:
+1. Right front knee
+2. Right front shoulder
+3. Right front hip
+4. Right back knee
+5. Right back shoulder
+6. Right back hip
+7. Left back knee
+8. Left back shoulder
+9. Left back hip
+10. Left front knee
+11. Left front shoulder
+12. left front hip
+
 It is reccomended to install servos in the spot micro frame when they are powered and commanded to their center position. The joint which a servo is installed in should be approximately positioned at it's "nuetral" stance, the position about which most leg motion will occur. This ensures maximum servo travel will be available around the typical joint command angles. The two figures below roughly depict the joint orientations for which servo's should be installed when at their center position. 
 
 ![Side View Neutral Positions](../assets/1_robot_right_links.png)

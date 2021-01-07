@@ -52,7 +52,7 @@ Visualization Manager:
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
       Value: true
-    - Alpha: 0.5
+    - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
       Enabled: true
@@ -193,40 +193,108 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: true
+        base_footprint:
+          Value: true
         base_link:
           Value: true
+        front_left_foot_link:
+          Value: true
+        front_left_leg_link:
+          Value: true
+        front_left_leg_link_cover:
+          Value: true
+        front_left_shoulder_link:
+          Value: true
+        front_left_toe_link:
+          Value: true
         front_link:
+          Value: true
+        front_right_foot_link:
+          Value: true
+        front_right_leg_link:
+          Value: true
+        front_right_leg_link_cover:
+          Value: true
+        front_right_shoulder_link:
+          Value: true
+        front_right_toe_link:
           Value: true
         lidar_link:
           Value: true
         odom:
           Value: true
+        rear_left_foot_link:
+          Value: true
+        rear_left_leg_link:
+          Value: true
+        rear_left_leg_link_cover:
+          Value: true
+        rear_left_shoulder_link:
+          Value: true
+        rear_left_toe_link:
+          Value: true
         rear_link:
           Value: true
-        world:
+        rear_right_foot_link:
+          Value: true
+        rear_right_leg_link:
+          Value: true
+        rear_right_leg_link_cover:
+          Value: true
+        rear_right_shoulder_link:
+          Value: true
+        rear_right_toe_link:
           Value: true
       Marker Scale: 0.5
       Name: TF
-      Show Arrows: true
+      Show Arrows: false
       Show Axes: false
       Show Names: false
       Tree:
-        world:
-          odom:
+        odom:
+          base_footprint:
             base_link:
+              front_left_shoulder_link:
+                front_left_leg_link:
+                  front_left_foot_link:
+                    front_left_toe_link:
+                      {}
+                  front_left_leg_link_cover:
+                    {}
               front_link:
                 {}
+              front_right_shoulder_link:
+                front_right_leg_link:
+                  front_right_foot_link:
+                    front_right_toe_link:
+                      {}
+                  front_right_leg_link_cover:
+                    {}
               lidar_link:
                 {}
+              rear_left_shoulder_link:
+                rear_left_leg_link:
+                  rear_left_foot_link:
+                    rear_left_toe_link:
+                      {}
+                  rear_left_leg_link_cover:
+                    {}
               rear_link:
                 {}
+              rear_right_shoulder_link:
+                rear_right_leg_link:
+                  rear_right_foot_link:
+                    rear_right_toe_link:
+                      {}
+                  rear_right_leg_link_cover:
+                    {}
       Update Interval: 0
       Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: world
+    Fixed Frame: base_footprint
     Frame Rate: 30
   Name: root
   Tools:
@@ -262,10 +330,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.644797385
+      Pitch: 0.619797409
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.24676943
+      Yaw: 3.8817699
     Saved: ~
 Window Geometry:
   Displays:
