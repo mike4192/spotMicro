@@ -58,6 +58,7 @@ struct SpotMicroNodeConfig {
   float fwd_body_balance_shift;
   float side_body_balance_shift;
   float back_body_balance_shift;
+  bool publish_odom;
 };
 
 

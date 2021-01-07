@@ -173,8 +173,10 @@ void SpotMicroMotionCmd::runOnce() {
   // Broadcast dynamic transforms
   publishDynamicTransforms();
 
-  // Integrate robot odometry
-  integrateOdometry();
+  if (smnc_.publish_odom) {
+    // Integrate robot odometry
+    integrateOdometry();
+  }
 }
 
 
@@ -368,18 +370,30 @@ void SpotMicroMotionCmd::readInConfigParameters() {
   pnh_.getParam("fwd_body_balance_shift", smnc_.fwd_body_balance_shift);
   pnh_.getParam("back_body_balance_shift", smnc_.back_body_balance_shift);
   pnh_.getParam("side_body_balance_shift", smnc_.side_body_balance_shift);
+  pnh_.getParam("publish_odom", smnc_.publish_odom);
   
-
-  // Derived parameters
-  // Round result of division of floats
+  
+  // Derived parameters, round result of division of floats
   smnc_.overlap_ticks = round(smnc_.overlap_time / smnc_.dt);
   smnc_.swing_ticks = round(smnc_.swing_time / smnc_.dt);
-  smnc_.stance_ticks = 7 * smnc_.swing_ticks;
-  smnc_.overlap_ticks = round(smnc_.overlap_time / smnc_.dt);
-  smnc_.phase_ticks = std::vector<int>
-      {smnc_.swing_ticks, smnc_.swing_ticks, smnc_.swing_ticks, smnc_.swing_ticks,
-       smnc_.swing_ticks, smnc_.swing_ticks, smnc_.swing_ticks, smnc_.swing_ticks};
-  smnc_.phase_length = smnc_.num_phases * smnc_.swing_ticks;
+  
+  // 8 Phase gait specific
+  if (smnc_.num_phases == 8) {    
+    smnc_.stance_ticks = 7 * smnc_.swing_ticks;
+    smnc_.overlap_ticks = round(smnc_.overlap_time / smnc_.dt);
+    smnc_.phase_ticks = std::vector<int>
+        {smnc_.swing_ticks, smnc_.swing_ticks, smnc_.swing_ticks, smnc_.swing_ticks,
+        smnc_.swing_ticks, smnc_.swing_ticks, smnc_.swing_ticks, smnc_.swing_ticks};
+    smnc_.phase_length = smnc_.num_phases * smnc_.swing_ticks;
+
+  } else { 
+    // 4 phase gait specific
+    smnc_.stance_ticks = 2 * smnc_.overlap_ticks + smnc_.swing_ticks;
+    smnc_.overlap_ticks = round(smnc_.overlap_time / smnc_.dt);
+    smnc_.phase_ticks = std::vector<int>
+        {smnc_.overlap_ticks, smnc_.swing_ticks, smnc_.overlap_ticks, smnc_.swing_ticks};
+    smnc_.phase_length = 2 * smnc_.swing_ticks + 2 * smnc_.overlap_ticks;
+  }
 
   // Temporary map for populating map in smnc_
   std::map<std::string, float> temp_map;
@@ -515,13 +529,7 @@ void SpotMicroMotionCmd::publishLcdMonitorData() {
 void SpotMicroMotionCmd::publishStaticTransforms() {
 
   TransformStamped tr_stamped;
-
-  // World to odom frame transform
-  tr_stamped = createTransform("world", "odom",
-                               0.0, 0.0, 0.0,
-                               0.0, 0.0, 0.0);
-  static_transform_br_.sendTransform(tr_stamped);
-
+  
   // base_link to front_link transform
   tr_stamped = createTransform("base_link", "front_link",
                                0.0, 0.0, 0.0,
@@ -587,26 +595,24 @@ void SpotMicroMotionCmd::publishDynamicTransforms() {
   temp_trans = matrix4fToAffine3d(sm_.getBodyHt());
 
   // Rotate body center transform to desired coordinate system
-  // Original coordinate frame: x forward, y up, z right
+  // Original, kinematics, coordinate frame: x forward, y up, z right
   // Desired orientation: x forward, y left, z up
-  // First need to rotate the robot frame +90 deg about the global +X axis 
-  // (pre-multiply), then rotate the local coordinate system by -90 (post multiply)
-  // temp_trans = AngleAxisd(M_PI/2.0, Vector3d::UnitX()) *
-  //               temp_trans * 
-  //               AngleAxisd(-M_PI/2.0, Vector3d::UnitX())*
-  //               getOdometryTransform(); // translation and rotation by odometry
-
+  // Start with the odometry frame 
+  // Then, rotate the robot frame +90 deg about the global +X axis (pre-multiply),
+  // then rotate the local coordinate system by -90 (post multiply)
   temp_trans =  getOdometryTransform() * 
-                AngleAxisd(M_PI/2.0, Vector3d::UnitX()) *
+                AngleAxisd(M_PI/2.0, Vector3d::UnitX()) * 
                 temp_trans * 
                 AngleAxisd(-M_PI/2.0, Vector3d::UnitX());
-                // getOdometryTransform(); // translation and rotation by odometry
 
-  // std::cout << getOdometryTransform().rotation() << std::endl;
-  // std::cout << getOdometryTransform().translation() << std::endl;
-
-  // Create transform stamped and broadcast it
-  transform_stamped = eigAndFramesToTrans(temp_trans, "odom", "base_link");
+  // Create transform stamped 
+  if (smnc_.publish_odom) {
+    transform_stamped = eigAndFramesToTrans(temp_trans, "odom", "base_link");
+  } else {
+    transform_stamped = eigAndFramesToTrans(temp_trans, "base_footprint", "base_link");
+  }
+  
+  // Broadcast it
   transform_br_.sendTransform(transform_stamped);
 
 
@@ -700,15 +706,14 @@ void SpotMicroMotionCmd::publishDynamicTransforms() {
 
 
 void SpotMicroMotionCmd::integrateOdometry() {
-  // Get speed command and loop time information
+  // Get loop time, heading, and rate commands
   float dt = smnc_.dt;
   float psi = robot_odometry_.euler_angs.psi;
-
   float x_spd = cmd_.getXSpeedCmd();
   float y_spd = -cmd_.getYSpeedCmd();
   float yaw_rate = -cmd_.getYawRateCmd();
 
-  // This is the odometry coordinate frame (not robot) 
+  // This is the odometry coordinate frame (not the robot kinematic frame) 
   float x_dot = x_spd*cos(psi) - y_spd*sin(psi);
   float y_dot = x_spd*sin(psi) + y_spd*cos(psi);
   float yaw_dot = yaw_rate;
@@ -723,8 +728,8 @@ void SpotMicroMotionCmd::integrateOdometry() {
 
 
 Affine3d SpotMicroMotionCmd::getOdometryTransform() {
+  // Create odemtry translation and rotation, and combine together
   Translation3d translation(robot_odometry_.xyz_pos.x, robot_odometry_.xyz_pos.y, 0.0);
-
   AngleAxisd rotation(robot_odometry_.euler_angs.psi, Vector3d::UnitZ());
 
   return (translation * rotation);

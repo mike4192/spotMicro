@@ -44,8 +44,10 @@ void SpotMicroWalkState::handleInputCommands(const smk::BodyState& body_state,
     // Step the gait controller
     body_state_cmd->leg_feet_pos = stepGait(body_state, cmd, smnc, smmc->getNeutralStance()); 
 
-    // Step body shift controller
-    body_state_cmd->xyz_pos = stepBodyShift(body_state, cmd, smnc);
+    if (smnc_.num_phases == 8) {
+      // Step body shift controller, only for 8 phase gait
+      body_state_cmd->xyz_pos = stepBodyShift(body_state, cmd, smnc);
+    } 
     
     // Set servo data and publish command
     smmc->setServoCommandMessageData();
