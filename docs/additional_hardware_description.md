@@ -19,9 +19,10 @@ A plain center body platform, and two convenience platforms for mounting the RPI
 
 ![RPI platform](../assets/rpi_platform.jpg)
 
-A custom platform and mount adapter for a RPLidar A1 can be found at [at this thingverse page](placeholder). Design courtesy of Maggie Mathiue. Like the platforms above, the base can be adhered to the center body platform by double sided foam tape. The mount adapter is attached to a RPLiadr A1 by 4x M2.5x8 screws and to the bottom platform by small wood screws.
+A custom platform and mount adapter for a RPLidar A1 can be found at [at this thingverse page](https://www.thingiverse.com/thing:4713180). Design courtesy of Maggie Mathiue. Like the platforms above, the base can be adhered to the center body platform by double sided foam tape. The mount adapter is attached to a RPLiadr A1 by 4x M2.5x8 screws and to the bottom platform by small wood screws.
 
-Picture here
+![lidar mount](../assets/lidar_mount.jpg)
+
 
 
 ## Coordinate Frames
