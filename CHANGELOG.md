@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2021-1-07
+
+### Added
+- Publishing of robot state and joints via tf2
+- Open loop calculated odometry by integrating rate commands 
+- Additional documentation about hardware
+- Links to 3d printed parts for mounting lidar scanner
+
+### Changed
+- Merged alternate gait into master, configurable by parameters
+
+#### Deprecated
+- Deprecating alternate-gait branch
+
 ## [0.2.0] - 2021-1-01
 
 ### Changed

@@ -1,6 +1,8 @@
 # Spot Micro Quadruped Project
 
 ![Spot Micro Walking](assets/spot_micro_walking.gif)
+![RVIZ](assets/rviz_animation.gif)
+
 
 Video of robot: https://www.youtube.com/watch?v=S-uzWG9Z-5E
 
@@ -14,35 +16,23 @@ Video of robot: https://www.youtube.com/watch?v=S-uzWG9Z-5E
 ## Overview
 This project is the source code for a Spot Micro quadruped, a 4 legged open source robot. This code is capable of keyboard control of a 3d printed spot micro robot with sit, stand, angle command, and walk capability. The software is implemented on a Raspberry Pi 3B running Ubuntu 16.04 with ROS Kinetic installed.
 
-The software is composed of C++ and python nodes in a ROS framework.
+The software is composed of C++ and Python nodes in a ROS framework.
 
 #### Hardware:
-The frame utilized is the Thingverse Spot Micro frame developed by KDY0523. See the thingverse page below for additional details for assembly hardware. The files for cls6336hv servos were printed which also fit the hv5523mg servos I used.
-https://www.thingiverse.com/thing:3445283
+The frame utilized is the Thingverse Spot Micro frame developed by KDY0523. See [the thingverse page](https://www.thingiverse.com/thing:3445283) for additional details for assembly hardware. The files for cls6336hv servos were printed which also fit the hv5523mg servos I used.
 
 Component List:
 * Computer: Raspberry Pi 3B 
 * Servo control board: PCA9685, controlled via i2c
 * Servos: 12 x PDI-HV5523MG
-* LCD Panel: 16x2 i2c LCD panel
+* LCD Panel: 16x2 i2c LCD panel (Optional)
 * Battery: 2s 4000 mAh Lipo, direct connection to servo board for servo power
 * UBEC: HKU5 5V/5A ubec, used as 5v voltage regulator to power raspberry pi, lcd panel, pca9685 control board.
+* Lidar: RPLidar A1
+* Custom 3d printed parts for mounts and reinforcements
 
-Servos are connected in the following order to the PCA 9685 control board:
-1. Right front knee
-2. Right front shoulder
-3. Right front hip
-4. Right back knee
-5. Right back shoulder
-6. Right back hip
-7. Left back knee
-8. Left back shoulder
-9. Left back hip
-10. Left front knee
-11. Left front shoulder
-12. left front hip
+More information about the hardware, including the additional custom 3d printed parts, coordinate system information, and sample hardware installation photos, can be found in the [additional hardware description](docs/additional_hardware_description.md) document.
 
-A custom shoulder assembly was created with an additional piece to provide more reinforcement to the shoulder axis. The modified shoulder assembly parts can be found [at this thingverse page.](https://www.thingiverse.com/thing:4591999) Additionally, a plain center mounting platform and two convenience platforms for the RPI 3 and PCA9685 boards can be found [at this thingverse page](https://www.thingiverse.com/thing:4596267). The latter are affixed to the main platform by double sided foam tape.
 
 #### Software:
 This repo is structured as a catkin workspace in a ROS Kinetic envivornment on Ubuntu 16.04. The software may not work or compile outside this environment. Raspberry pi images preloaded with Ubuntu 16.04 and a ROS Kinetic installation can be found via ubiquity robotics. [See ubiquity robotics webpage](https://downloads.ubiquityrobotics.com/) for download, setup, and wifi setup instructions. It is suggested to also install ROS Kinetic on a Ubuntu 16.04 linux installation/dual boot/virtual machine on a PC for development and for running control nodes.
@@ -95,7 +85,7 @@ CMakeFiles/Makefile2:2343: recipe for target 'ros-i2cpwmboard/CMakeFiles/i2cpwm_
 ```
 
 #### Note on Walking Gaits
-The gait implemented on master is a 8 phase gait that incorporates body movement which helps maintain balance and stability. An alternate trot gait, where the diagonal legs move simultaneously, can achieve faster walking speeds, but is less stable and requires careful positioning of the robot's center of mass. The trot gait is the one depicted in the animation at the top of this document, and can be found on the branch to this project titled `alternate_gait`. The 8 phase gait can be observed in the linked Youtube video.
+The default gait implemented is a 8 phase gait that incorporates body movement which helps maintain balance and stability. An alternate trot gait, where the diagonally opposite legs move simultaneously, can achieve faster walking speeds, but is less stable and requires careful positioning of the robot's center of mass. The trot gait is the one depicted in the animation at the top of this document. See the `spot_micro_motion_cmd` node's config file for information on how to switch to the trot gait. The 8 phase gait can be observed in the linked Youtube video.
 
 ## General Instructions
 This section attemps to be a full set of instructions to get a spot micro robot calibrated and running with this code.
@@ -114,8 +104,9 @@ Open at least two terminal wndows, with at least one ssh'ed to the raspberry pi.
         * `debug_mode:=true`: Overrides the `debug_mode` parameter to true. Useful in combination with `run_standalone` for running or debugging the motion command node on a PC instead of the RPi
         * `run_lcd:=true`: Runs the lcd monitor node to display simple state information on a LCD monitor if installed. Only works running on a RPi
     * Command line arguments for `keyboard_command.launch`:
+        * `run_rviz:=true`: Starts RVIZ and displays a 3d model of the robot with state update in real time.
         * `run_plot:=true`: Runs python plotting node to display a stick figure wireframe model of the spot micro robot state in real time. Must be run on a PC. Requires updated matplot lib python library (matplotlib 2.2.5) and updated numpy library (numpy 1.16.6).
-        * `run_rviz:=true`: (**NOT YET FUNCTIONAL**) Starts RVIZ and displays a 3d model of the robot with state update in real time. Future capability.
+        
 
 Stopping and exiting the keyboard command launch file may require typing `quit` and pressing `Ctrl-C`, as well as closing any plot windows if plotting was utilized. 
 
@@ -160,15 +151,20 @@ A yaml confguration file is used for holding various software configuration sett
 
 * **servo_move_keyboard**: A python node that can be used in conjuction with the i2cpwm_board node to manually command an individual servo via keyboard controls. Can be used for servo calibration to build the servo configuration dictionary.
 
-* **spot_micro_rviz**: **WORK IN PROGRESS**. A node to launch RVIZ and show a visualization of the spot micro model, as well as mapping and navigational elements in the future. The `show_and_move_model` launch file can be launched standalone to show a manually moveable spot micro model via GUI sliders. 
+* **spot_micro_rviz**: A node to launch RVIZ and show a visualization of the spot micro model, as well as mapping and navigational elements in the future. The `show_and_move_model` launch file can be launched standalone to show a manually moveable spot micro model via GUI sliders. 
 
 Note that the servo control node `i2cpwm_board` should only be commanded by one node at one time. Thus `spot_micro_motion_command` and `servo_move_keyboard` should be run exclusionary; only one should ever run at one time.
 
 ## Additional Project Components
 #### URDF Model
-The project contains a URDF model of the spot micro platform, along with a custom set of stl files  for visualization. The URDF file was pulled from Florian Wilk's repo, noted at the end of this README, and modified to change the coordinate system orientation, and the dimensions to match dimensions of my spot micro robot. Currently this urdf file is **only** used for RVIZ visualization of the spot micro model. This URDF model should not be treated as perfectly accurate representation of the robot's geometry, nor should the STL files for visualization be used for 3d printing. Use the noted Thingverse files instead. 
+The project contains a URDF model of the spot micro platform, along with a custom set of stl files  for visualization. The URDF file was pulled from Florian Wilk's repo, noted at the end of this README, and modified to change the coordinate system orientation, and the dimensions to match dimensions of my spot micro robot. Currently this urdf file is **only** used for RVIZ visualization of the spot micro model. This URDF model should not be treated as perfectly accurate representation of the robot's geometry, nor should the STL files in this repo be used for 3d printing. Use the noted Thingverse files instead. 
 
 The URDF model is defined as a `xacro` file, which is a way to define urdf file using macros to automate certain generative actions. The xacro file is located in the `spot_micro_rviz/urdf` directory. A urdf file can be generated from the `.xacro` file for inspection or use, if needed, via running `xacro` after sourcing a ROS development environment. 
+
+#### TF2 Publishing and Odometry
+Robot state transforms are published via TF2. Some primary frames of interest are `base_footprint` and `base_link`. `base_footprint` is a coordinate frame at zero height at the base of the robot frame. `base_link` is the coordinate frame fixed to the body center of the robot, and moves and rotates with body motion. 
+
+An odometry frame, `odom`, is optionally available and can be enabled via a configurable parameter in the `spot_micro_motion_cmd.yaml` file. If enabled, `odom` is parent to the `base_footprint` frame.  **Note that odometry is grossly inaccurate and not calibrated whatsoever**. It is a pure integration of robot rate commands and thus drifts unbounded with errors over time. It is provided for any useful purpose it may serve.
 
 
 

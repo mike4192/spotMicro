@@ -1,9 +1,10 @@
-// Declaration file 
-
 #pragma once //designed to include the current source file only once in a single compilation.
 #ifndef SPOT_MICRO_MOTION_CMD //usd for conditional compiling.
 #define SPOT_MICRO_MOTION_CMD
+
 #include <ros/ros.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include <tf2_ros/static_transform_broadcaster.h>
 #include "std_msgs/Bool.h"
 #include "std_msgs/String.h"
 #include "geometry_msgs/Vector3.h"
@@ -57,6 +58,7 @@ struct SpotMicroNodeConfig {
   float fwd_body_balance_shift;
   float side_body_balance_shift;
   float back_body_balance_shift;
+  bool publish_odom;
 };
 
 
@@ -124,6 +126,11 @@ class SpotMicroMotionCmd
   // angles
   smk::BodyState body_state_cmd_; 
 
+  // Odometry of the robot position and orientation based on integrated rate
+  // commands. Only x and y position, and yaw angle, will be integrated from
+  // rate commands
+  smk::BodyState robot_odometry_;
+
   // Map to hold servo command values in radians
   std::map<std::string, float> servo_cmds_rad_ = { {"RF_3", 0.0f}, {"RF_2", 0.0f}, {"RF_1", 0.0f},
                                                    {"RB_3", 0.0f}, {"RB_2", 0.0f}, {"RB_1", 0.0f},
@@ -156,6 +163,8 @@ class SpotMicroMotionCmd
   ros::Publisher lcd_angle_cmd_pub_;
   ros::Publisher lcd_state_pub_;
   ros::ServiceClient servos_config_client_;
+  tf2_ros::TransformBroadcaster transform_br_;
+  tf2_ros::StaticTransformBroadcaster static_transform_br_;
 
   // Message for encapsulating robot body state
   std_msgs::Float32MultiArray body_state_msg_;
@@ -198,6 +207,23 @@ class SpotMicroMotionCmd
 
   // Publish LCD monitor messages
   void publishLcdMonitorData();
+
+  // Broadcast static tf2 coordinate frame transformation to /tf_static
+  // Should only be called once at initalization, as it's only for static
+  // transformations of the robot model that do not change over time
+  void publishStaticTransforms();
+
+  // Broadcast dynamic tf2 coordinate frame transformations to /tf
+  // Will broadcast dynamic robot and leg joint transformations
+  void publishDynamicTransforms();
+
+  // Integrate robot odometry. The robot doesn't actually have any
+  // sensed odometry, but an open loop estimate derived from velocity
+  // commands should still be useful
+  void integrateOdometry();
+
+  // Calculates the robot odometry coordinate frame
+  Eigen::Affine3d getOdometryTransform();
 
 };
 #endif  

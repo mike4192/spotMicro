@@ -1,9 +1,15 @@
+#include "spot_micro_motion_cmd.h"
+
+#include <eigen3/Eigen/Geometry>
 #include "std_msgs/Float32.h"
 #include "std_msgs/Bool.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Float32MultiArray.h"
 #include "geometry_msgs/Vector3.h"
 #include "geometry_msgs/Twist.h"
+#include "tf2/LinearMath/Quaternion.h"
+#include "tf2_eigen/tf2_eigen.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
 #include "spot_micro_motion_cmd.h"
 #include "spot_micro_kinematics/spot_micro_kinematics.h"
@@ -11,11 +17,14 @@
 #include "i2cpwm_board/ServoArray.h"
 #include "i2cpwm_board/ServoConfig.h"
 #include "i2cpwm_board/ServosConfig.h"
-
 #include "spot_micro_idle.h"
+#include "utils.h"
 
 
 using namespace smk;
+using namespace Eigen;
+using namespace geometry_msgs;
+typedef std::vector<std::pair<std::string,std::string>> VectorStringPairs;
 
 // Constructor
 SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh) {
@@ -46,6 +55,9 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
   // Set the spot micro kinematics object to this initial command
   sm_.setBodyState(body_state_cmd_);
 
+  // Set initial odometry state to zero
+  robot_odometry_.euler_angs = {.phi = 0.0f, .theta = 0.0f, .psi = 0.0f};
+  robot_odometry_.xyz_pos = {.x = 0.0f, .y = 0.0f, .z = 0.0f};
 
   // Initialize servo array message with 12 servo objects
   for (int i = 1; i <= smnc_.num_servos; i++) {
@@ -122,6 +134,9 @@ SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh
       body_state_msg_.data.push_back(0.0f); 
     }
   }
+
+  // Publish static transforms
+  publishStaticTransforms();
 }
 
 
@@ -154,6 +169,14 @@ void SpotMicroMotionCmd::runOnce() {
 
   // Publish lcd monitor data
   publishLcdMonitorData();
+
+  // Broadcast dynamic transforms
+  publishDynamicTransforms();
+
+  if (smnc_.publish_odom) {
+    // Integrate robot odometry
+    integrateOdometry();
+  }
 }
 
 
@@ -347,18 +370,30 @@ void SpotMicroMotionCmd::readInConfigParameters() {
   pnh_.getParam("fwd_body_balance_shift", smnc_.fwd_body_balance_shift);
   pnh_.getParam("back_body_balance_shift", smnc_.back_body_balance_shift);
   pnh_.getParam("side_body_balance_shift", smnc_.side_body_balance_shift);
+  pnh_.getParam("publish_odom", smnc_.publish_odom);
   
-
-  // Derived parameters
-  // Round result of division of floats
+  
+  // Derived parameters, round result of division of floats
   smnc_.overlap_ticks = round(smnc_.overlap_time / smnc_.dt);
   smnc_.swing_ticks = round(smnc_.swing_time / smnc_.dt);
-  smnc_.stance_ticks = 7 * smnc_.swing_ticks;
-  smnc_.overlap_ticks = round(smnc_.overlap_time / smnc_.dt);
-  smnc_.phase_ticks = std::vector<int>
-      {smnc_.swing_ticks, smnc_.swing_ticks, smnc_.swing_ticks, smnc_.swing_ticks,
-       smnc_.swing_ticks, smnc_.swing_ticks, smnc_.swing_ticks, smnc_.swing_ticks};
-  smnc_.phase_length = smnc_.num_phases * smnc_.swing_ticks;
+  
+  // 8 Phase gait specific
+  if (smnc_.num_phases == 8) {    
+    smnc_.stance_ticks = 7 * smnc_.swing_ticks;
+    smnc_.overlap_ticks = round(smnc_.overlap_time / smnc_.dt);
+    smnc_.phase_ticks = std::vector<int>
+        {smnc_.swing_ticks, smnc_.swing_ticks, smnc_.swing_ticks, smnc_.swing_ticks,
+        smnc_.swing_ticks, smnc_.swing_ticks, smnc_.swing_ticks, smnc_.swing_ticks};
+    smnc_.phase_length = smnc_.num_phases * smnc_.swing_ticks;
+
+  } else { 
+    // 4 phase gait specific
+    smnc_.stance_ticks = 2 * smnc_.overlap_ticks + smnc_.swing_ticks;
+    smnc_.overlap_ticks = round(smnc_.overlap_time / smnc_.dt);
+    smnc_.phase_ticks = std::vector<int>
+        {smnc_.overlap_ticks, smnc_.swing_ticks, smnc_.overlap_ticks, smnc_.swing_ticks};
+    smnc_.phase_length = 2 * smnc_.swing_ticks + 2 * smnc_.overlap_ticks;
+  }
 
   // Temporary map for populating map in smnc_
   std::map<std::string, float> temp_map;
@@ -488,4 +523,215 @@ void SpotMicroMotionCmd::publishLcdMonitorData() {
   lcd_state_pub_.publish(lcd_state_string_msg_);
   lcd_vel_cmd_pub_.publish(lcd_vel_cmd_msg_);
   lcd_angle_cmd_pub_.publish(lcd_angle_cmd_msg_);
+}
+
+
+void SpotMicroMotionCmd::publishStaticTransforms() {
+
+  TransformStamped tr_stamped;
+  
+  // base_link to front_link transform
+  tr_stamped = createTransform("base_link", "front_link",
+                               0.0, 0.0, 0.0,
+                               0.0, 0.0, 0.0);
+  static_transform_br_.sendTransform(tr_stamped);
+
+  // base_link to rear_link transform
+  tr_stamped = createTransform("base_link", "rear_link",
+                               0.0, 0.0, 0.0,
+                               0.0, 0.0, 0.0);
+  static_transform_br_.sendTransform(tr_stamped);
+
+  // base_link to lidar_link transform
+  tr_stamped = createTransform("base_link", "lidar_link",
+                               0.0, 0.0, 0.035, // TODO: Change to a parameter
+                               0.0, 0.0, 0.0);
+  static_transform_br_.sendTransform(tr_stamped);
+
+  // legs to leg cover transforms
+  const VectorStringPairs leg_cover_pairs { 
+      { "front_left_leg_link",  "front_left_leg_link_cover" },
+      { "front_right_leg_link", "front_right_leg_link_cover"},
+      { "rear_right_leg_link",  "rear_right_leg_link_cover" },
+      { "rear_left_leg_link",   "rear_left_leg_link_cover" }};
+  
+  // Loop over all leg to leg cover name pairs, publish a 0 dist/rot transform 
+  for (auto it = leg_cover_pairs.begin(); it != leg_cover_pairs.end(); it++) {
+    tr_stamped = createTransform(it->first, it->second,
+                               0.0, 0.0, 0.0,
+                               0.0, 0.0, 0.0);
+    static_transform_br_.sendTransform(tr_stamped); 
+  }
+
+  // foot to toe link transforms
+  const VectorStringPairs foot_toe_pairs { 
+      { "front_left_foot_link",  "front_left_toe_link" },
+      { "front_right_foot_link", "front_right_toe_link"},
+      { "rear_right_foot_link",  "rear_right_toe_link" },
+      { "rear_left_foot_link",   "rear_left_toe_link" }};
+  
+  // Loop over all name pairs, publish the same transform
+  for (auto it = foot_toe_pairs.begin(); it != foot_toe_pairs.end(); it++) {
+    tr_stamped = createTransform(it->first, it->second,
+                               0.0, 0.0, -0.13, // TODO: Change to a parameter
+                               0.0, 0.0, 0.0);
+    static_transform_br_.sendTransform(tr_stamped); 
+  }
+}
+
+
+void SpotMicroMotionCmd::publishDynamicTransforms() {
+
+  // Get joint angles
+  LegsJointAngles joint_angs = sm_.getLegsJointAngles();
+
+  // Declare utility variables
+  TransformStamped transform_stamped;
+  Affine3d temp_trans;
+
+  /////////////////
+  // ODOMETRY /////
+  /////////////////
+  if (smnc_.publish_odom) {
+    transform_stamped = eigAndFramesToTrans(getOdometryTransform(), "odom", "base_footprint");
+    transform_br_.sendTransform(transform_stamped);
+  }
+  
+  /////////////////
+  // BODY CENTER //
+  /////////////////
+  
+  temp_trans = matrix4fToAffine3d(sm_.getBodyHt());
+
+  // Rotate body center transform to desired coordinate system
+  // Original, kinematics, coordinate frame: x forward, y up, z right
+  // Desired orientation: x forward, y left, z up
+  // Rotate the robot frame +90 deg about the global +X axis (pre-multiply),
+  // then rotate the local coordinate system by -90 (post multiply)
+  temp_trans =  AngleAxisd(M_PI/2.0, Vector3d::UnitX()) * 
+                temp_trans * 
+                AngleAxisd(-M_PI/2.0, Vector3d::UnitX());
+
+  // Create and broadcast the transform
+  transform_stamped = eigAndFramesToTrans(temp_trans, "base_footprint", "base_link");
+  transform_br_.sendTransform(transform_stamped);
+
+
+  /////////////////////
+  // FRONT RIGHT LEG //
+  /////////////////////
+  // Shoulder
+  transform_stamped = createTransform("base_link", "front_right_shoulder_link",
+                                      smnc_.smc.body_length/2.0, -smnc_.smc.body_width/2.0, 0.0,
+                                      joint_angs.right_front.ang1, 0.0, 0.0);      
+  transform_br_.sendTransform(transform_stamped);
+
+  // leg
+  transform_stamped = createTransform("front_right_shoulder_link","front_right_leg_link",
+                                      0.0, -smnc_.smc.hip_link_length, 0.0,
+                                      0.0, -joint_angs.right_front.ang2, 0.0);                         
+  transform_br_.sendTransform(transform_stamped);
+
+  // foot
+  transform_stamped = createTransform("front_right_leg_link","front_right_foot_link",
+                                      0.0, 0.0, -smnc_.smc.upper_leg_link_length,
+                                      0.0, -joint_angs.right_front.ang3, 0.0);                         
+  transform_br_.sendTransform(transform_stamped);
+
+
+  ////////////////////
+  // REAR RIGHT LEG //
+  ////////////////////
+  // shoulder
+  transform_stamped = createTransform("base_link", "rear_right_shoulder_link",
+                                      -smnc_.smc.body_length/2.0, -smnc_.smc.body_width/2.0, 0.0,
+                                      joint_angs.right_back.ang1, 0.0, 0.0);      
+  transform_br_.sendTransform(transform_stamped);
+  
+  // leg
+  transform_stamped = createTransform("rear_right_shoulder_link","rear_right_leg_link",
+                                      0.0, -smnc_.smc.hip_link_length, 0.0,
+                                      0.0, -joint_angs.right_back.ang2, 0.0);                         
+  transform_br_.sendTransform(transform_stamped);
+
+  // foot
+  transform_stamped = createTransform("rear_right_leg_link","rear_right_foot_link",
+                                      0.0, 0.0, -smnc_.smc.upper_leg_link_length,
+                                      0.0, -joint_angs.right_back.ang3, 0.0);                         
+  transform_br_.sendTransform(transform_stamped);
+
+
+  ////////////////////
+  // FRONT LEFT LEG //
+  ////////////////////
+  // Shoulder
+  transform_stamped = createTransform("base_link", "front_left_shoulder_link",
+                                      smnc_.smc.body_length/2.0, smnc_.smc.body_width/2.0, 0.0,
+                                      -joint_angs.left_front.ang1, 0.0, 0.0);      
+  transform_br_.sendTransform(transform_stamped);
+
+  // leg
+  transform_stamped = createTransform("front_left_shoulder_link","front_left_leg_link",
+                                      0.0, smnc_.smc.hip_link_length, 0.0,
+                                      0.0, joint_angs.left_front.ang2, 0.0);                         
+  transform_br_.sendTransform(transform_stamped);
+
+  // foot
+  transform_stamped = createTransform("front_left_leg_link","front_left_foot_link",
+                                      0.0, 0.0, -smnc_.smc.upper_leg_link_length,
+                                      0.0, joint_angs.left_front.ang3, 0.0);                         
+  transform_br_.sendTransform(transform_stamped);
+
+
+  ///////////////////
+  // REAR LEFT LEG //
+  ///////////////////
+  // shoulder
+  transform_stamped = createTransform("base_link", "rear_left_shoulder_link",
+                                      -smnc_.smc.body_length/2.0, smnc_.smc.body_width/2.0, 0.0,
+                                      -joint_angs.left_back.ang1, 0.0, 0.0);      
+  transform_br_.sendTransform(transform_stamped);
+
+  // leg
+  transform_stamped = createTransform("rear_left_shoulder_link","rear_left_leg_link",
+                                      0.0, smnc_.smc.hip_link_length, 0.0,
+                                      0.0, joint_angs.left_back.ang2, 0.0);                         
+  transform_br_.sendTransform(transform_stamped);
+
+  // foot
+  transform_stamped = createTransform("rear_left_leg_link","rear_left_foot_link",
+                                      0.0, 0.0, -smnc_.smc.upper_leg_link_length,
+                                      0.0, joint_angs.left_back.ang3, 0.0);                         
+  transform_br_.sendTransform(transform_stamped);
+}
+
+
+void SpotMicroMotionCmd::integrateOdometry() {
+  // Get loop time, heading, and rate commands
+  float dt = smnc_.dt;
+  float psi = robot_odometry_.euler_angs.psi;
+  float x_spd = cmd_.getXSpeedCmd();
+  float y_spd = -cmd_.getYSpeedCmd();
+  float yaw_rate = -cmd_.getYawRateCmd();
+
+  // This is the odometry coordinate frame (not the robot kinematic frame) 
+  float x_dot = x_spd*cos(psi) - y_spd*sin(psi);
+  float y_dot = x_spd*sin(psi) + y_spd*cos(psi);
+  float yaw_dot = yaw_rate;
+
+  // Integrate x and y position, and yaw angle, from commanded values
+  // y speed and yaw rate are reversed due to mismatch between command 
+  // coordinate frame and world coordinate frame
+  robot_odometry_.xyz_pos.x += x_dot*dt;
+  robot_odometry_.xyz_pos.y += y_dot*dt;
+  robot_odometry_.euler_angs.psi += yaw_dot*dt;
+} 
+
+
+Affine3d SpotMicroMotionCmd::getOdometryTransform() {
+  // Create odemtry translation and rotation, and combine together
+  Translation3d translation(robot_odometry_.xyz_pos.x, robot_odometry_.xyz_pos.y, 0.0);
+  AngleAxisd rotation(robot_odometry_.euler_angs.psi, Vector3d::UnitZ());
+
+  return (translation * rotation);
 }

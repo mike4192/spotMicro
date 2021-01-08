@@ -12,6 +12,9 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   geometry_msgs
   i2cpwm_board
+  tf2
+  tf2_ros
+  tf2_geometry_msgs
 )
 
 add_subdirectory(libs/spot_micro_kinematics_cpp)
@@ -107,7 +110,7 @@ add_subdirectory(libs/spot_micro_kinematics_cpp)
 catkin_package(
   INCLUDE_DIRS include/spot_micro_motion_cmd
 #  LIBRARIES spot_micro_motion_cmd
-  CATKIN_DEPENDS roscpp std_msgs geometry_msgs
+  CATKIN_DEPENDS roscpp std_msgs geometry_msgs tf2 tf2_ros
 #  DEPENDS system_lib
 )
 
@@ -146,7 +149,7 @@ target_link_libraries(smfsm
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME}_node src/spot_micro_motion_cmd.cpp src/spot_micro_motion_cmd_node.cpp)
+add_executable(${PROJECT_NAME}_node src/spot_micro_motion_cmd.cpp src/spot_micro_motion_cmd_node.cpp src/utils.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
