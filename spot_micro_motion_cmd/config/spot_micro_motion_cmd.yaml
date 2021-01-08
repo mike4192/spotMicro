@@ -12,6 +12,8 @@ body_length: 0.186 # Length between shoulder joints
 default_stand_height: 0.155   # Height of robot body center when standing
 stand_front_x_offset: 0.015   # Fwb/back offset of front two legs from default stance
 stand_back_x_offset: 0.0      # Fwd/back offset of back two legs from default stance
+# stand_front_x_offset: -0.015   # Offset better tuned for trot gait
+# stand_back_x_offset: -0.015      # Offset better tuned for trot gait
 lie_down_height: 0.083        # Height of body center when sitting
 lie_down_foot_x_offset: 0.065 # Fwd/back offset of all(?) feet from default stance when sitting 
 
@@ -82,7 +84,7 @@ side_body_balance_shift: 0.015 # Amount the body center will shift side to side 
 # lf_contact_phases: [1, 0, 1, 1]
 # lb_contact_phases: [1, 1, 1, 0]
 # overlap_time: 0.2
-# swing_time: 0.20
+# swing_time: 0.18
 # body_shift_phases: [0,0,0,0]
 # fwd_body_balance_shift: 0
 # back_body_balance_shift: 0
