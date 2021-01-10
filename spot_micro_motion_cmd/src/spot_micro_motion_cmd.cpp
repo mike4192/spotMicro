@@ -545,7 +545,7 @@ void SpotMicroMotionCmd::publishStaticTransforms() {
   // base_link to lidar_link transform
   tr_stamped = createTransform("base_link", "laser",
                                0.0, 0.0, 0.035, // TODO: Change to a parameter
-                               0.0, 0.0, 0.0);
+                               0.0, 0.0, M_PI);
   static_transform_br_.sendTransform(tr_stamped);
 
   // legs to leg cover transforms
