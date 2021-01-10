@@ -1,0 +1,9 @@
+<launch>
+
+  <arg name="rvizconfig" default="$(find spot_micro_rviz)/rviz/mapping_demo.rviz" />
+
+  <node pkg="rviz" type="rviz" name="rviz"
+    args="-d $(arg rvizconfig)"/>
+
+</launch>
+
