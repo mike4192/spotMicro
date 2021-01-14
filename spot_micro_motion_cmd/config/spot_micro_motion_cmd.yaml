@@ -20,18 +20,18 @@ lie_down_foot_x_offset: 0.065 # Fwd/back offset of all(?) feet from default stan
 # Servo parameters
 num_servos: 12
 servo_max_angle_deg: 82.5
-RF_3: {num: 1,  center: 306,range: 385,direction:  1, center_angle_deg:  84.0}
-RF_2: {num: 2,  center: 306,range: 385,direction:  1, center_angle_deg: -27.9}
+RF_3: {num: 1,  center: 306,range: 372,direction:  1, center_angle_deg:  88.2}
+RF_2: {num: 2,  center: 306,range: 389,direction:  1, center_angle_deg: -27.6}
 RF_1: {num: 3,  center: 306,range: 396,direction: -1, center_angle_deg:  -5.4}
-RB_3: {num: 4,  center: 306,range: 394,direction:  1, center_angle_deg:  90.4}
+RB_3: {num: 4,  center: 306,range: 396,direction:  1, center_angle_deg:  85.8}
 RB_2: {num: 5,  center: 306,range: 396,direction:  1, center_angle_deg: -35.4}
-RB_1: {num: 6,  center: 306,range: 410,direction:  1, center_angle_deg:  -4.4}
-LB_3: {num: 7,  center: 306,range: 369,direction:  1, center_angle_deg: -79.7}
-LB_2: {num: 8,  center: 306,range: 392,direction:  1, center_angle_deg:  37.4}
+RB_1: {num: 6,  center: 306,range: 411,direction:  1, center_angle_deg:  -4.4}
+LB_3: {num: 7,  center: 306,range: 390,direction:  1, center_angle_deg: -73.9}
+LB_2: {num: 8,  center: 306,range: 392,direction:  1, center_angle_deg:  38.7}
 LB_1: {num: 9,  center: 306,range: 374,direction: -1, center_angle_deg:  -0.4}
-LF_3: {num: 10, center: 306,range: 394,direction:  1, center_angle_deg: -80.0}
-LF_2: {num: 11, center: 306,range: 392,direction:  1, center_angle_deg:  37.9}
-LF_1: {num: 12, center: 306,range: 403,direction:  1, center_angle_deg:  -9.0}
+LF_3: {num: 10, center: 306,range: 387,direction:  1, center_angle_deg: -82.8}
+LF_2: {num: 11, center: 306,range: 397,direction:  1, center_angle_deg:  38.6}
+LF_1: {num: 12, center: 306,range: 389,direction:  1, center_angle_deg:  -7.6}
 
 # Control Parameters
 transit_tau: 0.3 # Time constant in seconds for first order filters during transition state
