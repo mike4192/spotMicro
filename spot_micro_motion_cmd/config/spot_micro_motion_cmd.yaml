@@ -10,10 +10,10 @@ body_length: 0.186 # Length between shoulder joints
 
 # Stance parameters
 default_stand_height: 0.155   # Height of robot body center when standing
-stand_front_x_offset: 0.015   # Fwb/back offset of front two legs from default stance
-stand_back_x_offset: 0.0      # Fwd/back offset of back two legs from default stance
-# stand_front_x_offset: -0.015   # Offset better tuned for trot gait
-# stand_back_x_offset: -0.015      # Offset better tuned for trot gait
+#stand_front_x_offset: 0.015   # Fwb/back offset of front two legs from default stance
+#stand_back_x_offset: -0.000      # Fwd/back offset of back two legs from default stance
+stand_front_x_offset: -0.010   # Offset better tuned for trot gait
+stand_back_x_offset: -0.010      # Offset better tuned for trot gait
 lie_down_height: 0.083        # Height of body center when sitting
 lie_down_foot_x_offset: 0.065 # Fwd/back offset of all(?) feet from default stance when sitting 
 
@@ -42,7 +42,7 @@ max_side_velocity: 0.4
 max_yaw_rate: 0.35
 
 # Gait parameters
-z_clearance: 0.045 # Max height of foot during swing phase. Increase to have feet go
+z_clearance: 0.050 # Max height of foot during swing phase. Increase to have feet go
                    # higher during swing. Feet travel in a triangular motion during swing
 alpha: 0.5 # Controls whether feet are centered within fwd/back motion
 beta: 0.5 # Controls whether feet are centered within side to side motion
@@ -60,17 +60,17 @@ foot_height_time_constant: 0.02
 # Only one leg is ever in swing phase at one time
 # 4 swing phases + 4 body motion phases to balance body over
 # three legs that will remain in contact with ground
-num_phases: 8
-rb_contact_phases: [1, 0, 1, 1, 1, 1, 1, 1]
-rf_contact_phases: [1, 1, 1, 0, 1, 1, 1, 1]
-lf_contact_phases: [1, 1, 1, 1, 1, 1, 1, 0]
-lb_contact_phases: [1, 1, 1, 1, 1, 0, 1, 1]
-overlap_time: 0.0
-swing_time: 0.20
-body_shift_phases: [1, 2, 3, 4, 5, 6, 7, 8]
-fwd_body_balance_shift: 0.025 # Amount the body center will shift forward when walking
-back_body_balance_shift: 0.005 # Amount the body center will shift backward when walking
-side_body_balance_shift: 0.015 # Amount the body center will shift side to side when walking 
+#num_phases: 8
+#rb_contact_phases: [1, 0, 1, 1, 1, 1, 1, 1]
+#rf_contact_phases: [1, 1, 1, 0, 1, 1, 1, 1]
+#lf_contact_phases: [1, 1, 1, 1, 1, 1, 1, 0]
+#lb_contact_phases: [1, 1, 1, 1, 1, 0, 1, 1]
+#overlap_time: 0.0
+#swing_time: 0.36
+#body_shift_phases: [1, 2, 3, 4, 5, 6, 7, 8]
+#fwd_body_balance_shift: 0.035 # Amount the body center will shift forward when walking
+#back_body_balance_shift: 0.005 # Amount the body center will shift backward when walking
+#side_body_balance_shift: 0.015 # Amount the body center will shift side to side when walking 
 
 #################################################
 ############## 4 Phase Trot Gait ################
@@ -78,17 +78,17 @@ side_body_balance_shift: 0.015 # Amount the body center will shift side to side 
 # 4 Phase gait where the two diagonally oposite legs move in
 # tandem together during swing phase
 # 2 swing phases + 2 phases where all four feet are on the ground
-# num_phases: 4
-# rb_contact_phases: [1, 0, 1, 1]
-# rf_contact_phases: [1, 1, 1, 0]
-# lf_contact_phases: [1, 0, 1, 1]
-# lb_contact_phases: [1, 1, 1, 0]
-# overlap_time: 0.2
-# swing_time: 0.18
-# body_shift_phases: [0,0,0,0]
-# fwd_body_balance_shift: 0
-# back_body_balance_shift: 0
-# side_body_balance_shift: 0
+num_phases: 4
+rb_contact_phases: [1, 0, 1, 1]
+rf_contact_phases: [1, 1, 1, 0]
+lf_contact_phases: [1, 0, 1, 1]
+lb_contact_phases: [1, 1, 1, 0]
+overlap_time: 0.18
+swing_time: 0.18
+body_shift_phases: [0,0,0,0]
+fwd_body_balance_shift: 0
+back_body_balance_shift: 0
+side_body_balance_shift: 0
 
 # Node parameters
 dt: 0.02 # Loop time of main loop, seconds (0.02 s is 50 hz) 
@@ -96,5 +96,5 @@ publish_odom: true  # Determines whether odometry is published or not
 
 # Debug mode
 debug_mode: false # Prints out additional information
-plot_mode: true # Publishes data for the python plotting node to work
+plot_mode: false # Publishes data for the python plotting node to work
 
