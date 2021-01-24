@@ -2,23 +2,32 @@
 
 <launch>
 
+    <!-- Argument for running post processing mode. If run_post_proc is true, -->
+    <!-- then only hector_mapping node is run. -->
+    <arg name="run_post_proc" default="false"/>
+
+    <!-- Launch spot micro motion command and rplidar nodes, only if -->
+    <!-- not in post processing mode -->
+    <group unless="$(arg run_post_proc)">
+        <!-- Spot micro motion command node, also runs servo control node -->
+        <include file="$(find spot_micro_motion_cmd)/launch/motion_cmd.launch" />
 
 
-    <node name="rplidarNode"          pkg="rplidar_ros"  type="rplidarNode" output="screen">
-        <param name="serial_port"         type="string" value="/dev/ttyUSB0"/>
-        <param name="serial_baudrate"     type="int"    value="115200"/><!--A1/A2 -->
-        <!--param name="serial_baudrate"     type="int"    value="256000"--><!--A3 -->
-        <param name="frame_id"            type="string" value="lidar_link"/>
-        <param name="inverted"            type="bool"   value="false"/>
-        <param name="angle_compensate"    type="bool"   value="true"/>
-    </node>
+        <!-- Launch rplidar node for lidar driver -->
+        <node name="rplidarNode"          pkg="rplidar_ros"  type="rplidarNode" output="screen">
+            <param name="serial_port"         type="string" value="/dev/ttyUSB0"/>
+            <param name="serial_baudrate"     type="int"    value="115200"/><!--A1/A2 -->
+            <!--param name="serial_baudrate"     type="int"    value="256000"--><!--A3 -->
+            <param name="frame_id"            type="string" value="lidar_link"/>
+            <param name="inverted"            type="bool"   value="false"/>
+            <param name="angle_compensate"    type="bool"   value="true"/>
+        </node>
+    </group>
 
 
+    <!-- Launch hector mapping node for SLAM -->
     <arg name="geotiff_map_file_path" default="$(find hector_geotiff)/maps"/>
-
-
-    <node pkg="hector_mapping" type="hector_mapping" name="hector_mapping" output="screen">
-        
+    <node pkg="hector_mapping" type="hector_mapping" name="hector_mapping" output="screen"> 
         <!-- Frame names -->
         <param name="map_frame" value="map" />
         <param name="base_frame" value="base_footprint" />
@@ -59,16 +68,11 @@
         <param name="tf_map_scanmatch_transform_frame_name" value="scanmatcher_frame" />
     </node>
 
-    <!-- <node pkg="hector_trajectory_server" type="hector_trajectory_server" name="hector_trajectory_server" output="screen">
-        <param name="target_frame_name" type="string" value="/map" />
-        <param name="source_frame_name" type="string" value="/base_footprint" /> 
-        <param name="trajectory_update_rate" type="double" value="4" />
-        <param name="trajectory_publish_rate" type="double" value="0.25" />
-    </node> -->
-
-    <include file="$(find hector_geotiff)/launch/geotiff_mapper.launch">
+<!-- Optional hector geotiff mapper node for creating geotiff map output -->
+<!-- This does not create a map in a format useable for navigation, but only an image -->
+    <!-- <include file="$(find hector_geotiff)/launch/geotiff_mapper.launch">
         <arg name="trajectory_source_frame_name" value="scanmatcher_frame"/>
         <arg name="map_file_path" value="$(arg geotiff_map_file_path)"/>
-    </include>
+    </include> -->
 
 </launch>
