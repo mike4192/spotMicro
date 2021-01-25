@@ -35,6 +35,8 @@ This project assumes a RPLidar A1. If another Lidar is used, then a different li
 
 
 ## Generating a Map
+It is reccomended to use the trot gait for robot motion when mapping with a lidar, as it is slightly smoother, albeit less stable, than the 8 phase gait.
+
 Open at least two terminal windows, with one ssh'ed to the raspberry pi. I reccomend using a terminal multiplexer such as `tmux` for convenience. Start the following launch files in the respective terminals:
 * `roslaunch spot_micro_lauch motion_control_and_hector_slam.launch`: Run on the Raspberry Pi. Launches the i2c_pwmboard node, the robot's motion control node, hector_mapping, and the lidar driver node (rplidar_ros).
 * `roslaunch spot_micro_launch keyboard_control_and_rviz rviz_slam:=true` Run on a local machine. Launches the keyboard command node for issuing keyboard commands to the spot micro robot in the terminal, as well as rviz with a configuration to display the mapping process.

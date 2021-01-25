@@ -59,6 +59,10 @@ struct SpotMicroNodeConfig {
   float side_body_balance_shift;
   float back_body_balance_shift;
   bool publish_odom;
+  float lidar_x_pos;
+  float lidar_y_pos;
+  float lidar_z_pos;
+  float lidar_yaw_angle;
 };
 
 
