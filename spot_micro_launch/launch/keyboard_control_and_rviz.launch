@@ -5,9 +5,6 @@
     <!-- Argument for running rviz with SLAM visualization-->
     <arg name="rviz_slam" default="false"/>
 
-    <!-- Argument for running rviz simple visualization -->
-    <arg name="rviz_simple" default="false"/>
-
     <!-- Run the keyboard command node-->
     <include file="$(find spot_micro_keyboard_command)/launch/keyboard_command.launch" />
 
@@ -18,8 +15,8 @@
     </group>
 
     <!-- If run_rviz is true, run the rviz node by including it's launch file -->
-    <group if="$(arg rviz_simple)">
+    <group unless="$(arg rviz_slam)">
         <include file="$(find spot_micro_rviz)/launch/show_model.launch" />
     </group>
-    
+
 </launch>
