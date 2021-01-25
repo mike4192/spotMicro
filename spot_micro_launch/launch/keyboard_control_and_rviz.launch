@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<launch>
+
+    <!-- Argument for running rviz with SLAM visualization-->
+    <arg name="rviz_slam" default="false"/>
+
+    <!-- Run the keyboard command node-->
+    <include file="$(find spot_micro_keyboard_command)/launch/keyboard_command.launch" />
+
+    <!-- Launch spot micro motion command and servo conrol nodes -->
+    <!-- If run_rviz is true, run the rviz node by including it's launch file -->
+    <group if="$(arg rviz_slam)">
+        <include file="$(find spot_micro_rviz)/launch/slam.launch" />
+    </group>
+
+    <!-- If run_rviz is true, run the rviz node by including it's launch file -->
+    <group unless="$(arg rviz_slam)">
+        <include file="$(find spot_micro_rviz)/launch/show_model.launch" />
+    </group>
+
+</launch>

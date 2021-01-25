@@ -2,6 +2,7 @@
 
 ![Spot Micro Walking](assets/spot_micro_walking.gif)
 ![RVIZ](assets/rviz_animation.gif)
+![slam](assets/spot_micro_slam.gif)
 
 
 Video of robot: https://www.youtube.com/watch?v=S-uzWG9Z-5E
@@ -10,11 +11,14 @@ Video of robot: https://www.youtube.com/watch?v=S-uzWG9Z-5E
 * [General Instructions](#general-instructions)
 * [Description of ROS Nodes](#description-of-ros-nodes)
 * [Additional Project Components](#additional-project-components)
+    * [URDF](#urdf-model)
+    * [TF2 Publishing and Odometry](#tf2-publishing-and-odometry)
+    * [SLAM](#slam)
 * [Future Work](#future-work)
 * [External Links](#external-links)
 
 ## Overview
-This project is the source code for a Spot Micro quadruped, a 4 legged open source robot. This code is capable of keyboard control of a 3d printed spot micro robot with sit, stand, angle command, and walk capability. The software is implemented on a Raspberry Pi 3B running Ubuntu 16.04 with ROS Kinetic installed.
+This project is the source code for a Spot Micro quadruped, a 4 legged open source robot. This code implements motion control of a 3d printed spot micro robot, including sit, stand, angle and walk control. Supporting libraries provide additional capabilities, such as mapping through SLAM and a body mounted lidar. The software is implemented on a Raspberry Pi 3B running Ubuntu 16.04 with ROS Kinetic installed.
 
 The software is composed of C++ and Python nodes in a ROS framework.
 
@@ -35,9 +39,9 @@ More information about the hardware, including the additional custom 3d printed 
 
 
 #### Software:
-This repo is structured as a catkin workspace in a ROS Kinetic envivornment on Ubuntu 16.04. The software may not work or compile outside this environment. Raspberry pi images preloaded with Ubuntu 16.04 and a ROS Kinetic installation can be found via ubiquity robotics. [See ubiquity robotics webpage](https://downloads.ubiquityrobotics.com/) for download, setup, and wifi setup instructions. It is suggested to also install ROS Kinetic on a Ubuntu 16.04 linux installation/dual boot/virtual machine on a PC for development and for running control nodes.
+This repo is structured as a catkin workspace in a ROS Kinetic envivornment on Ubuntu 16.04. The software may not work or compile outside this environment. Raspberry Pi images preloaded with Ubuntu 16.04 and a ROS Kinetic installation can be found via ubiquity robotics. [See ubiquity robotics webpage](https://downloads.ubiquityrobotics.com/) for download, setup, and wifi setup instructions. It is suggested to also install ROS Kinetic on a Ubuntu 16.04 linux installation/dual boot/virtual machine on a PC for development and for running control nodes. Instructions to install ROS kinetic can be found [here](http://wiki.ros.org/kinetic/Installation/Ubuntu).
 
-**NOTE**  Adding a SWAP partition of about 1 GB on the RPI's sd card is necessary to increase the virtual memory available beyond the RPI's onboard RAM. In my experience the catkin compilation process uses all the onboard RAM and stalls indefinitely and does not complete without adding a SWAP partition. Example instructions for adding a SWAP partition [can be found here](https://nebl.io/neblio-university/enabling-increasing-raspberry-pi-swap/). 
+**NOTE**  A SWAP partition of about 1 GB on the RPI's sd card is necessary to increase the virtual memory available beyond the RPI's onboard RAM. In my experience the catkin compilation process uses all the onboard RAM and stalls indefinitely and does not complete without adding a SWAP partition. Example instructions for adding a SWAP partition [can be found here](https://nebl.io/neblio-university/enabling-increasing-raspberry-pi-swap/). 
 
 The provided ROS Catkin make build system can be utilized, but I used `catkin tools` instead ([see catkin tools website]((https://catkin-tools.readthedocs.io/en/latest/))). Compilation commands below will be given assuming `catkin tools`. If not using catkin tools on the raspberry pi, the stock `catkin_make` can be used to compile the code via command such as `catkin_make -DCMAKE_BUILD_TYPE=Release` from the home of the catkin workspace.
 
@@ -63,7 +67,7 @@ git submodule update --init --recursive
 git submodule update --recursive
 ```
 
-If git permission errors are encountered, try the following suggestions via [this stackoverflow post](https://stackoverflow.com/questions/8197089/fatal-error-when-updating-submodule-using-git).
+If any git permission errors are encountered, try the following suggestions via [this stackoverflow post](https://stackoverflow.com/questions/8197089/fatal-error-when-updating-submodule-using-git).
 
 Since the same repo is checked out on both a pi and a laptop/PC, you will need to install an i2c library on the laptop/pc for the software to compile correctly. The `i2cpwm_board` node is not run on the laptop/pc, but compilation will look for dependencies for this node. Install the necessary library via:
 `sudo apt-get install libi2c-dev`
@@ -95,7 +99,7 @@ This section attemps to be a full set of instructions to get a spot micro robot 
 Comprehensive instructions for servo installation, calibration, and configuration can be found in [servo_calibration](docs/servo_calibration.md) document.
 
 #### Running:
-Open at least two terminal wndows, with at least one ssh'ed to the raspberry pi. I reccomend using a terminal multiplexer such as `tmux` for convenience. Start the following launch files in the respective terminals:
+Open at least two terminal windows, with at least one ssh'ed to the raspberry pi. I reccomend using a terminal multiplexer such as `tmux` for convenience. Start the following launch files in the respective terminals:
 * `roslaunch spot_micro_motion_cmd motion_cmd.launch`: Run on the Raspberry Pi. Launches the i2c_pwmboard node as well as the robot's motion control node. On startup, the motion command node sends a servo configuration message to the i2c_pwmboard node, then starts a state machines and enteres an idle state.
 * `roslaunch spot_micro_keyboard_command keyboard_command.launch` Run on a local machine. Launches the keyboard command node, for issuing keyboard commands to the spot micro robot
 * **OPTIONAL**: The above two launch files can take optional command line arguments to start additional nodes. Some of the command line arguments are listed below.
@@ -106,6 +110,7 @@ Open at least two terminal wndows, with at least one ssh'ed to the raspberry pi.
     * Command line arguments for `keyboard_command.launch`:
         * `run_rviz:=true`: Starts RVIZ and displays a 3d model of the robot with state update in real time.
         * `run_plot:=true`: Runs python plotting node to display a stick figure wireframe model of the spot micro robot state in real time. Must be run on a PC. Requires updated matplot lib python library (matplotlib 2.2.5) and updated numpy library (numpy 1.16.6).
+* For running SLAM, see the [SLAM document](docs/slam_information.md) for more information, which is also referenced in the [Additional Project Components](#additional-project-components) section.
         
 
 Stopping and exiting the keyboard command launch file may require typing `quit` and pressing `Ctrl-C`, as well as closing any plot windows if plotting was utilized. 
@@ -155,6 +160,8 @@ A yaml confguration file is used for holding various software configuration sett
 
 Note that the servo control node `i2cpwm_board` should only be commanded by one node at one time. Thus `spot_micro_motion_command` and `servo_move_keyboard` should be run exclusionary; only one should ever run at one time.
 
+* **spot_micro_launch**: Not a node, but a launch package purely for collecting high level launch files. The launch files are for more advanced use cases such as running SLAM. 
+
 ## Additional Project Components
 #### URDF Model
 The project contains a URDF model of the spot micro platform, along with a custom set of stl files  for visualization. The URDF file was pulled from Florian Wilk's repo, noted at the end of this README, and modified to change the coordinate system orientation, and the dimensions to match dimensions of my spot micro robot. Currently this urdf file is **only** used for RVIZ visualization of the spot micro model. This URDF model should not be treated as perfectly accurate representation of the robot's geometry, nor should the STL files in this repo be used for 3d printing. Use the noted Thingverse files instead. 
@@ -162,17 +169,18 @@ The project contains a URDF model of the spot micro platform, along with a custo
 The URDF model is defined as a `xacro` file, which is a way to define urdf file using macros to automate certain generative actions. The xacro file is located in the `spot_micro_rviz/urdf` directory. A urdf file can be generated from the `.xacro` file for inspection or use, if needed, via running `xacro` after sourcing a ROS development environment. 
 
 #### TF2 Publishing and Odometry
-Robot state transforms are published via TF2. Some primary frames of interest are `base_footprint` and `base_link`. `base_footprint` is a coordinate frame at zero height at the base of the robot frame. `base_link` is the coordinate frame fixed to the body center of the robot, and moves and rotates with body motion. 
+Robot state transforms are published via TF2. Some primary frames of interest are `base_footprint` and `base_link`, and `lidar_link`. `base_footprint` is a coordinate frame at zero height at the base of the robot frame. `base_link` is the coordinate frame fixed to the body center of the robot, and moves and rotates with body motion. `lidar_link` is a coordinate frame aligned with an installed lidar.
 
 An odometry frame, `odom`, is optionally available and can be enabled via a configurable parameter in the `spot_micro_motion_cmd.yaml` file. If enabled, `odom` is parent to the `base_footprint` frame.  **Note that odometry is grossly inaccurate and not calibrated whatsoever**. It is a pure integration of robot rate commands and thus drifts unbounded with errors over time. It is provided for any useful purpose it may serve.
 
-
+#### SLAM
+If a lidar, such as a RPLidar A1, is mounted to the robot frame, 2d mapping is possible through SLAM with additional ROS nodes, such as hector_slam. More information about running SLAM through this project is described in the [SLAM information](docs/slam_information.md) document.
 
 ## Future Work
 The current software supports basic state machine operation of the spot micro robot, orientation control at rest, and rate command in forward, sideways, and yaw directions, completely through external command messages.
 
 My desired future goals for this project, in order of preference, are to:
-1. Incorporate a lidar (particularly the Slamtec RPLIDAR A1) to achieve simple 2D mapping of a room via SLAM. This may require the addition of an IMU for robot orientation sensing (for example, an Adafruit 9-DOF IMU BNO055).
+1. ~~Incorporate a lidar (particularly the Slamtec RPLIDAR A1) to achieve simple 2D mapping of a room via SLAM. This may require the addition of an IMU for robot orientation sensing (for example, an Adafruit 9-DOF IMU BNO055).~~
 2. Develop an autonomous motion planning module to guide the robot to execute a simple task around a sensed 2D environment. For example, navigate the perimeter of a room, and dynamically avoid introduced obstacles.
 3. Incorporate a camera or webcam and create a software module to conduct basic image classification. For example, perceive a closed fist or open palm, and have the robot react in specific ways to each.
 4. Implement a more advanced robot controller that can reject external disturbances. 

@@ -371,7 +371,10 @@ void SpotMicroMotionCmd::readInConfigParameters() {
   pnh_.getParam("back_body_balance_shift", smnc_.back_body_balance_shift);
   pnh_.getParam("side_body_balance_shift", smnc_.side_body_balance_shift);
   pnh_.getParam("publish_odom", smnc_.publish_odom);
-  
+  pnh_.getParam("lidar_x_pos", smnc_.lidar_x_pos);
+  pnh_.getParam("lidar_y_pos", smnc_.lidar_y_pos);
+  pnh_.getParam("lidar_z_pos", smnc_.lidar_z_pos);
+  pnh_.getParam("lidar_yaw_angle", smnc_.lidar_yaw_angle);
   
   // Derived parameters, round result of division of floats
   smnc_.overlap_ticks = round(smnc_.overlap_time / smnc_.dt);
@@ -543,9 +546,13 @@ void SpotMicroMotionCmd::publishStaticTransforms() {
   static_transform_br_.sendTransform(tr_stamped);
 
   // base_link to lidar_link transform
+  float x_offset = smnc_.lidar_x_pos;
+  float y_offset = smnc_.lidar_y_pos;
+  float z_offset = smnc_.lidar_z_pos;
+  float yaw_angle = smnc_.lidar_yaw_angle*M_PI/180.0; // Converted to radians
   tr_stamped = createTransform("base_link", "lidar_link",
-                               0.0, 0.0, 0.035, // TODO: Change to a parameter
-                               0.0, 0.0, 0.0);
+                               x_offset, y_offset, z_offset,
+                               0.0, 0.0, yaw_angle);
   static_transform_br_.sendTransform(tr_stamped);
 
   // legs to leg cover transforms

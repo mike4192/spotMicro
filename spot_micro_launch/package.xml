@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>spot_micro_launch</name>
+  <version>0.0.0</version>
+  <description>The spot_micro_launch package</description>
+
+  <!-- One maintainer tag required, multiple allowed, one person per tag -->
+  <!-- Example:  -->
+  <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
+  <maintainer email="mike@todo.todo">mike</maintainer>
+
+
+  <!-- One license tag required, multiple allowed, one license per tag -->
+  <!-- Commonly used license strings: -->
+  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
+  <license>TODO</license>
+
+
+  <!-- Url tags are optional, but multiple are allowed, one per tag -->
+  <!-- Optional attribute type can be: website, bugtracker, or repository -->
+  <!-- Example: -->
+  <!-- <url type="website">http://wiki.ros.org/spot_micro_launch</url> -->
+
+
+  <!-- Author tags are optional, multiple are allowed, one per tag -->
+  <!-- Authors do not have to be maintainers, but could be -->
+  <!-- Example: -->
+  <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
+
+
+  <!-- The *depend tags are used to specify dependencies -->
+  <!-- Dependencies can be catkin packages or system dependencies -->
+  <!-- Examples: -->
+  <!-- Use depend as a shortcut for packages that are both build and exec dependencies -->
+  <!--   <depend>roscpp</depend> -->
+  <!--   Note that this is equivalent to the following: -->
+  <!--   <build_depend>roscpp</build_depend> -->
+  <!--   <exec_depend>roscpp</exec_depend> -->
+  <!-- Use build_depend for packages you need at compile time: -->
+  <!--   <build_depend>message_generation</build_depend> -->
+  <!-- Use build_export_depend for packages you need in order to build against this package: -->
+  <!--   <build_export_depend>message_generation</build_export_depend> -->
+  <!-- Use buildtool_depend for build tool packages: -->
+  <!--   <buildtool_depend>catkin</buildtool_depend> -->
+  <!-- Use exec_depend for packages you need at runtime: -->
+  <!--   <exec_depend>message_runtime</exec_depend> -->
+  <!-- Use test_depend for packages you need only for testing: -->
+  <!--   <test_depend>gtest</test_depend> -->
+  <!-- Use doc_depend for packages you need only for building documentation: -->
+  <!--   <doc_depend>doxygen</doc_depend> -->
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>hector_geotiff</build_depend>
+  <build_depend>hector_geotiff_plugins</build_depend>
+  <build_depend>hector_map_server</build_depend>
+  <build_depend>hector_mapping</build_depend>
+  <build_depend>hector_trajectory_server</build_depend>
+  <build_depend>rviz</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>tf2</build_depend>
+  <build_depend>topic_tools</build_depend>
+  <build_depend>rplidar_ros</build_depend>
+  <build_export_depend>hector_geotiff</build_export_depend>
+  <build_export_depend>hector_geotiff_plugins</build_export_depend>
+  <build_export_depend>hector_map_server</build_export_depend>
+  <build_export_depend>hector_mapping</build_export_depend>
+  <build_export_depend>hector_trajectory_server</build_export_depend>
+  <build_export_depend>rviz</build_export_depend>
+  <build_export_depend>tf</build_export_depend>
+  <build_export_depend>tf2</build_export_depend>
+  <build_export_depend>topic_tools</build_export_depend>
+  <build_export_depend>rplidar_ros</build_export_depend>
+  <exec_depend>hector_geotiff</exec_depend>
+  <exec_depend>hector_geotiff_plugins</exec_depend>
+  <exec_depend>hector_map_server</exec_depend>
+  <exec_depend>hector_mapping</exec_depend>
+  <exec_depend>hector_trajectory_server</exec_depend>
+  <exec_depend>rviz</exec_depend>
+  <exec_depend>tf</exec_depend>
+  <exec_depend>tf2</exec_depend>
+  <exec_depend>topic_tools</exec_depend>
+  <exec_depend>rplidar_ros</exec_depend>
+
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+
+  </export>
+</package>

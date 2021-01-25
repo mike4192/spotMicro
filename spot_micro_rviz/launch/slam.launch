@@ -1,0 +1,13 @@
+<launch>
+
+  <arg name="rvizconfig" default="$(find spot_micro_rviz)/rviz/spot_micro_slam.rviz" />
+  <arg name="model" default="$(find spot_micro_rviz)/urdf/spot_micro.urdf.xacro"/>
+
+  <param name="robot_description" command="$(find xacro)/xacro.py $(arg model)" />
+
+
+  <node pkg="rviz" type="rviz" name="rviz"
+    args="-d $(arg rvizconfig)"/>
+
+</launch>
+
