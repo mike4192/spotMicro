@@ -34,6 +34,7 @@ struct SpotMicroNodeConfig {
   float transit_rl;
   float transit_angle_rl;
   bool debug_mode;
+  bool run_standalone;
   bool plot_mode;
   float max_fwd_velocity;
   float max_side_velocity;
