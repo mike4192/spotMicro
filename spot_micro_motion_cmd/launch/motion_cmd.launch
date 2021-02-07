@@ -28,6 +28,9 @@
        
         <!-- Override debug_mode parameter to true IF debug_mode is true -->
         <param if="$(arg debug_mode)" name="debug_mode" value="true" />
+
+	<!-- Override standalone_mode parameter to true IF standalone_mode is true -->
+        <param if="$(arg run_standalone)" name="run_standalone" value="true" />
     </node>
 
 
