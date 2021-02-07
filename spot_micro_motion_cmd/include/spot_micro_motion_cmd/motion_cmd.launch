@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Launch file for launching spot micro motion command node and, optionally, other nodes-->
+<!-- via command line arguments -->
+
+<launch>
+    <!-- Optional command line argument to run this node standalone (without i2c_pwmboard)  -->
+    <!-- Useful for running or debugging program on a PC instead of a rpi -->
+    <arg name="run_standalone" default="false"/>
+
+    <!-- Run debug mode -->
+    <arg name="debug_mode" default="false"/>
+
+    <!-- Optional command line argument to also run lcd monitor node on rpi --> -->
+    <arg name="run_lcd" default="false"/>
+
+
+
+
+    <!-- If run_standalone is false, run i2c_pwmboard (the unless argument below)-->
+    <node unless="$(arg run_standalone)" name="i2cpwm_board_node" pkg="i2cpwm_board" type="i2cpwm_board" output="screen">                                           │walk: Start walk mode and keyboard motion control
+    </node>  
+
+
+    <!-- Run the spot micro motion command node-->
+    <node name="spot_micro_motion_cmd_node" pkg="spot_micro_motion_cmd" type="spot_micro_motion_cmd_node" output="screen">
+        <!-- loading the parameters from yaml file during th runtime -->
+        <rosparam command="load" file="$(find spot_micro_motion_cmd)/config/spot_micro_motion_cmd.yaml"/>
+       
+        <!-- Override debug_mode parameter to true IF debug_mode is true -->
+        <param if="$(arg debug_mode)" name="debug_mode" value="true" />
+
+	<!-- Override standalone_mode parameter to true IF standalone_mode is true -->
+        <param if="$(arg run_standalone)" name="run_standalone" value="true" />
+    </node>
+
+
+    <!-- If run_lcd is true, also run the lcd monitor node on the rpi by including it's launch file -->
+    <group if="$(arg run_lcd)">
+        <include file="$(find lcd_monitor)/launch/lcd_monitor.launch"/>
+    </group>
+
+
+</launch>
