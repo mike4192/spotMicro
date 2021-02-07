@@ -203,8 +203,8 @@ bool SpotMicroMotionCmd::publishServoConfiguration() {
 
   // call the client service, return true if succesfull, false if not
   if (!servos_config_client_.call(temp_servo_config_array)) {
-    if (!smnc_.debug_mode) {
-      // Only error out if not in debug mode
+    if (!smnc_.debug_mode && !smnc_.run_standalone) {
+      // Only error out if not in debug mode or standalone mode 
       ROS_ERROR("Failed to call service servo_config");
       return false;
     }
@@ -351,6 +351,7 @@ void SpotMicroMotionCmd::readInConfigParameters() {
   pnh_.getParam("transit_angle_rl", smnc_.transit_angle_rl);
   pnh_.getParam("dt", smnc_.dt);
   pnh_.getParam("debug_mode", smnc_.debug_mode);
+  pnh_.getParam("run_standalone", smnc_.run_standalone);
   pnh_.getParam("plot_mode", smnc_.plot_mode);
   pnh_.getParam("max_fwd_velocity", smnc_.max_fwd_velocity);
   pnh_.getParam("max_side_velocity", smnc_.max_side_velocity);

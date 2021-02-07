@@ -104,3 +104,6 @@ publish_odom: true  # Determines whether odometry is published or not
 debug_mode: false # Prints out additional information
 plot_mode: false # Publishes data for the python plotting node to work
 
+# Standalone mode
+standalone_mode: false # Enables node to run without i2cpwnboard
+
