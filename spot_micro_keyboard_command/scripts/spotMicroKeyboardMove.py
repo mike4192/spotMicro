@@ -18,6 +18,8 @@ Enter one of the following options:
 quit: stop and quit the program
 walk: Start walk mode and keyboard motion control
 stand: Stand robot up
+idle: Lay robot down
+angle_cmd: enter angle control mode
 
 Keyboard commands for body motion 
 ---------------------------
