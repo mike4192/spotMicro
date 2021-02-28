@@ -204,7 +204,7 @@ class SpotMicroKeyboardControl():
 
                     # Publish walk event
                     self._ros_pub_walk_cmd.publish(self._walk_event_cmd_msg)
-                    rospy.loginfo('Idle command issued from keyboard.')
+                    rospy.loginfo('Walk command issued from keyboard.')
 
                     # Prompt user with info and enter loop to act on user command
                     print('Enter command, u to go back to stand mode: ')
