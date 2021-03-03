@@ -75,9 +75,10 @@ Individual servo's can be commanded via the servo_move_keyboard ROS node for the
 ### Guide to Creating Servo Calibration Values
 Adequate kinematic performance can be achieved through calibration of links by eye, as depicted in the diagrams below. However, I also used a smartphone inclinometer app as an aid to measure angles of 45 deg for the link 1 calibration. It is reccomended to prop up the robot on a box or similar test stand so the legs can hang freely for calibration.
 
-**Leg links should be visualized as straight lines segments from reference point to reference point (e.g. axis of rotation to axis of rotation).** When positioning joints for calibration, use the wireframe representation of each link for orientation reference rather than the the 3d printed part itself.
+**Leg links should be visualized as straight lines segments from reference point to reference point (e.g. axis of rotation to axis of rotation).** When positioning joints for calibration, use the wireframe representation of each link for orientation reference rather than the 3d printed part itself.
 
-The servo calibration can be built up with aid of the servo_calibration_spreadsheet, shown in the figure below. Generally the procedure is the position each link to two reference positions (angles) and note down the cooresponding pwm values for those positions. I used gross angles of 0 and 90 deg for ease of placement by eye. While the slope value is not used, it is useful to keep an eye on it as all servos should have similar calculated slopes. Large discrepencies in this value could be indicative of errors.
+The servo calibration can be built up with aid of the servo_calibration_spreadsheet, shown in the figure below. Generally the procedure is the position each link to two reference positions (angles) and note down the corresponding pwm values for those positions. I used gross angles of 0 and 90 deg for ease of placement by eye. While the slope value is not used, it is useful to keep an eye on it as all servos should have similar calculated slopes. Large discrepancies in this value could be indicative of errors.
+If you get unexpected values for servo 3 and 12 you might check if you printed a modified model with inverted hip-servos. To check this take a look from inside the body. If you see 4 ball-bearings you have the original design, if you see 2 ball-bearings and 2 server-horns the servos 3 and 12 will be inverted.
 
 ![Servo Calibration Spreadsheet](../assets/servo_calibration_spreadsheet.png)
 
