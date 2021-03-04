@@ -56,11 +56,6 @@ class SpotMicroKeyboardControl():
         self._angle_cmd_msg.y = 0
         self._angle_cmd_msg.z = 0
 
-        self._speed_cmd_msg = Vector3()
-        self._speed_cmd_msg.x = 0
-        self._speed_cmd_msg.y = 0
-        self._speed_cmd_msg.z = 0
-
         self._vel_cmd_msg = Twist()
         self._vel_cmd_msg.linear.x = 0
         self._vel_cmd_msg.linear.y = 0
