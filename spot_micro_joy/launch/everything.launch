@@ -2,13 +2,9 @@
 <launch>
     <arg name="debug_mode" default="false"/>
 
-    <node name="i2cpwm_board_node" pkg="i2cpwm_board" type="i2cpwm_board" output="screen">
-    </node>  
-
-
-    <node name="spot_micro_motion_cmd_node" pkg="spot_micro_motion_cmd" type="spot_micro_motion_cmd_node" output="screen">
-        <rosparam command="load" file="$(find spot_micro_motion_cmd)/config/spot_micro_motion_cmd.yaml"/>
-    </node>
+    <include file="$(find spot_micro_motion_cmd)/launch/motion_cmd.launch" >
+        <arg name="debug_mode" value="$(arg debug_mode)"/>
+    </include>
 
     <node name="joy_node" pkg="joy" type="joy_node" output="screen">
     </node>  
