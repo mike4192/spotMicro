@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+    <arg name="debug_mode" default="false"/>
+
+    <include file="$(find spot_micro_motion_cmd)/launch/motion_cmd.launch" >
+        <arg name="debug_mode" value="$(arg debug_mode)"/>
+    </include>
+
+    <node name="joy_node" pkg="joy" type="joy_node" output="screen">
+    </node>  
+
+    <node name="spotMicroJoystickMove" pkg="spot_micro_joy" type="spotMicroJoystickMove.py" output="screen">
+    </node>  
+
+</launch>

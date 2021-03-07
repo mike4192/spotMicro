@@ -150,6 +150,8 @@ A yaml confguration file is used for holding various software configuration sett
 
 * **spot_micro_keyboard_command**: Node that sends state, motion, and rate commands to the motion control node via keyboard
 
+* **spot_micro_joy**: Sends the same commands like the keyboard_command_node but is controlled by sensor_msgs/Joy, which are emitted by joy_node. By default it is configured for PS4 button-layout. Make sure to take a look into the [joystick control](docs/joystick_control.md) documentaion before trying.
+
 * **lcd_monitor**: Node that displays basic state information and control values on the lcd monitor
 
 * **spot_micro_plot**: Displays a wireframe figure of the robot via matplotlib and received state data from spot_micro_motion_cmd. This plot node can be used in lieu of the real robot for testing motions if the spot_micro_motion_cmd node is run standalone, and with the debug_mode parameter set true.
