@@ -1,9 +1,9 @@
 [submodule "spot_micro_motion_cmd/libs/spot_micro_kinematics_cpp"]
 	path = spot_micro_motion_cmd/libs/spot_micro_kinematics_cpp
-	url = https://github.com/mike4192/spot_micro_kinematics_cpp.git
+	url = git://github.com/mike4192/spot_micro_kinematics_cpp.git
 [submodule "spot_micro_plot/scripts/spot_micro_kinematics_python"]
 	path = spot_micro_plot/scripts/spot_micro_kinematics_python
-	url = https://github.com/mike4192/spot_micro_kinematics_python.git
+	url =git://github.com/mike4192/spot_micro_kinematics_python.git
 [submodule "ros-i2cpwmboard"]
 	path = ros-i2cpwmboard
-	url = https://gitlab.com/bradanlane/ros-i2cpwmboard.git
+	url = git://gitlab.com/bradanlane/ros-i2cpwmboard.git
