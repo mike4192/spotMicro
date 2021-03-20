@@ -69,6 +69,13 @@ git submodule update --recursive
 
 If any git permission errors are encountered, try the following suggestions via [this stackoverflow post](https://stackoverflow.com/questions/8197089/fatal-error-when-updating-submodule-using-git).
 
+Three additional ROS packages may need to be installed for this project to build succesfully. They can be installed via:
+```
+sudo apt-get install ros-kinetic-joy
+sudo apt-get install ros-kinetic-rplidar-ros
+sudo apt-get install ros-kinetic-hector-slam
+```
+
 Since the same repo is checked out on both a pi and a laptop/PC, you will need to install an i2c library on the laptop/pc for the software to compile correctly. The `i2cpwm_board` node is not run on the laptop/pc, but compilation will look for dependencies for this node. Install the necessary library via:
 `sudo apt-get install libi2c-dev`
 
