@@ -1,4 +1,6 @@
 #pragma once
+#include <memory>
+#include <string>
 #include "spot_micro_kinematics/spot_micro_kinematics.h"
 
 #include "rate_limited_first_order_filter.h"

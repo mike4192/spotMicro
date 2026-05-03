@@ -2,17 +2,19 @@
 from lcd_monitor import I2C_LCD_driver
 import datetime
 import time
-import rospy
+import rclpy
+from rclpy.node import Node
 from math import pi
 from geometry_msgs.msg import Vector3
 from geometry_msgs.msg import Twist
 from std_msgs.msg import String
 
-class SpotMicroLcd():
+class SpotMicroLcd(Node):
 	''' Class to encapsulate lcd driver for spot micro robot '''
 
 	def __init__(self):
-		'''Constructor'''
+		super().__init__('lcd_monitor_node')
+
 		self._mylcd = I2C_LCD_driver.lcd()
 
 		self._state_str = 'None'
@@ -26,11 +28,11 @@ class SpotMicroLcd():
 		self._theta_cmd = 0.0
 		self._psi_cmd = 0.0
 
-		rospy.init_node('lcd_monitor_node')
+		self.create_subscription(Twist, 'lcd_vel_cmd', self.update_speed_cmd, 1)
+		self.create_subscription(Vector3, 'lcd_angle_cmd', self.update_angle_cmd, 1)
+		self.create_subscription(String, 'lcd_state', self.update_state_string, 1)
 
-		rospy.Subscriber('lcd_vel_cmd',Twist,self.update_speed_cmd)
-		rospy.Subscriber('lcd_angle_cmd',Vector3,self.update_angle_cmd)
-		rospy.Subscriber('lcd_state',String,self.update_state_string)
+		self._timer = self.create_timer(1.0/3.0, self.run_lcd)
 
 	def update_speed_cmd(self, msg):
 		''' Updates speed command attributes'''
@@ -54,30 +56,24 @@ class SpotMicroLcd():
 			self._padded_state_str = "To Idle"
 		else:
 			self._padded_state_str = self._state_str
-		
+
 		self._padded_state_str = self._padded_state_str.ljust(16,' ')
 
-	def run(self):
+	def run_lcd(self):
 		''' Runs the lcd driver and prints data'''
+		self._mylcd.lcd_display_string('State: %s'%(self._padded_state_str),1)
 
-		# Define the loop rate in Hz
-		rate = rospy.Rate(3)
-
-		while not rospy.is_shutdown():
-			
-			self._mylcd.lcd_display_string('State: %s'%(self._padded_state_str),1)
-
-
-			if self._state_str == "Stand":
-				self._mylcd.lcd_display_string('x%3.0f y%3.0f z%3.0f'%(self._phi_cmd, self._theta_cmd, self._psi_cmd),2)
-			elif self._state_str == "Walk":
-				self._mylcd.lcd_display_string('x%3.0f y%3.0f z%3.0f'%(self._fwd_speed_cmd, self._side_speed_cmd, self._yaw_rate_cmd),2)
-			else:
-				self._mylcd.lcd_display_string('                ',2)
-			# Sleep till next loop
-			rate.sleep()
+		if self._state_str == "Stand":
+			self._mylcd.lcd_display_string('x%3.0f y%3.0f z%3.0f'%(self._phi_cmd, self._theta_cmd, self._psi_cmd),2)
+		elif self._state_str == "Walk":
+			self._mylcd.lcd_display_string('x%3.0f y%3.0f z%3.0f'%(self._fwd_speed_cmd, self._side_speed_cmd, self._yaw_rate_cmd),2)
+		else:
+			self._mylcd.lcd_display_string('                ',2)
 
 
-def main():
+def main(args=None):
+	rclpy.init(args=args)
 	sm_lcd_obj = SpotMicroLcd()
-	sm_lcd_obj.run()
+	rclpy.spin(sm_lcd_obj)
+	sm_lcd_obj.destroy_node()
+	rclpy.shutdown()

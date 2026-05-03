@@ -1,0 +1,121 @@
+<mujoco model="spot_micro_rviz">
+  <compiler angle="radian" meshdir="." autolimits="true"/>
+  
+  <option timestep="0.002" gravity="0 0 -9.81" integrator="implicitfast">
+    <flag warmstart="enable"/>
+  </option>
+
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.6 0.8 1.0" rgb2="0.2 0.4 0.8" width="512" height="512"/>
+    <texture name="grid" type="2d" builtin="checker" rgb1="0.9 0.9 0.9" rgb2="0.7 0.7 0.7" width="512" height="512"/>
+    <material name="grid" texture="grid" texrepeat="10 10" reflectance="0.1"/>
+    <material name="yellow" rgba="0.92 0.83 0.0 1"/>
+    <material name="black" rgba="0.1 0.1 0.1 1"/>
+    <material name="grey" rgba="0.6 0.6 0.6 1"/>
+  </asset>
+
+  <worldbody>
+    <light pos="0 0 3" dir="0 0 -1" diffuse="0.8 0.8 0.8"/>
+    <geom name="floor" size="50 50 0.1" type="plane" material="grid"/>
+    
+    <!-- Base link -->
+    <body name="base_link" pos="0 0 0.25">
+      <freejoint name="root"/>
+      <inertial pos="0 0 0" mass="2.80" diaginertia="0.01 0.01 0.01"/>
+      <geom size="0.07 0.055 0.035" type="box" rgba="0.1 0.1 0.1 1"/>
+      <geom size="0.04925 0.02885 0.035" pos="0 0 0.035" type="box" rgba="0.1 0.1 0.1 1"/>
+      <geom size="0.02 0.055 0.035" pos="0.135 0 0" type="box" rgba="0.92 0.83 0 1"/>
+      <geom size="0.029 0.055 0.035" pos="-0.145 0 0" type="box" rgba="0.92 0.83 0 1"/>
+
+      <!-- Front Left Leg -->
+      <body name="front_left_shoulder_link" pos="0.093 0.039 0">
+        <inertial pos="0 0 0" mass="0.1" diaginertia="0.001 0.001 0.001"/>
+        <joint name="front_left_shoulder" pos="0 0 0" axis="1 0 0" range="-0.548 0.548" actuatorfrcrange="-1000 1000" frictionloss="0.5" damping="1"/>
+        <geom size="0.022 0.019 0.035" type="box" rgba="0.1 0.1 0.1 1"/>
+        <body name="front_left_leg_link" pos="0 0.055 0">
+          <inertial pos="0 0 0" mass="0.15" diaginertia="0.001 0.001 0.001"/>
+          <joint name="front_left_leg" pos="0 0 0" axis="0 1 0" range="-2.666 1.548" actuatorfrcrange="-1000 1000" damping="1"/>
+          <geom size="0.014 0.018 0.05375" pos="0 0 -0.05" type="box" rgba="0.1 0.1 0.1 1"/>
+          <body name="front_left_foot_link" pos="0 0 -0.1075">
+            <inertial pos="0 0 -0.0433333" mass="0.15" diaginertia="0.001 0.001 0.001"/>
+            <joint name="front_left_foot" pos="0 0 0" axis="0 1 0" range="-2.6 0.1" actuatorfrcrange="-1000 1000" frictionloss="0.5" damping="1"/>
+            <geom size="0.013 0.01 0.065" pos="0 0 -0.05" type="box" rgba="0.1 0.1 0.1 1"/>
+            <geom name="front_left_toe" size="0.02" pos="0 0 -0.11" rgba="0.6 0.6 0.6 1"/>
+          </body>
+        </body>
+      </body>
+
+      <!-- Front Right Leg -->
+      <body name="front_right_shoulder_link" pos="0.093 -0.039 0">
+        <inertial pos="0 0 0" mass="0.1" diaginertia="0.001 0.001 0.001"/>
+        <joint name="front_right_shoulder" pos="0 0 0" axis="1 0 0" range="-0.548 0.548" actuatorfrcrange="-1000 1000" frictionloss="0.5" damping="1"/>
+        <geom size="0.022 0.019 0.035" type="box" rgba="0.1 0.1 0.1 1"/>
+        <body name="front_right_leg_link" pos="0 -0.055 0">
+          <inertial pos="0 0 0" mass="0.15" diaginertia="0.001 0.001 0.001"/>
+          <joint name="front_right_leg" pos="0 0 0" axis="0 1 0" range="-2.666 1.548" actuatorfrcrange="-1000 1000" damping="1"/>
+          <geom size="0.014 0.018 0.05375" pos="0 0 -0.05" type="box" rgba="0.1 0.1 0.1 1"/>
+          <body name="front_right_foot_link" pos="0 0 -0.1075">
+            <inertial pos="0 0 -0.0433333" mass="0.15" diaginertia="0.001 0.001 0.001"/>
+            <joint name="front_right_foot" pos="0 0 0" axis="0 1 0" range="-2.6 0.1" actuatorfrcrange="-1000 1000" frictionloss="0.5" damping="1"/>
+            <geom size="0.013 0.01 0.065" pos="0 0 -0.05" type="box" rgba="0.1 0.1 0.1 1"/>
+            <geom name="front_right_toe" size="0.02" pos="0 0 -0.11" rgba="0.6 0.6 0.6 1"/>
+          </body>
+        </body>
+      </body>
+
+      <!-- Rear Left Leg -->
+      <body name="rear_left_shoulder_link" pos="-0.093 0.039 0">
+        <inertial pos="0 0 0" mass="0.1" diaginertia="0.001 0.001 0.001"/>
+        <joint name="rear_left_shoulder" pos="0 0 0" axis="1 0 0" range="-0.548 0.548" actuatorfrcrange="-1000 1000" frictionloss="0.5" damping="1"/>
+        <geom size="0.022 0.019 0.035" type="box" rgba="0.1 0.1 0.1 1"/>
+        <body name="rear_left_leg_link" pos="0 0.055 0">
+          <inertial pos="0 0 0" mass="0.15" diaginertia="0.001 0.001 0.001"/>
+          <joint name="rear_left_leg" pos="0 0 0" axis="0 1 0" range="-2.666 1.548" actuatorfrcrange="-1000 1000" damping="1"/>
+          <geom size="0.014 0.018 0.05375" pos="0 0 -0.05" type="box" rgba="0.1 0.1 0.1 1"/>
+          <body name="rear_left_foot_link" pos="0 0 -0.1075">
+            <inertial pos="0 0 -0.0433333" mass="0.15" diaginertia="0.001 0.001 0.001"/>
+            <joint name="rear_left_foot" pos="0 0 0" axis="0 1 0" range="-2.6 0.1" actuatorfrcrange="-1000 1000" frictionloss="0.5" damping="1"/>
+            <geom size="0.013 0.01 0.065" pos="0 0 -0.05" type="box" rgba="0.1 0.1 0.1 1"/>
+            <geom name="rear_left_toe" size="0.02" pos="0 0 -0.11" rgba="0.6 0.6 0.6 1"/>
+          </body>
+        </body>
+      </body>
+
+      <!-- Rear Right Leg -->
+      <body name="rear_right_shoulder_link" pos="-0.093 -0.039 0">
+        <inertial pos="0 0 0" mass="0.1" diaginertia="0.001 0.001 0.001"/>
+        <joint name="rear_right_shoulder" pos="0 0 0" axis="1 0 0" range="-0.548 0.548" actuatorfrcrange="-1000 1000" frictionloss="0.5" damping="1"/>
+        <geom size="0.022 0.019 0.035" type="box" rgba="0.1 0.1 0.1 1"/>
+        <body name="rear_right_leg_link" pos="0 -0.055 0">
+          <inertial pos="0 0 0" mass="0.15" diaginertia="0.001 0.001 0.001"/>
+          <joint name="rear_right_leg" pos="0 0 0" axis="0 1 0" range="-2.666 1.548" actuatorfrcrange="-1000 1000" damping="1"/>
+          <geom size="0.014 0.018 0.05375" pos="0 0 -0.05" type="box" rgba="0.1 0.1 0.1 1"/>
+          <body name="rear_right_foot_link" pos="0 0 -0.1075">
+            <inertial pos="0 0 -0.0433333" mass="0.15" diaginertia="0.001 0.001 0.001"/>
+            <joint name="rear_right_foot" pos="0 0 0" axis="0 1 0" range="-2.6 0.1" actuatorfrcrange="-1000 1000" frictionloss="0.5" damping="1"/>
+            <geom size="0.013 0.01 0.065" pos="0 0 -0.05" type="box" rgba="0.1 0.1 0.1 1"/>
+            <geom name="rear_right_toe" size="0.02" pos="0 0 -0.11" rgba="0.6 0.6 0.6 1"/>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <position joint="front_left_shoulder" name="front_left_shoulder_actuator" kp="1000" kv="100" ctrlrange="-0.548 0.548"/>
+    <position joint="front_left_leg"      name="front_left_leg_actuator"      kp="1000" kv="100" ctrlrange="-2.666 1.548"/>
+    <position joint="front_left_foot"     name="front_left_foot_actuator"     kp="1000" kv="100" ctrlrange="-2.6 0.1"/>
+    
+    <position joint="front_right_shoulder" name="front_right_shoulder_actuator" kp="1000" kv="100" ctrlrange="-0.548 0.548"/>
+    <position joint="front_right_leg"      name="front_right_leg_actuator"      kp="1000" kv="100" ctrlrange="-2.666 1.548"/>
+    <position joint="front_right_foot"     name="front_right_foot_actuator"     kp="1000" kv="100" ctrlrange="-2.6 0.1"/>
+    
+    <position joint="rear_left_shoulder" name="rear_left_shoulder_actuator" kp="1000" kv="100" ctrlrange="-0.548 0.548"/>
+    <position joint="rear_left_leg"      name="rear_left_leg_actuator"      kp="1000" kv="100" ctrlrange="-2.666 1.548"/>
+    <position joint="rear_left_foot"     name="rear_left_foot_actuator"     kp="1000" kv="100" ctrlrange="-2.6 0.1"/>
+    
+    <position joint="rear_right_shoulder" name="rear_right_shoulder_actuator" kp="1000" kv="100" ctrlrange="-0.548 0.548"/>
+    <position joint="rear_right_leg"      name="rear_right_leg_actuator"      kp="1000" kv="100" ctrlrange="-2.666 1.548"/>
+    <position joint="rear_right_foot"     name="rear_right_foot_actuator"     kp="1000" kv="100" ctrlrange="-2.6 0.1"/>
+  </actuator>
+</mujoco>
